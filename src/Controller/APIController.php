@@ -35,7 +35,6 @@ class APIController extends FrontController
         try
         {
             $result = $this->api->$controller->json()->front(true)->$action($id, $method, $params);
-
             if (!$result->success)
                 throw new \Core\Exception\ApiException($result->value, 1);
 

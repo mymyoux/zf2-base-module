@@ -220,7 +220,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $result = null;
         $result_name = (isset($apiRequest->response) ? $apiRequest->response->name : $request['action']);
-
         // check if table set
         if (true === isset($apiRequest->class_table) || true === isset($apiRequest->table))
         {
@@ -237,10 +236,9 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         if (null === $result)
         {
+          
             $result = $this->forward()->dispatch($namespace, $request);
-
         }
-
         if(isset($request['params']))
         {
             $params_keys = array_keys($request['params']);
