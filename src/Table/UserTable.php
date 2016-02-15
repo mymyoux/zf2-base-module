@@ -273,7 +273,7 @@ class UserTable extends CoreTable{
     }
     protected function getHashedPassword($password)
     {
-        return password_hash($password, \PASSWORD_DEFAULT, array("salt"=> bin2hex(openssl_random_pseudo_bytes(60))));
+        return password_hash($password, \PASSWORD_DEFAULT);
     }
     public function updateFromManual($id_user, $data)
     {
