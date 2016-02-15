@@ -33,7 +33,7 @@ class MultipleIdentity extends CoreService implements IIdentity
     public function init()
     {
 
-        $this->_cases_apis = $this->sm->get("APIManager")->getAll();//$this->sm->get("conf ig")["apis"];
+        $this->_cases_apis = $this->sm->get("APIManager")->getAll();
         $this->_configured_apis = array();
         foreach($this->_cases_apis as $api)
         {
