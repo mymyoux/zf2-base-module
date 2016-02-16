@@ -234,6 +234,9 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 $result_name = (isset($apiRequest->response) ? $apiRequest->response->name : $request['action']);
 
                 $result[ $result_name ] = $table->{ $table_method }($context->hasUser()?$context->getUser():$this->sm->get("Identity")->getUser(), $apiRequest);
+            }else
+            {
+                 throw new \Core\Exception\ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
             }
         }
         if (null === $result)
