@@ -36,6 +36,19 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
         $this->_env = isset($configuration["env"])?$configuration['env']:'local';
 
 
+        $json = join_paths(ROOT_PATH,'config/autoload','global.*.json');
+        foreach (glob($json, \GLOB_NOSORT) as $filename) {
+            $content = file_get_contents($filename);
+            try
+            {   $category = substr(basename($filename,".json"), strlen($this->_env)+1);
+                $content = json_decode($content, True);
+                $configuration = array_merge(array($category=>$content), $configuration);
+            }catch(\Exception $e)
+            {
+                throw $e;
+            }
+        }
+
         $json = join_paths(ROOT_PATH,'config/autoload',$this->_env.'.*.json');
         foreach (glob($json, \GLOB_NOSORT) as $filename) {
             $content = file_get_contents($filename);
@@ -48,6 +61,7 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
                 throw $e;
             }
         }
+
         if(file_exists($json))
         {
             $content = file_get_contents($json);
@@ -63,6 +77,14 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
 
         }
         return $configuration;
+    }
+    public function getEnv()
+    {
+         if(!isset($this->_configuration))
+        {
+            $this->_configuration = $this->_getInitialConfiguration();
+        }
+        return $this->_env;
     }
     public function getConfiguration()
     {
