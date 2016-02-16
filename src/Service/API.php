@@ -111,6 +111,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $annotationReader = new AnnotationReader();
 
+        $request['action'] = camel($request['action']);
+
         $methodName = $request['action'].'API';
         // check if '&method=' exist
         $params = $this->sm->get('ControllerPluginManager')->get('Params');
@@ -236,7 +238,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         if (null === $result)
         {
-          
+
             $result = $this->forward()->dispatch($namespace, $request);
         }
         if(isset($request['params']))
