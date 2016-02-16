@@ -419,17 +419,17 @@ function to_array($object, $init = NULL)
  * @param  [type] $src_root [internal]
  * @return void
  */
-function recurse_copy($src,$dst, $exclude = array(), $src_root = NULL) { 
-        $dir = opendir($src); 
+function recurse_copy($src,$dst, $exclude = array(), $src_root = NULL) {
+        $dir = opendir($src);
         if(!isset($src_root))
         {
             $src_root = $src;
         }
-        @mkdir($dst); 
+        @mkdir($dst);
      //    $this->getLogger()->info($dst);
-        while(false !== ( $file = readdir($dir)) ) { 
-            if (( $file != '.' ) && ( $file != '..' )) { 
-                
+        while(false !== ( $file = readdir($dir)) ) {
+            if (( $file != '.' ) && ( $file != '..' )) {
+
                 if(__match($file, $exclude))
                 {
                   //  $this->getLogger()->error($dst . '/' . $file);
@@ -437,18 +437,18 @@ function recurse_copy($src,$dst, $exclude = array(), $src_root = NULL) {
                 }
 
 
-                if ( is_dir($src . '/' . $file) ) { 
-                    recurse_copy($src . '/' . $file,$dst . '/' . $file, $exclude, $src_root); 
-                } 
-                else { 
-                    copy($src . '/' . $file,$dst . '/' . $file); 
-                    
+                if ( is_dir($src . '/' . $file) ) {
+                    recurse_copy($src . '/' . $file,$dst . '/' . $file, $exclude, $src_root);
+                }
+                else {
+                    copy($src . '/' . $file,$dst . '/' . $file);
+
                    // $this->getLogger()->normal($dst . '/' . $file);
-                } 
-            } 
-        } 
-        closedir($dir); 
-    } 
+                }
+            }
+        }
+        closedir($dir);
+    }
     /**
      * Used by recursive_copy
      * @param  [type] $file    [description]
@@ -491,3 +491,19 @@ function slug($str, $replace=array(), $delimiter='-') {
 
     return $clean;
 }
+
+function uncamel($string)
+{
+   $string = preg_replace('/(?<=\\w)(?=[A-Z])/',"-$1", $string);
+   $string = mb_strtolower($string);
+
+   return $string;
+}
+
+function camel($string)
+{
+   $string = lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $string))));
+
+   return $string;
+}
+

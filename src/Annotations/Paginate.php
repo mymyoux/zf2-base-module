@@ -207,7 +207,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         $this->previous = NULL;
         if($this->hasPagination() && !empty($data))
         {
-            if(is_array($data[0]))
+            if(isset($data[0]) && is_array($data[0]))
             {
                 if(isset($data[0][$this->key]))
                 {
@@ -218,7 +218,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             {
                 $this->previous = $data[0]->{$this->key};
             }
-            if(is_array($data[sizeof($data) - 1]))
+            if(isset($data[sizeof($data) - 1]) && is_array($data[sizeof($data) - 1]))
             {
                 if (isset($data[sizeof($data) - 1][$this->key]))
                 {
