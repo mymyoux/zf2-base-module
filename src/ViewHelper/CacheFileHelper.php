@@ -68,6 +68,10 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
                 {
                     $str = $basePath().mb_substr($this->files["public".$file]["file"], 6);
                 }
+                if($sm->get("Identity")->isLoggued() && $sm->get("Identity")->user->isAdmin() && isset($this->files["public".$file]["file_with_map"]))
+                {
+                    $str = $basePath().mb_substr($this->files["public".$file]["file_with_map"], 6);
+                }
                 $str.="?v=".$this->files["public".$file]["label"];
             }
         }

@@ -29,7 +29,9 @@ class ErrorHandler extends CoreService implements ServiceLocatorAwareInterface{
         }
         if($status == 404)
         {
-            Header('Location:/404.html');
+            http_response_code(404);
+            echo file_get_contents(ROOT_PATH."/public/404.html");
+            //Header('Location:/404.html');
             exit();
         }
         //throw $exception;
