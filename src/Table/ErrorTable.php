@@ -8,7 +8,7 @@
 
 namespace Core\Table;
 
-
+use Zend\Db\Sql\Select;
 class ErrorTable extends CoreTable
 {
     const TABLE = "error";
@@ -94,11 +94,16 @@ class ErrorTable extends CoreTable
     public function getJSErrorNotCleaned()
     {
         $where = $this->select()->where->isNull("error_stack_clean")->and->isNotNull("error_stack");
-        $request = $this->select(ErrorTable::TABLE_JAVASCRIPT)->where($where);
+        $request = $this->select(array("error"=>ErrorTable::TABLE_JAVASCRIPT))
+        ->join(array("user"=>UserTable::TABLE), "user.id_user = error.id_user",array("first_name","last_name","email"),Select::JOIN_LEFT)
+        ->where($where);
         $result = $this->execute($request);
         return $result->toArray();
     }
-
+    public function updateError($id_error, $data)
+    {
+        $this->table(ErrorTable::TABLE_JAVASCRIPT)->update($data, array("id_error"=>$id_error));
+    }
 
 
     public function logJSError($data, $hardware = NULL, $error = NULL)
