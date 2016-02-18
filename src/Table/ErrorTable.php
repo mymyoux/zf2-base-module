@@ -91,6 +91,13 @@ class ErrorTable extends CoreTable
         }
     }
 
+    public function getJSErrorNotCleaned()
+    {
+        $where = $this->select()->where->isNull("error_stack_clean")->and->isNotNull("error_stack");
+        $request = $this->select(ErrorTable::TABLE_JAVASCRIPT)->where($where);
+        $result = $this->execute($request);
+        return $result->toArray();
+    }
 
 
 
