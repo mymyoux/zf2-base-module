@@ -492,17 +492,17 @@ function slug($str, $replace=array(), $delimiter='-') {
     return $clean;
 }
 
-function uncamel($string)
+function uncamel($string, $delimiter = '-')
 {
-   $string = preg_replace('/(?<=\\w)(?=[A-Z])/',"-$1", $string);
+   $string = preg_replace('/(?<=\\w)(?=[A-Z])/', $delimiter. "$1", $string);
    $string = mb_strtolower($string);
 
    return $string;
 }
 
-function camel($string)
+function camel($string, $delimiter = '-')
 {
-   $string = lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $string))));
+   $string = lcfirst(str_replace(' ', '', ucwords(str_replace($delimiter, ' ', $string))));
 
    return $string;
 }
