@@ -93,7 +93,7 @@ class ErrorTable extends CoreTable
 
     public function getJSErrorNotCleaned()
     {
-        $where = $this->select()->where->isNull("error_stack_clean")->and->isNotNull("error_stack");
+        $where = $this->select()->where->isNull("error_stack_clean")->and->nest->isNotNull("error_stack")->or->isNotNull("error_url")->unnest;
         $request = $this->select(array("error"=>ErrorTable::TABLE_JAVASCRIPT))
         ->join(array("user"=>UserTable::TABLE), "user.id_user = error.id_user",array("first_name","last_name","email"),Select::JOIN_LEFT)
         ->where($where);
