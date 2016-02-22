@@ -248,6 +248,10 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         $data = array_merge($data, $this->_values);
         return $data;
     }
+    public function isFirst()
+    {
+        return !isset($this->next) && !isset($this->previous);
+    }
 }
 /**
  *
