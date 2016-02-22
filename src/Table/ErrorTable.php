@@ -111,7 +111,7 @@ class ErrorTable extends CoreTable
 
         $keys = array("id_user","session","error_name","error_message","error_url","error_line","error_column","error_stack","hardware_cordovaVersion",
            "hardware_os","hardware_uuid","hardware_osVersion","hardware_android","hardware_blackberry","hardware_ios","hardware_mobile","hardware_windowsPhone",
-           "hardware_screenWidth","hardware_screenHeight","hardware_landscape","hardware_portrait","hardware_browser","url","type");
+           "hardware_screenWidth","hardware_screenHeight","hardware_landscape","hardware_portrait","hardware_browser", 'hardware_cookie' ,"url","type");
 
         if(!isset($hardware))
         {
