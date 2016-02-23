@@ -20,7 +20,7 @@ use Zend\View\Model\ViewModel;
 use Zend\View\Renderer\PhpRenderer;
 use Zend\View\Resolver\TemplatePathStack;
 use Jlinn\Mandrill\Mandrill;
-use Jlinn\Mandrill\Struct\Message;
+use Core\Struct\MandrillMessage;
 
 /**
  * Email Helper
@@ -32,7 +32,19 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
      * Debug mode
      * @var boolean
      */
-    private $debug = NULL;
+    private $debug          = NULL;
+    private $async          = false;
+    private $merge_language = null;
+
+    public function setMergeLanguage( $merge_language )
+    {
+        $this->merge_language = $merge_language;
+    }
+
+    public function setAsync( $async )
+    {
+        $this->async = (bool) $async;
+    }
 
     public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL)
     {
@@ -157,7 +169,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             );
             $i++;
         }
-        $message = new Message();
+        $message = new MandrillMessage();
 
         $message->from_email    = $email_sender;
         $message->from_name     = $sender;
@@ -183,6 +195,9 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         $message->to                = $to;
         $message->global_merge_vars = $data;
 
+        if (null !== $this->merge_language)
+            $message->merge_language    = $this->merge_language;
+
         if (true === is_array($type))
             $message->setTags( $type );
         else
@@ -193,7 +208,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
 
         $this->log($type, $user, $template, $original_emails, $sender, $subject);
 
-        $result = $mandrill->messages()->sendTemplate($template, $message);
+        $result = $mandrill->messages()->sendTemplate($template, $message, [], $this->async);
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);
     }
@@ -367,7 +382,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
     public function isEmailSent()
     {
         $this->checkDebug();
-        $configuration = $this->sm->get("AppConfig")->getConfiguration();   
+        $configuration = $this->sm->get("AppConfig")->getConfiguration();
         return !$this->debug && !isset($configuration["local_notifications"]["email"]);
     }
     protected function checkDebug()
