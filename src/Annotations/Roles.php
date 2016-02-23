@@ -29,19 +29,26 @@ class RolesObject extends CoreObject implements ICoreObjectValidation
     }
     public function isValid($sm, $apiRequest)
     {
-
         $acl = $sm->get("ACL")->newInstance();
+
+        if (true === is_array($this->needs) && true === is_array($this->forbidden))
+        {
+            $this->needs = array_diff($this->needs, $this->forbidden);
+        }
+
         if (isset($this->needs)) {
             foreach ($this->needs as $need) {
                 $acl->add($need, $need);
             }
         }
+
         if (isset($this->forbidden)) {
             foreach ($this->forbidden as $forbidden) {
                 $acl->add($forbidden, \Core\Service\ACL::FORBIDDEN);
             }
         }
-        if ($acl->is_allowed($apiRequest->user/*$sm->get("Identity")->user*/)) {
+
+        if ($acl->is_allowed($apiRequest->user)) {
             return True;
         }
         return "not_allowed";
