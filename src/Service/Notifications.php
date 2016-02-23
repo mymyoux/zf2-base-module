@@ -11,7 +11,6 @@ namespace Core\Service;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-
 /**
  * Email Helper
  * Class Email
@@ -20,75 +19,65 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 class Notifications extends CoreService implements ServiceLocatorAwareInterface
 {
     private $slack_url;
-    protected function getSlackURL()
+    private $client;
+
+    public function init()
     {
-        if(!isset($this->slack_url))
-        {
-            $config = $this->sm->get("AppConfig")->getConfiguration();
-            if(isset($config["slack"]["token"]) && isset($config["slack"]["name"]))
-            {
-                $this->slack_url = "https://".$config["slack"]["name"].".slack.com/services/hooks/slackbot?token=".$config["slack"]["token"];
-            }
-        }
-        return $this->slack_url;
+        $config = $this->getServiceLocator()->get("AppConfig")->get('slack');
+
+        $this->slack_url = $config['url'];
     }
 
     public function sendError($info)
     {
-        if($info["message"] == "You are not allowed to be on this page")
-        {
-            //ignore
-            return;
-        }
-        return;
-        $channel = "test_yb";
+        // if($info["message"] == "You are not allowed to be on this page")
+        // {
+        //     //ignore
+        //     return;
+        // }
+        // return;
+        // $channel = "test_yb";
 
-        $message = ":coffee:\t ".(isset($info["user"])?$info["user"]->first_name." ".$info["user"]->last_name." ":"")." ".($info["id_user"]!=0?'('.$info["id_user"].')':'(no id)');
-        $message .= "\n".$info["message"];
+        // $message = ":coffee:\t ".(isset($info["user"])?$info["user"]->first_name." ".$info["user"]->last_name." ":"")." ".($info["id_user"]!=0?'('.$info["id_user"].')':'(no id)');
+        // $message .= "\n".$info["message"];
 
-        $message .= "\n".$info["url"];
-        $file = $info["file"];
+        // $message .= "\n".$info["url"];
+        // $file = $info["file"];
 
-        $index = mb_strpos($file, "module/");
-        if($index!==False)
-        {
-            $file = mb_substr($info["file"], $index+7);
-        }
-        $message .= "\n".$file.":".$info["line"]."\n";
-        return $this->sendNotification($channel, $message);
+        // $index = mb_strpos($file, "module/");
+        // if($index!==False)
+        // {
+        //     $file = mb_substr($info["file"], $index+7);
+        // }
+        // $message .= "\n".$file.":".$info["line"]."\n";
+        // return $this->sendNotification($channel, $message);
     }
 
-    public function sendNotification($channel, $message)
+    public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
     {
+        $data = array(
+            'channel'     => $channel,
+            'username'    => $bot_name,
+            'text'        => $message,
+            'icon_emoji'  => $icon,
+            'attachments' => $attachments
+        );
 
-            $url = $this->getSlackURL();
-            if(!isset($url))
-            {
-                //no slack configuration
-                return;
-            }
-            //local redirection
-            $config = $this->sm->get("AppConfig")->getConfiguration(); 
+        $data_string = json_encode($data);
 
-            if(isset($config["local_notifications"]["slack_channel"]))
-            {
-                $channel = $config["local_notifications"]["slack_channel"];
-            }else
-            {
-                if(!$this->sm->get("AppConfig")->isProduction())
-                {
-                    $channel = "test_yb";
-                }   
-            }
+        $ch = curl_init( $this->slack_url );
 
-            $url .= "&channel=%23".$channel;
-            $data  = $message;
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $result = curl_exec($ch);
-            curl_close($ch);
-            return $result;
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data_string))
+        );
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
     }
 }
