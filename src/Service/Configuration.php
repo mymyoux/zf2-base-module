@@ -117,6 +117,10 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
          $configuration = $this->getConfiguration();
         return isset($configuration[$category])?$configuration[$category]:NULL;
     }
+    public function isCLI()
+    {
+        return (php_sapi_name() === 'cli');
+    }
     /**
      * Check if current env is not Prod
      * @return boolean [description]

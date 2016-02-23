@@ -71,19 +71,20 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
      * @return mixed Result
      * @throws \Exception
      */
-    public function _action($controller, $action, $arguments, $context)
+    public function _action($controller, $action, $arguments, $context, $module)
     {
         $this->sm->get('Route')->setServiceLocator($this->sm);
-        $type = ucfirst($this->sm->get('Route')->getType());
+        $type = (null !== $module ? ucfirst($module) : ucfirst($this->sm->get('Route')->getType()));
+
         $controller = ucfirst($controller);
         $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
+
         if(!class_exists($namespace))
         {
             $type = 'Application';
 
             $namespace = '\Application\Controller\\' . $controller.'Controller';
             if (!class_exists($namespace)) {
-
                 throw new \Exception('bad_controller:'.$controller);
             }
         }
@@ -336,17 +337,19 @@ class _Binder
     private $controller;
     private $_user;
     private $_json;
+    private $_module;
     public function __construct(API $api, $controller)
     {
         $this->_json        = false;
         $this->_user        = null;
         $this->_front       = false;
+        $this->_module      = null;
         $this->api          = $api;
         $this->controller   = $controller;
     }
     public function __call($action, $arguments)
     {
-        return $this->api->_action($this->controller, $action, $arguments, $this);
+        return $this->api->_action($this->controller, $action, $arguments, $this, $this->_module);
     }
     public function hasUser()
     {
@@ -367,6 +370,11 @@ class _Binder
     public function user($user)
     {
         $this->_user  = $user;
+        return $this;
+    }
+    public function module($module)
+    {
+        $this->_module  = $module;
         return $this;
     }
     public function front($front)
