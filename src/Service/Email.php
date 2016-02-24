@@ -356,7 +356,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             $email = $config["local_notifications"]["email"];
         }
         $mandrill = $this->createMandrill();
-        $message = new Message();
+        $message = new MandrillMessage();
 
         $message->html          = $html;
         $message->from_email    = $email_sender;
