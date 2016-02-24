@@ -56,7 +56,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
     {
         $data = array(
-            'channel'     => $channel,
+            'channel'     => (mb_strpos($channel, '#') === false ? '#' : '') . $channel,
             'username'    => $bot_name,
             'text'        => $message,
             'icon_emoji'  => $icon,
