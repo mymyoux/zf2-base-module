@@ -10,6 +10,7 @@ namespace Core\Service;
 
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Core\Model\SlackModel;
 
 /**
  * Email Helper
@@ -52,7 +53,29 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         // $message .= "\n".$file.":".$info["line"]."\n";
         // return $this->sendNotification($channel, $message);
     }
+    public function sendSlack( $slack)
+    {
+        if(!$slack->isValid())
+        {
+            dd("no valid");
+            return;
+        }
+       // dd($slack);
+        $json = $slack->toSlackJSON();
+        $ch = curl_init( $this->slack_url  );
 
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($json))
+        );
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
     public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
     {
         $data = array(
