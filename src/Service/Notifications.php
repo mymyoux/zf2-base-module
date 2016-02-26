@@ -10,7 +10,7 @@ namespace Core\Service;
 
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Core\Model\SlackModel;
+use Core\Model\Slack\SlackModel;
 
 /**
  * Email Helper
