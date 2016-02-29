@@ -78,7 +78,7 @@ class MultipleIdentity extends CoreService implements IIdentity
             if($this->user->last_connection+$delay<$timestamp)
             {
                 $this->getUserTable()->updateConnectionCount($this->user);
-                if(($this->user->isCabinetEmployee() || $this->user->isCompanyEmployee()) && !$this->sm->get("AppConfig")->isLocal())
+                if((!$this->user->isAdmin()) && !$this->sm->get("AppConfig")->isLocal())
                 {
                     $this->getNotificationManager()->login($this->user);
                 }
