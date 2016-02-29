@@ -16,6 +16,7 @@ class Email extends ListenerAbstract implements ListenerInterface
     protected $queueName;
     private $tries;
     private $queue;
+    private $debug;
 
     /**
      * @param int $tries
@@ -65,9 +66,49 @@ class Email extends ListenerAbstract implements ListenerInterface
         $m_message  = new MandrillMessage();
         $m_message = $m_message->fromArray( toArray($message), true );
 
-        $result     = $this->createMandrill()->messages()->sendTemplate($template, $m_message, [], $async);
+        $this->log($data->type, $data->user, $template, $data->original_emails, $data->sender, $data->subject);
+
+        if (null === $template)
+        {
+            $result = $this->createMandrill()->messages()->send($m_message, $async);
+        }
+        else
+        {
+            $result = $this->createMandrill()->messages()->sendTemplate($template, $m_message, [], $async);
+        }
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);
     }
 
+    /**
+     * Logs email to the database
+     * @param string $type Email's type
+     * @param \Core\Model\UserModel $recipient Recipient
+     * @param string $html Email's content
+     * @param string $emails Email of recipient(s)
+     * @param string $sender Email of sender
+     * @param string $subject Email's subject
+     */
+    protected function log($type, $recipient, $html, array $emails, $sender, $subject = NULL)
+    {
+        // do not insert if it's in debug mode
+        if (true === $this->debug) return false;
+
+        if(!isset($subject))
+        {
+            $subject = "by_default";
+        }
+        if (true === is_array($type)) $type = implode('-', $type);
+
+        foreach ($emails as $email)
+            $this->getMailTable()->logEmail($type, $recipient, $html, $email, $sender, $subject);
+    }
+
+    /**
+     * @return \Core\Table\MailTable
+     */
+    protected function getMailTable()
+    {
+        return $this->sm->get("MailTable");
+    }
 }

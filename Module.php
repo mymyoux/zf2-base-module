@@ -30,6 +30,9 @@ use Zend\Permissions\Acl\Role\GenericRole;
 use Zend\Permissions\Acl\Resource\GenericResource;
 use Zend\View\Model\JsonModel;
 use Zend\View\ViewEvent;
+
+use Core\Table\BeanstalkdLogTable;
+
 class Module
 {
 
@@ -97,6 +100,10 @@ class Module
     {
         $config = array(
             'factories' => array(
+                'BeanstalkdLogTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new BeanstalkdLogTable(new TableGateway(BeanstalkdLogTable::TABLE,$dbAdapter, NULL, NULL));
+                },
                 'TokenTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     $resultSetPrototype = new ResultSet();
