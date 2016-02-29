@@ -408,7 +408,6 @@ class UserTable extends CoreTable{
             if(!array_key_exists($key, $insert))
                 $insert[$key] = $value;
         }
-
         //if id_user is already specified
         if(isset($this->session->createUser()->id_user))
         {
