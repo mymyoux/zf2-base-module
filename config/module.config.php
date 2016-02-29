@@ -123,6 +123,11 @@ return array(
             // more helpers here ...
         )
     ),
+    'beanstalkd' => [
+        'ip'            => '127.0.0.1',
+        'port'          => 11300,
+        'retry_count'   => 3
+    ],
     'apis' => array(
         "linkedIn" => array("class"=>'\Core\Service\Api\LinkedIn')
     ),

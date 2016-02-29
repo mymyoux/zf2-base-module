@@ -33,10 +33,12 @@ class ListenController extends \Core\Console\CoreController
 
     public function listen( $name )
     {
-        $this->tries = 3;//$tries;
-        // Connecting to the queue
-        $ip = '127.0.0.1';
-        $this->queue = new Pheanstalk($ip, 11300);
+        $config      = $this->sm->get('AppConfig')->get('beanstalkd');
+        $this->tries = $config['retry_count'];
+        $ip          = $config['ip'];
+        $port        = $config['port'];
+
+        $this->queue = new Pheanstalk($ip, $port);
 
         $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
 
