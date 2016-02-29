@@ -57,11 +57,12 @@ return array(
             'Geolocation'=>'Core\Service\Geolocation',
             'Env'=>'Core\Service\Env',
             'AppConfig'=>'Core\Service\Configuration',
-            'API'=>'Core\Service\API'
+            'API'=>'Core\Service\API',
+            'QueueService' => 'Core\Service\Queue',
 
         ),
         'services' => array(
-            
+
         ),
         'aliases' => array(
 
@@ -86,6 +87,8 @@ return array(
         'invokables' => array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
+            'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
+            'Core\Console\Queue\Test' => 'Core\Console\Queue\TestController',
           /*  'Application\Controller\CoreController' => 'Application\Controller\CoreController',
             'Application\Controller\FrontController' => 'Application\Controller\FrontController'*/
         ),
