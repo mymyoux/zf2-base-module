@@ -48,8 +48,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
 
     public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL)
     {
-        $this->checkDebug();
-
         $user = NULL;
         if($email instanceof \Core\Model\UserModel)
         {
@@ -86,7 +84,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             $email_sender = "notifications@yborder.com";
         }
 
-        $mandrill       = $this->createMandrill();
+        // $mandrill       = $this->createMandrill();
         $sender_hash    = null;
         $headers        = null;
 
@@ -206,12 +204,29 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         if(isset($subject))
             $message->subject = $subject;
 
-        $this->log($type, $user, $template, $original_emails, $sender, $subject);
+        $beanstalkd = [
+            'type'              => $type,
+            'original_emails'   => $original_emails,
+            'user'              => $user,
+            'sender'            => $sender,
+            'subject'           => $subject,
+            'template'          => $template,
+            'message'           => $message,
+            'async'             => $this->async
+        ];
 
-        $result = $mandrill->messages()->sendTemplate($template, $message, [], $this->async);
+        $result = $this->sendToBeanstalkd( $beanstalkd );
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);
     }
+
+    public function sendToBeanstalkd( $data )
+    {
+        $job = $this->sm->get('QueueService')->createJob('email', $data);
+
+        return $job->send();
+    }
+
     /**
      * Sends an email
      * @param string $type Type of mail for database log
@@ -224,9 +239,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
      */
     public function sendEmail($type, $template, $email, $email_sender, $sender, $subject, $data = NULL)
     {
-
-        $this->checkDebug();
-
         $config = $this->sm->get("AppConfig")->getConfiguration();
         if(is_array($template))
         {
@@ -323,16 +335,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             $emails[$key] = $email;
         }
 
-        //local redirection
-
-        /*if(isset($config["local_notifications"]["email"]))
-        {
-            if(is_array($email))
-            {
-
-                $email = $config["local_notifications"]["email"];
-            }
-        }*/
         if(($email instanceof \ArrayObject || is_array($email)) && isset($email["email"]))
         {
             $email = $email["email"];
@@ -355,7 +357,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         {
             $email = $config["local_notifications"]["email"];
         }
-        $mandrill = $this->createMandrill();
         $message = new MandrillMessage();
 
         $message->html          = $html;
@@ -375,16 +376,23 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         else
             $message->setTags( [$type] );
 
-        $this->log($type, $user, $html, $original_emails, $sender, $subject);
 
-        $mandrill->messages()->send($message, False);
+        $beanstalkd = [
+            'type'              => $type,
+            'original_emails'   => $original_emails,
+            'user'              => $user,
+            'sender'            => $sender,
+            'subject'           => $subject,
+            'template'          => null,
+            'message'           => $message,
+            'async'             => $this->async
+        ];
+
+        $result = $this->sendToBeanstalkd( $beanstalkd );
+
+        return $result;
     }
-    public function isEmailSent()
-    {
-        $this->checkDebug();
-        $configuration = $this->sm->get("AppConfig")->getConfiguration();
-        return !$this->debug && !isset($configuration["local_notifications"]["email"]);
-    }
+
     protected function checkDebug()
     {
         if(!isset($this->debug))
@@ -401,14 +409,12 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             }
         }
     }
-    private function createMandrill()
+
+    public function isEmailSent()
     {
-        $mandrill_configuration = $this->sm->get("AppConfig")->get("mandrill");
         $this->checkDebug();
-
-        $api_key = (true === $this->debug ? $mandrill_configuration["test_api_key"] : $mandrill_configuration["api_key"]);
-
-        return new Mandrill( $api_key );
+        $configuration = $this->sm->get("AppConfig")->getConfiguration();
+        return !$this->debug && !isset($configuration["local_notifications"]["email"]);
     }
 
     /**
