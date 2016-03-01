@@ -21,12 +21,18 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 {
     private $slack_url;
     private $client;
+    protected $send_now = false;
 
     public function init()
     {
         $config = $this->getServiceLocator()->get("AppConfig")->get('slack');
 
         $this->slack_url = $config['url'];
+    }
+
+    public function sendNow()
+    {
+        $this->send_now = true;
     }
 
     public function sendError($info)
@@ -74,6 +80,13 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             'icon_emoji'  => $icon,
             'attachments' => $attachments
         );
+
+        if (true === $this->send_now)
+        {
+            $this->send_now = false;
+
+            return $this->send( json_encode($data) );
+        }
 
         return $this->sendToBeanstalkd($data);
     }
