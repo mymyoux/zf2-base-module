@@ -21,12 +21,18 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 {
     private $slack_url;
     private $client;
+    protected $send_now = false;
 
     public function init()
     {
         $config = $this->getServiceLocator()->get("AppConfig")->get('slack');
 
         $this->slack_url = $config['url'];
+    }
+
+    public function sendNow()
+    {
+        $this->send_now = true;
     }
 
     public function sendError($info)
@@ -53,16 +59,41 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         // $message .= "\n".$file.":".$info["line"]."\n";
         // return $this->sendNotification($channel, $message);
     }
-    public function sendSlack( $slack)
+    public function sendSlack( $slack )
     {
         if(!$slack->isValid())
         {
             dd("no valid");
             return;
         }
-       // dd($slack);
-        $json = $slack->toSlackJSON();
-        $ch = curl_init( $this->slack_url  );
+        $data = $slack->toSlackArray();
+
+        return $this->sendToBeanstalkd($data);
+    }
+
+    public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
+    {
+        $data = array(
+            'channel'     => (mb_strpos($channel, '#') === false ? '#' : '') . $channel,
+            'username'    => $bot_name,
+            'text'        => $message,
+            'icon_emoji'  => $icon,
+            'attachments' => $attachments
+        );
+
+        if (true === $this->send_now)
+        {
+            $this->send_now = false;
+
+            return $this->send( json_encode($data) );
+        }
+
+        return $this->sendToBeanstalkd($data);
+    }
+
+    public function send( $json )
+    {
+        $ch = curl_init( $this->slack_url );
 
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
@@ -74,33 +105,14 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
         $result = curl_exec($ch);
         curl_close($ch);
+
         return $result;
     }
-    public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
+
+    public function sendToBeanstalkd( $data )
     {
-        $data = array(
-            'channel'     => (mb_strpos($channel, '#') === false ? '#' : '') . $channel,
-            'username'    => $bot_name,
-            'text'        => $message,
-            'icon_emoji'  => $icon,
-            'attachments' => $attachments
-        );
+        $job = $this->sm->get('QueueService')->createJob('slack', $data);
 
-        $data_string = json_encode($data);
-
-        $ch = curl_init( $this->slack_url );
-
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($data_string))
-        );
-
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        return $result;
+        $job->send();
     }
 }
