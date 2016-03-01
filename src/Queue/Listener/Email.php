@@ -59,6 +59,9 @@ class Email extends ListenerAbstract implements ListenerInterface
 
     public function executeJob( $data )
     {
+        if (!is_object($data))
+            $data = json_decode(json_encode($data));
+
         $template   = $data->template;
         $message    = $data->message;
         $async      = $data->async;

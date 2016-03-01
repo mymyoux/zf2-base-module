@@ -16,6 +16,26 @@ class BeanstalkdLogTable extends CoreTable
 {
 	CONST TABLE    = 'beanstalkd_log';
 
+
+    public function getCountLastError()
+    {
+        $where  = $this->select([ 'ms' => self::TABLE ])
+                        ->where
+                            ->equalTo('id_send', 2)
+                            ->greaterThan('created_time', new Expression('NOW() - INTERVAL 1 HOUR'))
+                                ;
+        $request = $this->select([ 'ms' => self::TABLE ])
+                        ->where( $where );
+
+        $result = $this->execute($request);
+
+        $data = $result->toArray();
+
+        if (!$data) return 0;
+
+        return count($data);
+    }
+
     public function findById( $id )
     {
         $where  = $this->select([ 'ms' => self::TABLE ])

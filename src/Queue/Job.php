@@ -30,10 +30,6 @@ class Job implements ServiceLocatorAwareInterface {
         $this->job          = $job;
         $this->job_json     = json_encode($job);
         $this->tube         = $tube;
-        $this->ip           = '127.0.0.1';
-        $this->port         = 11300;
-
-        $this->beanstalkd   = new Pheanstalk($this->ip, $this->port);
     }
 
     /**
@@ -47,8 +43,19 @@ class Job implements ServiceLocatorAwareInterface {
 
         $this->job['_id_beanstalkd'] = $id;
 
+        if (!$this->beanstalkd)
+        {
+            $config             = $this->sm->get('AppConfig')->get('beanstalkd');
+
+            $this->ip           = $config['ip'];
+            $this->port         = $config['port'];
+
+            $this->beanstalkd   = new Pheanstalk($this->ip, $this->port);
+        }
+
         if (!$this->beanstalkd->getConnection()->isServiceListening())
         {
+            $this->sendAlert();
             $object_name = '\Core\Queue\Listener\\' . ucfirst($this->tube);
 
             if (false === class_exists($object_name))
@@ -59,14 +66,25 @@ class Job implements ServiceLocatorAwareInterface {
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
-            $listener->executeJob( json_decode($this->job) );
+            $listener->executeJob( $this->job );
 
-            $this->sm->get('BeanstalkdLogTable')->setSend($id, true);
+            $this->sm->get('BeanstalkdLogTable')->setSend($id, 2);
 
             return true;
         }
 
         return $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job));
+    }
+
+    private function sendAlert()
+    {
+        $count = $this->sm->get('BeanstalkdLogTable')->getCountLastError();
+
+        if (0 === $count)
+        {
+            $this->sm->get('Notifications')->sendNow();
+            $this->sm->get('Notifications')->alert('beanstalkd');
+        }
     }
 
     public function getTube()
