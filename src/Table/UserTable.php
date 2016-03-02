@@ -20,6 +20,37 @@ class UserTable extends CoreTable{
         $result = $result->current();
         if($result === False)
         {
+
+            $result = $this->table(UserTable::TABLE)->select(array("email"=>trim($email)));  
+            $result = $result->current();
+            if($result === False)
+            {
+                $apiManager = $this->sm->get("APIManager");
+                $apis = $apiManager->getAll();
+                foreach($apis as $api)
+                {
+                    if($apiManager->canLogin($api))
+                    {
+                         $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>trim($email)));  
+                         $result = $result->current();
+                         if($result !== False)
+                         {
+                            throw new \Exception("bad_network.use_".$api);
+                            return NULL;
+                         }
+                    }
+                }
+               
+            }else
+            {
+                $apis = $this->getApis($result["id_user"]);
+                if(!empty($apis))
+                {
+                    throw new \Exception("bad_network.use_".$apis[0]);
+                    return NULL;
+                }
+            }
+          
             throw new \Exception("no_email");
             return NULL;
         }
