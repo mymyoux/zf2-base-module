@@ -89,6 +89,7 @@ class ErrorTable extends CoreTable
         {
 
         }
+        return $this->table()->lastInsertValue;
     }
 
     public function getJSErrorNotCleaned()
