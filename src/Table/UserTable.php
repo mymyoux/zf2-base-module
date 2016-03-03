@@ -48,6 +48,9 @@ class UserTable extends CoreTable{
                 {
                     throw new \Exception("bad_network.use_".$apis[0]);
                     return NULL;
+                }else
+                {
+                    //can't happen
                 }
             }
           

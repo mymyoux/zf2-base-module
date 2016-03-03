@@ -1,6 +1,7 @@
 <?php
 namespace Core\Annotations;
 use Core\Exception\Exception;
+use Core\Exception\ApiException;
 
 class RolesObject extends CoreObject implements ICoreObjectValidation
 {
@@ -51,7 +52,7 @@ class RolesObject extends CoreObject implements ICoreObjectValidation
         if ($acl->is_allowed($apiRequest->user)) {
             return True;
         }
-        return "not_allowed";
+        return ApiException::ERROR_NOT_ALLOWED;
     }
 }
 /**

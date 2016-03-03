@@ -32,6 +32,7 @@ use Zend\View\Model\JsonModel;
 use Zend\View\ViewEvent;
 
 use Core\Table\BeanstalkdLogTable;
+use Core\Table\StatsTable;
 
 class Module
 {
@@ -113,6 +114,10 @@ class Module
                 'ErrorTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new ErrorTable(new TableGateway("error",$dbAdapter, NULL, NULL));
+                },
+                'StatsTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new StatsTable(new TableGateway(StatsTable::TABLE_API_CALL,$dbAdapter, NULL, NULL));
                 },
                 'MailTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
