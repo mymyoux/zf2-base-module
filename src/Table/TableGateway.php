@@ -61,7 +61,7 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
     {
         if(!array_key_exists("created_time", $set))
         {
-            $set["created_time"] = new \Zend\Db\Sql\Expression("NOW()");
+            $set["created_time"] = new \Zend\Db\Sql\Expression("NOW(3)");
         }
         return parent::insert($set);
     }
