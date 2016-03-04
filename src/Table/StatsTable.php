@@ -20,6 +20,13 @@ class StatsTable extends CoreTable
    
     public function recordAPICall($call)
     {
+        if(isset($call["date"]))
+        {
+            if(is_numeric($call["date"]))
+            {
+                $call["date"] = new Expression('FROM_UNIXTIME(?)', $call["date"]);
+            }
+        }
         $this->table(StatsTable::TABLE_API_CALL)->insert($call);
     }
 }

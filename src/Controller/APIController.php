@@ -36,10 +36,17 @@ class APIController extends FrontController
         $id_user = $this->identity->isLoggued()?$this->identity->user->id:NULL;
         /**/
         $timestamp = NULL;
+        $timestamp_micro = "";
         if(isset($params["_timestamp"]))
         {
             $timestamp = $params["_timestamp"];
+            $old = $timestamp;
             $timestamp = intval($timestamp/1000);
+            $micro = $old - $timestamp*1000;
+            if($micro>0)
+            {
+                $timestamp_micro = ".".$micro;
+            }
             unset($params["_timestamp"]);
         }
         if(!isset($timestamp))
@@ -67,7 +74,7 @@ class APIController extends FrontController
         }
 
         $id_exception = NULL;
-        $api_stats = array("session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp),"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
+        $api_stats = array("session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp).$timestamp_micro,"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
         try
         {
             $result = $this->api->$controller->json()->front(true)->$action($id, $method, $params);
