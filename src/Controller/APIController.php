@@ -34,6 +34,11 @@ class APIController extends FrontController
 
         //stats
         $id_user = $this->identity->isLoggued()?$this->identity->user->getRealID():NULL;
+        $impersonated_id_user = $this->identity->isLoggued()?$this->identity->user->id:NULL;
+        if($impersonated_id_user == $id_user)
+        {
+            $impersonated_id_user = NULL;
+        }
         /**/
         $timestamp = NULL;
         $timestamp_micro = "";
@@ -74,7 +79,7 @@ class APIController extends FrontController
         }
 
         $id_exception = NULL;
-        $api_stats = array("session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp).$timestamp_micro,"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
+        $api_stats = array("id_user_impersonated"=>$impersonated_id_user,"session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp).$timestamp_micro,"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
         try
         {
             $result = $this->api->$controller->json()->front(true)->$action($id, $method, $params);
