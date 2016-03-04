@@ -33,7 +33,7 @@ class APIController extends FrontController
 
 
         //stats
-        $id_user = $this->identity->isLoggued()?$this->identity->user->id:NULL;
+        $id_user = $this->identity->isLoggued()?$this->identity->user->getRealID():NULL;
         /**/
         $timestamp = NULL;
         $timestamp_micro = "";
