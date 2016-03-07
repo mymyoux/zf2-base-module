@@ -212,7 +212,8 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             'subject'           => $subject,
             'template'          => $template,
             'message'           => $message,
-            'async'             => $this->async
+            'async'             => $this->async,
+            'debug'             => $this->debug
         ];
 
         $result = $this->sendToBeanstalkd( $beanstalkd );
@@ -385,7 +386,8 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             'subject'           => $subject,
             'template'          => null,
             'message'           => $message,
-            'async'             => $this->async
+            'async'             => $this->async,
+            'debug'             => $this->debug
         ];
 
         $result = $this->sendToBeanstalkd( $beanstalkd );
