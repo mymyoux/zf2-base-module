@@ -66,6 +66,8 @@ class Email extends ListenerAbstract implements ListenerInterface
         $message    = $data->message;
         $async      = $data->async;
 
+        $this->debug = $data->debug;
+
         $m_message  = new MandrillMessage();
         $m_message = $m_message->fromArray( toArray($message), true );
 
