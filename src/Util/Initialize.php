@@ -524,4 +524,41 @@ function array_orderby()
     call_user_func_array('array_multisort', $args);
     return array_pop($args);
 }
+/**
+ * Extract version of a keyword
+ * @param  [type] $name [description]
+ * @return [type]       [description]
+ */
+function split_version($name)
+{
+    if(!isset($name))
+    {
+        return False;
+    }
+    $name = trim($name);
+    if(is_numeric($name))
+    {
+        return ["version"=>$name, "value"=>""];
+    }
+    $index = -1;
+    $version = "";
+    $letter = NULL;
+    while(True)
+    {
+        $letter = mb_substr($name, $index, 1);
+        if(is_numeric($letter) || in_array($letter, [".",","]))
+        {
+            $version = $letter.$version;
+            $index--;
+        }else
+        {
+            break;
+        }
+    }
+    if(strlen($version))
+    {
+        return ["version"=>$version, "value"=>trim(mb_substr($name, 0, mb_strlen($name)-mb_strlen($version)))];
+    }
+    return False;
 
+}
