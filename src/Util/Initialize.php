@@ -538,7 +538,7 @@ function split_version($name)
     $name = trim($name);
     if(is_numeric($name))
     {
-        return ["version"=>$name, "value"=>""];
+        return ["original"=>$name,"version"=>$name, "value"=>""];
     }
     $index = -1;
     $version = "";
@@ -557,7 +557,7 @@ function split_version($name)
     }
     if(strlen($version))
     {
-        return ["version"=>$version, "value"=>trim(mb_substr($name, 0, mb_strlen($name)-mb_strlen($version)))];
+        return ["original"=>$name, "version"=>$version, "value"=>trim(mb_substr($name, 0, mb_strlen($name)-mb_strlen($version)))];
     }
     return False;
 
