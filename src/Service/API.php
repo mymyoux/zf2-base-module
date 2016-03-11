@@ -75,7 +75,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
     {
         $this->sm->get('Route')->setServiceLocator($this->sm);
         $type = (null !== $module ? ucfirst($module) : ucfirst($this->sm->get('Route')->getType()));
-
         $controller = ucfirst($controller);
         $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
 
@@ -85,7 +84,21 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
             $namespace = '\Application\Controller\\' . $controller.'Controller';
             if (!class_exists($namespace)) {
-                throw new \Exception('bad_controller:'.$controller);
+
+                $appconfig = $this->sm->get("ApplicationConfig");
+                if(isset($appconfig) && isset($appconfig["modules"]) && count($appconfig["modules"]))
+                {
+                    $modules = $appconfig["modules"];
+                    $last_module = $modules[count($modules)-1];
+                    if($last_module != $type)
+                    {
+                        $type = $last_module;
+                        $namespace = '\\'.$type.'\Controller\\' . $controller.'Controller';
+                    }
+                }
+                 if (!class_exists($namespace)) {
+                    throw new \Exception('bad_controller:'.$controller);
+                }
             }
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
