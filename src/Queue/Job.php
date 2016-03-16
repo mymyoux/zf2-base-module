@@ -56,8 +56,17 @@ class Job implements ServiceLocatorAwareInterface {
         if (!$this->beanstalkd->getConnection()->isServiceListening())
         {
             $this->sendAlert();
-            $object_name = '\Core\Queue\Listener\\' . ucfirst($this->tube);
-
+            $modules = $this->sm->get("ApplicationConfig")["modules"];
+            $modules =  array_reverse($modules);
+            foreach($modules as $module)
+            {
+                $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . ucfirst($this->tube);
+                if (false === class_exists($object_name))
+                {
+                    continue;
+                }
+                break;
+            }
             if (false === class_exists($object_name))
             {
                 throw new \Exception('Class `' . $object_name . '` not exist', 1);
