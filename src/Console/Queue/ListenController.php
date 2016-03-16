@@ -42,8 +42,18 @@ class ListenController extends \Core\Console\CoreController
 
         $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
 
-        $object_name = '\Core\Queue\Listener\\' . ucfirst($name);
-
+        
+        $modules = $this->sm->get("ApplicationConfig")["modules"];
+        $modules = array_reverse($modules);
+        foreach($modules as $module)
+        {
+            $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . ucfirst($name);
+            if (false === class_exists($object_name))
+            {
+                continue;
+            }
+            break;
+        }
         if (false === class_exists($object_name))
         {
             throw new \Exception('Class `' . $object_name . '` not exist', 1);
@@ -64,8 +74,8 @@ class ListenController extends \Core\Console\CoreController
 
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
-                $data   = json_decode($job->getData());
-                $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data->_id_beanstalkd );
+                $data   = json_decode($job->getData(), True);
+                $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data["_id_beanstalkd"] );
 
                 $this->getLogger()->debug('ID BeanstalkdLogTable (' . $log['id'] .')');
 
