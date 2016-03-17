@@ -88,6 +88,7 @@ return array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
             'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
+            'Core\Console\Queue\Replay' => 'Core\Console\Queue\ReplayController',
             'Core\Console\Queue\Test' => 'Core\Console\Queue\TestController',
           /*  'Application\Controller\CoreController' => 'Application\Controller\CoreController',
             'Application\Controller\FrontController' => 'Application\Controller\FrontController'*/
