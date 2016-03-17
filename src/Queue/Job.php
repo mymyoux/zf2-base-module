@@ -39,7 +39,7 @@ class Job implements ServiceLocatorAwareInterface {
      */
     public function send()
     {
-        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json );
+        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube );
 
         $this->job['_id_beanstalkd'] = $id;
 

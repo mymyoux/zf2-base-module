@@ -46,6 +46,11 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         $this->async = (bool) $async;
     }
 
+    public function prepareEmail($config, $data)
+    {
+        
+    }
+
     public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL)
     {
         $user = NULL;
