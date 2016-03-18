@@ -213,4 +213,13 @@ class CoreController  extends AbstractActionController
         }
         return mb_strpos($_SERVER['HTTP_HOST'], ".local")!==FALSE;*/
     }
+    public function getEnv()
+    {
+        return $this->sm->get("AppConfig")->getEnv();
+        /*if(!array_key_exists("HTTP_HOST", $_SERVER))
+        {
+            return False;
+        }
+        return mb_strpos($_SERVER['HTTP_HOST'], ".local")!==FALSE;*/
+    }
 }
