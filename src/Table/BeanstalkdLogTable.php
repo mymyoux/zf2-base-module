@@ -35,7 +35,18 @@ class BeanstalkdLogTable extends CoreTable
 
         return count($data);
     }
+    public function getIdsGreaterThanOrEqual( $id )
+    {
+        $where = $this->select()->where->greaterThanOrEqualTo("id", $id);
+        $request = $this->select(BeanstalkdLogTable::TABLE)->where($where);
+        $result = $this->execute($request);
 
+        return array_map(function($item)
+        {
+            return intval($item["id"]);
+        }, $result->toArray());
+
+    }
     public function findById( $id )
     {
         $where  = $this->select([ 'ms' => self::TABLE ])
