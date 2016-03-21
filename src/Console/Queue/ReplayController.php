@@ -97,7 +97,7 @@ class ReplayController extends \Core\Console\CoreController
                     $queue = $this->params()->fromRoute('queue');
                     if(!isset($queue))
                     {
-                        $this->getLogger()->error('This record has no queue registered you must pass it - queue=xxxx');
+                        $this->getLogger()->error('This record['.$id.'] has no queue registered you must pass it - queue=xxxx');
                         $failed[] = $id;
                         continue;
                     }
