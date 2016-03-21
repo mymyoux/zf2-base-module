@@ -15,6 +15,10 @@ use Zend\Db\TableGateway\TableGateway as ZTableGateway;
 
 class CoreTable extends \Core\Service\CoreService
 {
+    CONST MAX_RECONNECT_COUNT   = 1;
+    CONST MAX_GLOBAL_RECONNECT  = 3; // max reconnect failed
+
+    private $global_reconnect_fail = 0;
     /**
      * @var \Core\Table\TableGateway
      */
@@ -179,8 +183,54 @@ class CoreTable extends \Core\Service\CoreService
         {
             $strRequest = $this->sql->getSqlStringForSqlObject($request);
         }
-        $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+        try
+        {
+            $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+        }
+        catch (\Exception $e)
+        {
+            $message = $e->getMessage();
+
+            if ($message == 'SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' && $this->global_reconnect_fail < self::MAX_GLOBAL_RECONNECT)
+            {
+                $filename = ROOT_PATH . '/logs/mysql-gone-away.log';
+
+                $data = '[' . date('Y-m-d H:i:s') . '] RECONNECT(' . $this->global_reconnect_fail . ') QUERY => ' . str_replace(PHP_EOL, ' ', $strRequest) . PHP_EOL;
+
+                $cache = fopen($filename, 'a');
+                fwrite($cache, $data);
+                fclose($cache);
+
+                $this->_reconnect();
+                return $this->execute( $request );
+            } else {
+                throw $e;
+            }
+        }
+
         return $results;
+    }
+
+    private function _reconnect()
+    {
+        $this->db->getDriver()->getConnection()->disconnect();
+
+        for ($i = 1; $i <= self::MAX_RECONNECT_COUNT; $i++) {
+            sleep(1);
+            try {
+                $this->db->getDriver()->getConnection()->connect();
+            } catch (\Exception $e) {
+                if ($i == self::MAX_RECONNECT_COUNT) {
+                    $this->global_reconnect_fail++;
+                    throw $e;
+                }
+            }
+            if ($this->db->getDriver()->getConnection()->isConnected())
+            {
+                $this->global_reconnect_fail = -1;
+                return ;
+            }
+        }
     }
 
     public function getList($where = NULL, $page=0, $count=10)
