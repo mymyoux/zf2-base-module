@@ -18,7 +18,6 @@ class CoreTable extends \Core\Service\CoreService
     CONST MAX_RECONNECT_COUNT   = 1;
     CONST MAX_GLOBAL_RECONNECT  = 3; // max reconnect failed
 
-    private $global_reconnect_fail = 0;
     /**
      * @var \Core\Table\TableGateway
      */
@@ -183,25 +182,20 @@ class CoreTable extends \Core\Service\CoreService
         {
             $strRequest = $this->sql->getSqlStringForSqlObject($request);
         }
+
         try
         {
             $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
         }
         catch (\Exception $e)
         {
-            $message = $e->getMessage();
-
-            if ($message == 'SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' && $this->global_reconnect_fail < self::MAX_GLOBAL_RECONNECT)
+            if ($this->isExceptionNeedReconnectMySQL($e))
             {
-                $filename = ROOT_PATH . '/logs/mysql-gone-away.log';
+                $this->_log('[' . date('Y-m-d H:i:s') . '] RECONNECT QUERY => ' . str_replace(PHP_EOL, ' ', $strRequest));
 
-                $data = '[' . date('Y-m-d H:i:s') . '] RECONNECT(' . $this->global_reconnect_fail . ') QUERY => ' . str_replace(PHP_EOL, ' ', $strRequest) . PHP_EOL;
+                if (false === $this->_reconnect())
+                    throw $e;
 
-                $cache = fopen($filename, 'a');
-                fwrite($cache, $data);
-                fclose($cache);
-
-                $this->_reconnect();
                 return $this->execute( $request );
             } else {
                 throw $e;
@@ -211,26 +205,68 @@ class CoreTable extends \Core\Service\CoreService
         return $results;
     }
 
+    private function isExceptionNeedReconnectMySQL( $e )
+    {
+        $message = $e->getMessage();
+
+        if (mb_strpos($message, 'MySQL server has gone away') !== false)
+            return true;
+        if (mb_strpos($message, 'Error while sending QUERY packet') !== false)
+            return true;
+
+        return false;
+    }
+
+    private function _log($message)
+    {
+        $filename = ROOT_PATH . '/logs/mysql-gone-away.log';
+
+        $data = $message . PHP_EOL;
+
+        $cache = fopen($filename, 'a');
+        fwrite($cache, $data);
+        fclose($cache);
+    }
+
     private function _reconnect()
     {
+        global $retry_mysql_reconnect_yb;
+
+        if (!isset($retry_mysql_reconnect_yb))
+            $retry_mysql_reconnect_yb = 0;
+        else
+            $retry_mysql_reconnect_yb++;
+
+        if ($retry_mysql_reconnect_yb > self::MAX_GLOBAL_RECONNECT)
+        {
+            $this->_log('retry >= 3');
+            return false;
+        }
         $this->db->getDriver()->getConnection()->disconnect();
+        $this->_log('disconnect');
 
         for ($i = 1; $i <= self::MAX_RECONNECT_COUNT; $i++) {
             sleep(1);
             try {
+                $this->_log('connect');
                 $this->db->getDriver()->getConnection()->connect();
             } catch (\Exception $e) {
                 if ($i == self::MAX_RECONNECT_COUNT) {
-                    $this->global_reconnect_fail++;
+                    $this->_log('exception ' . $e->getMessage());
+                    $retry_mysql_reconnect_yb++;
                     throw $e;
                 }
             }
             if ($this->db->getDriver()->getConnection()->isConnected())
             {
-                $this->global_reconnect_fail = -1;
-                return ;
+                $this->_log('connect success');
+                // $retry_mysql_reconnect_yb--;
+                return true;
             }
         }
+        $this->_log('connect failed');
+
+        return false;
     }
 
     public function getList($where = NULL, $page=0, $count=10)
