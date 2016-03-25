@@ -89,6 +89,7 @@ class ErrorTable extends CoreTable
             {
                 $info["user"] = $this->sm->get("Identity")->user;
             }
+            $info["id_error"] = $this->table()->lastInsertValue;
             $this->sm->get("Notifications")->sendError($info);
         }catch(\Exception $e)
         {
