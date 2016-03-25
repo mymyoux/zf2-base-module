@@ -34,8 +34,13 @@ class ErrorTable extends CoreTable
         $info["line"] = $exception->getLine();
         $info["stack"] = $exception->getTraceAsString();
 
-
-        $info["url"] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}";
+        if (php_sapi_name() == "cli") 
+        {
+            $info["url"] = implode(" ", $argv);
+        }else
+        {
+            $info["url"] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}";
+        }
         try
         {
             if(isset($_GET))

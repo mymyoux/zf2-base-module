@@ -53,7 +53,8 @@ class FrontController extends CoreController
                 $event->getModel()->setVariable("acl", $this->acl);
             if($event->getModel()->getVariable("identity", NULL) === NULL)
                 $event->getModel()->setVariable("identity", $this->identity);
-
+            if($event->getModel()->getVariable("js_constant", NULL) === NULL)
+                $event->getModel()->setVariable("js_constant", $this->sm->get("AppConfig")->get("javascript"));
             if(($this->identity->isLoggued() && $this->identity->user->isAdmin()))
             {
                 $config = $this->sm->get("AppConfig")->getConfiguration();
