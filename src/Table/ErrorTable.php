@@ -36,7 +36,7 @@ class ErrorTable extends CoreTable
 
         if (php_sapi_name() == "cli") 
         {
-            $info["url"] = implode(" ", $argv);
+            $info["url"] = "php console ".implode(" ", $this->getConsoleParams());
         }else
         {
             $info["url"] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}";
@@ -109,6 +109,19 @@ class ErrorTable extends CoreTable
     public function updateError($id_error, $data)
     {
         $this->table(ErrorTable::TABLE_JAVASCRIPT)->update($data, array("id_error"=>$id_error));
+    }
+    protected function getConsoleParams()
+    {
+        $arguments = $this->sm->get("request")->getParams()->toArray();
+        $params = [];
+        foreach($arguments as $key=>$value)
+        {
+            if(is_numeric($key))
+            {
+                $params[] = $value;
+            }
+        }
+        return $params;
     }
 
 
