@@ -34,30 +34,39 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     {
         $this->send_now = true;
     }
-
+    public function sendErrorSlack($info)
+    {
+        
+    }
     public function sendError($info)
     {
-        // if($info["message"] == "You are not allowed to be on this page")
-        // {
-        //     //ignore
-        //     return;
-        // }
-        // return;
-        // $channel = "test_yb";
+         if(in_array($info["message"], ["You are not allowed to be on this page", "[API Exception] not_allowed"]))
+        {
+            //ignore
+            return;
+        }
+        return null;
+        $user = NULL;
+        if($this->sm->get("Identity")->isLoggued())
+        {
+            $user = $this->sm->get("Identity")->user;
+        }
 
-        // $message = ":coffee:\t ".(isset($info["user"])?$info["user"]->first_name." ".$info["user"]->last_name." ":"")." ".($info["id_user"]!=0?'('.$info["id_user"].')':'(no id)');
-        // $message .= "\n".$info["message"];
+        $channel = "error";
 
-        // $message .= "\n".$info["url"];
-        // $file = $info["file"];
+        $message = ":coffee:\t ".(isset($info["user"])?$info["user"]->first_name." ".$info["user"]->last_name." ":"")." ".($info["id_user"]!=0?'('.$info["id_user"].')':'(no id)');
+        $message .= "\n".$info["message"];
 
-        // $index = mb_strpos($file, "module/");
-        // if($index!==False)
-        // {
-        //     $file = mb_substr($info["file"], $index+7);
-        // }
-        // $message .= "\n".$file.":".$info["line"]."\n";
-        // return $this->sendNotification($channel, $message);
+        $message .= "\n".$info["url"];
+        $file = $info["file"];
+
+        $index = mb_strpos($file, "module/");
+        if($index!==False)
+        {
+            $file = mb_substr($info["file"], $index+7);
+        }
+        $message .= "\n".$file.":".$info["line"]."\n";
+        return $this->sendNotification($channel, $message);
     }
     public function sendSlack( $slack )
     {
