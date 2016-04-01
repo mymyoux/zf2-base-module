@@ -50,6 +50,16 @@ class LinkedIn extends HLinkedIn implements IAPI
         $this->config = $config;
     }
 
+    public function isAts()
+    {
+        return false;
+    }
+
+    public function canRegister()
+    {
+        return true;
+    }
+
     /**
      *  @inheritDoc
      */

@@ -87,4 +87,13 @@ abstract class AbstractAPI implements IAPI
         throw new \Exception("This method need to be overridden");
     }
 
-} 
+    public function isAts()
+    {
+        return false;
+    }
+
+    public function canRegister()
+    {
+        return true;
+    }
+}
