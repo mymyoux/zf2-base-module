@@ -46,4 +46,8 @@ interface IAPI {
      * @return array
      */
     public function getUserForDatabase();
-} 
+
+    public function isAts();
+
+    public function canRegister();
+}
