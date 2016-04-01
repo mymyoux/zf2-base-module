@@ -45,9 +45,10 @@ class ListenController extends \Core\Console\CoreController
         
         $modules = $this->sm->get("ApplicationConfig")["modules"];
         $modules = array_reverse($modules);
+        $classname = ucfirst(camel($name));
         foreach($modules as $module)
         {
-            $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . ucfirst($name);
+            $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . $classname;
             if (false === class_exists($object_name))
             {
                 continue;

@@ -127,6 +127,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $request['action'] = camel($request['action']);
 
+
         $methodName = $request['action'].'API';
         // check if '&method=' exist
         $params = $this->sm->get('ControllerPluginManager')->get('Params');
@@ -179,6 +180,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         // free memory
         unset( $annotations );
+
+
 
         // Check Annotations for the method
         $reflectedMethod = new \ReflectionMethod($namespace.'Controller', $methodName);
@@ -239,14 +242,15 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         // check if table set
         if (true === isset($apiRequest->class_table) || true === isset($apiRequest->table))
         {
+
             $table          = (true === isset($apiRequest->table) ? $apiRequest->table->getTable() : $apiRequest->class_table->getTable());
             $table_method   = (true === isset($apiRequest->table) && null !== $apiRequest->table->method ? $apiRequest->table->method : $methodName);
 
             if (true === method_exists($table, $table_method))
             {
+
                 $result      = [];
                 $result_name = (isset($apiRequest->response) ? $apiRequest->response->name : $request['action']);
-
                 $result[ $result_name ] = $table->{ $table_method }($context->hasUser()?$context->getUser():$this->sm->get("Identity")->getUser(), $apiRequest);
             }else
             {
@@ -254,6 +258,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                     throw new \Core\Exception\ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
             }
         }
+
         if (null === $result)
         {
 
