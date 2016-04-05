@@ -87,7 +87,7 @@ class ListenController extends \Core\Console\CoreController
                     continue;
                 }
 
-                $listener->executeJob( $data );
+                $listener->preexecute( $data );
                 $this->sm->get('BeanstalkdLogTable')->setSend($log['id'], true);
 
                 $this->queue->delete($job);

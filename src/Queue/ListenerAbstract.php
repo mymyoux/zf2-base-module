@@ -30,6 +30,11 @@ abstract class ListenerAbstract
 
         $queue->bury($job);
     }
+    abstract public function executeJob( $data );
+    public function preexecute($data)
+    {
+        return $this->executeJob($data);
+    }
 
     /**
      * Determine if the memory limit has been exceeded.
