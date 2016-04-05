@@ -77,7 +77,7 @@ class Job implements ServiceLocatorAwareInterface {
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
-            $listener->executeJob( $this->job );
+            $listener->preexecute( $this->job );
 
             $this->sm->get('BeanstalkdLogTable')->setSend($id, 2);
 
