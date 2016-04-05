@@ -164,4 +164,4 @@ class APIIdentity extends Identity
         return array("id", "email","first_name","last_name","access_token");
 
     }
-} 
+}
