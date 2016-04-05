@@ -23,6 +23,8 @@ class SmartRecruiters extends AbstractAts
     private $access_token;
     private $refresh_token;
 
+    private $user = null;
+
     public function __construct($consumer_key, $consumer_secret)
     {
         $this->client           = new \GuzzleHttp\Client();
@@ -73,46 +75,22 @@ class SmartRecruiters extends AbstractAts
 
     public function isAuthenticated()
     {
+        return true;
         dd('a');
         $user = $this->api->getUser();
         if($this->api->getUser()!=0)
         {
-            return True;
+            return true;
         }
 
-        return False;
-        if($this->session)
-        {
-            return True;
-        }
-        //retrieve given URL
-        $url_helper = $this->sm->get("application")->getServiceManager()->get('ViewHelperManager')->get('ServerUrl');
-        $url = $url_helper($_SERVER['REQUEST_URI']);
-        $position = mb_strpos($url, "?");
-        $url = mb_substr($url, 0,$position);
-        $helper = new FacebookRedirectLoginHelper($url);
-        try {
-            $this->session = $helper->getSessionFromRedirect();
-        } catch(FacebookRequestException $ex) {
-            // When Facebook returns an error
-            return False;
-        } catch(\Exception $ex) {
-            // When validation fails or other local issues
-            return False;
-        }
-        if ($this->session) {
-            // Logged in
-            return True;
-        }
-
-        return False;
+        return false;
     }
     /**
      * @inheritDoc
      */
     public function getAccessToken()
     {
-        return $this->api->getAccessToken();
+        return $this->access_token;
     }
 
     public function getAccessTokenSecret()
@@ -120,6 +98,38 @@ class SmartRecruiters extends AbstractAts
         return $this->api->getAccessTokenSecret();
     }
 
+    public function request( $method, $ressource, array $_params )
+    {
+        $path   = 'https://api.smartrecruiters.com/';
+
+        if (!empty($this->access_token))
+        {
+            $params = [
+                'headers'         => ['Authorization' => 'Bearer ' . $this->access_token]
+            ] + $_params;
+        }
+        else
+        {
+            $params = $_params;
+        }
+
+        if ('GET' === $method)
+            $data = $this->client->get($path . $ressource, $params);
+        else
+        {
+            if ('identity/oauth/token' === $ressource)
+                $path = 'https://www.smartrecruiters.com/';
+            $data = $this->client->post($path . $ressource, [
+                'body' => [
+                    $params
+                ]
+            ]);
+        }
+
+        $data = $data->json();
+
+        return $data;
+    }
 
     /**
      * Must be called when the callback url for an api is called
@@ -137,51 +147,44 @@ class SmartRecruiters extends AbstractAts
             {
                 if ( NULL !== $code )
                 {
-                    $res = $this->client->post('https://www.smartrecruiters.com/identity/oauth/token', [
-                        'body' => [
-                            'grant_type'    => 'authorization_code',
-                            'code'          => $code,
-                            'client_id'     => $this->consumer_key,
-                            'client_secret' => $this->consumer_secret
-                        ]
+                    $json = $this->request('POST', 'identity/oauth/token', [
+                        'grant_type'    => 'authorization_code',
+                        'code'          => $code,
+                        'client_id'     => $this->consumer_key,
+                        'client_secret' => $this->consumer_secret
                     ]);
+                    // $res = $this->client->post('https://www.smartrecruiters.com/identity/oauth/token', [
+                    //     'body' => [
+                    //         'grant_type'    => 'authorization_code',
+                    //         'code'          => $code,
+                    //         'client_id'     => $this->consumer_key,
+                    //         'client_secret' => $this->consumer_secret
+                    //     ]
+                    // ]);
 
-                    // echo $res->getStatusCode();
-                    // 200
-                    // echo $res->getHeaderLine('content-type');
-                    // 'application/json; charset=utf8'
-                    $json = $res->json();
+                    // $json = $res->json();
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
                         $this->access_token = $json['access_token'];
                         $this->refresh_token = $json['refresh_token'];
-                        $user = $this->client->get('https://api.smartrecruiters.com/v1/configs', [
-                            'headers'         => ['Authorization' => 'Bearer ' . $this->access_token],
 
-                            // 'access_token' => $this->access_token
-                        ]);
-
-                        dd($user->json());
+                        $user = $this->request('GET', 'users/me', []);
                     }
                     else
                     {
                         throw new \Exception( 'SmartRecruiters API error' );
                     }
-                    dd($code);
-                    // $this->api->getAccessToken( $oauthToken, $oauthVerifier );
-                    // $twitterAccountVerifyCredentials = $this->api->get( 'account/verify_credentials', ['include_email' => 'true', 'skip_status' => true] );
 
-                    // $this->formatUser($twitterAccountVerifyCredentials);
+                    $user = $this->formatUser( $user );
 
-                    // $this->api->setAccessToken($twitterAccountVerifyCredentials->access_token,$twitterAccountVerifyCredentials->access_token_secret);
+                    $this->user = $user;
 
-
-                    // return $twitterAccountVerifyCredentials;
+                    return $user;
                 }
                 else
                 {
-                    // throw new \Exception( 'Twitter API error' );
+                    throw new \Exception( 'SmartRecruiters API error' );
                 }
             }
             else
@@ -194,41 +197,29 @@ class SmartRecruiters extends AbstractAts
             dd($e->getMessage());
             return NULL;
         }
+
         return NULL;
     }
 
-    private function formatUser( &$twitterAccountVerifyCredentials )
+    private function formatUser( $user )
     {
-        $twitterAccountVerifyCredentials->access_token        = $this->api->getAccessToken();
-        $twitterAccountVerifyCredentials->access_token_secret =  $this->api->getAccessTokenSecret();
+        $data = [
+            'id'                => $user['id'],
+            'first_name'        => $user['firstName'],
+            'last_name'         => $user['lastName'],
+            'active'            => (int) $user['active'],
+            'role'              => $user['role'],
+            'email'             => $user['email'],
+            'access_token'      => $this->access_token,
+            'refresh_token'     => $this->refresh_token
+        ];
 
-        // create the first_name & last_name
-        if (false === mb_strpos($twitterAccountVerifyCredentials->name, ' '))
-        {
-            $twitterAccountVerifyCredentials->first_name = $twitterAccountVerifyCredentials->name;
-            $twitterAccountVerifyCredentials->last_name  = null;
-        }
-        else
-        {
-            $twitterAccountVerifyCredentials->first_name = mb_substr($twitterAccountVerifyCredentials->name, 0, mb_strpos($twitterAccountVerifyCredentials->name, ' '));
-            $twitterAccountVerifyCredentials->last_name  = mb_substr($twitterAccountVerifyCredentials->name, mb_strpos($twitterAccountVerifyCredentials->name, ' ') + 1);
-        }
-        $twitterAccountVerifyCredentials->link = 'https://www.twitter.com/' . $twitterAccountVerifyCredentials->screen_name;
-
-        return $twitterAccountVerifyCredentials;
+        return $data;
     }
 
     public function getUser()
     {
-        if($this->api->getUser()!=0)
-        {
-            $user = $this->get("account/verify_credentials", ['include_email' => 'true', 'skip_status' => true]);
-            $this->formatUser( $user );
-            $user = toArray( $user );
-
-            return $user;
-        }
-        return NULL;
+        return $this->user;
     }
     protected function getDatabaseColumns()
     {

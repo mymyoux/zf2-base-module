@@ -132,7 +132,6 @@ class MultipleIdentity extends CoreService implements IIdentity
      */
     public function setUserFromAPI($api, $type)
     {
-
         $user = $this->$api->getUser($type);
         $this->sm->get("UserTable")->updateAccessToken($this->$api->getAccessToken(), $api);
         $this->setUser($user);

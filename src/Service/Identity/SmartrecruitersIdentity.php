@@ -72,12 +72,12 @@ class SmartrecruitersIdentity extends APIIdentity
         //         }
         //     }
         // }
-        // parent::callbackRequest($request);
+        parent::callbackRequest($request);
         //TODO:why ?
-        return $user;
+        // return $user;
     }
     protected function _getDefaultColumns()
     {
-        return array_merge(parent::_getDefaultColumns()/*, array("screen_name","name","access_token_secret","followers_count","friends_count","link")*/);
+        return array_merge(parent::_getDefaultColumns(), ['access_token', 'refresh_token', 'role', 'active']);
     }
 }
