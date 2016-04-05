@@ -43,9 +43,9 @@ class SmartRecruiters extends AbstractAts
         // $this->api = new \Twitter\Twitter($consumer_key, $consumer_secret);
     }
 
-    public function setAccessToken($key, $secret)
+    public function setAccessToken($access_token)
     {
-        // $this->api->setAccessToken($key, $secret);
+        $this->access_token = $access_token;
     }
 
     public function getLoginUrl($data)
@@ -66,7 +66,7 @@ class SmartRecruiters extends AbstractAts
             'users_manage',
             'messages_write',
         ];
-        $redirect_uri   = 'https://app.yborder.com/company/user/login/smartrecruiters/response';//$data['redirect_uri'];
+        $redirect_uri   = $data['redirect_uri'];
         $url            = 'https://www.smartrecruiters.com/identity/oauth/allow?client_id=' . $this->consumer_key . '&redirect_uri=' . rawurlencode($redirect_uri) . '&scope=' . rawurlencode(implode(' ', $scopes));
 
         return $url;
@@ -166,7 +166,8 @@ class SmartRecruiters extends AbstractAts
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
-                        $this->access_token = $json['access_token'];
+                        $this->setAccessToken( $json['access_token'] );
+
                         $this->refresh_token = $json['refresh_token'];
 
                         $user = $this->request('GET', 'users/me', []);
@@ -225,12 +226,9 @@ class SmartRecruiters extends AbstractAts
     {
         return array("id","name", "email", "first_name", "last_name", "access_token", "access_token_secret", "followers_count", "friends_count","screen_name","link");
     }
-    public function get($resource, array $params = array())
+
+    public function canLogin()
     {
-        return $this->api->get($resource, $params);
-    }
-    public function post($resource, array $params = array())
-    {
-        return $this->api->post($resource, $params);
+        return array_key_exists("login", $this->config) && $this->config["login"] === True;
     }
 }
