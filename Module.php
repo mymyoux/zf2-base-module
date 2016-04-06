@@ -39,6 +39,7 @@ class Module
 
     public function onBootstrap(MvcEvent $e)
     {
+      
         $eventManager        = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
@@ -49,8 +50,6 @@ class Module
         $eventManager->attach(\Zend\Mvc\MvcEvent::EVENT_DISPATCH_ERROR, array($this, 'handleError'));
         //handle the view render error (exception)
         $eventManager->attach(\Zend\Mvc\MvcEvent::EVENT_RENDER_ERROR, array($this, 'handleRenderError'));
-
-
 
     }
     private function redirectError(MVcEvent $e)
