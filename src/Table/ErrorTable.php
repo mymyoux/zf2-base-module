@@ -34,12 +34,12 @@ class ErrorTable extends CoreTable
         $info["line"] = $exception->getLine();
         $info["stack"] = $exception->getTraceAsString();
 
-        if (php_sapi_name() == "cli") 
+        if (php_sapi_name() == "cli")
         {
             $info["url"] = "php console ".implode(" ", $this->getConsoleParams());
         }else
         {
-            $info["url"] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}";
+            $info["url"] = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
         }
         try
         {
@@ -75,6 +75,7 @@ class ErrorTable extends CoreTable
             if($identity->isLoggued())
             {
                 $info["id_user"] = $identity->user->id;
+                $info["id_real_user"] = $identity->user->getRealId();
             }
         }catch(\Exception $e)
         {
