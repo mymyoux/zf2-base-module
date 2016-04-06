@@ -10,6 +10,7 @@
 return array(
     'router' => array(
         'routes' => array(
+           
             'application' => array(
                 'type'    => 'Segment',
                 'options' => array(
@@ -41,6 +42,28 @@ return array(
                         ),
                         'may_terminate'=>True
                     ),
+                      'replay_error' => array(
+                            'type'    => 'Segment',
+                            'options' => array(
+                                'route'    => '/replay/:id_error[/:url]',
+                                'constraints' => array(
+                                   // 'usertype' => '[a-zA-Z-]+'
+                                ),
+                                'defaults' => array(
+                                    'module' => 'application',
+                                     '__NAMESPACE__' => 'Core\Controller',
+                                    'controller'    => 'error',
+                                    'action'        => 'replay',
+                                   'usertype' => 'admin',
+                                      'roles'=>array("main"=>array("admin"))
+
+                                ),
+                                 'constraints' => array(
+                                        'id_error'     => '[0-9]+'
+                                    ),
+                            ),
+                            'may_terminate'=>True,
+                        ),
                     )
                 )
         )
@@ -87,6 +110,7 @@ return array(
         'invokables' => array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
+            'Core\Controller\Error' => 'Core\Controller\ErrorController',
             'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
             'Core\Console\Queue\Replay' => 'Core\Console\Queue\ReplayController',
             'Core\Console\Queue\Test' => 'Core\Console\Queue\TestController',

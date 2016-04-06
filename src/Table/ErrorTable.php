@@ -175,5 +175,15 @@ class ErrorTable extends CoreTable
         }
         $this->table(ErrorTable::TABLE_JAVASCRIPT)->insert($values);
     }
+    public function getError($id_error)
+    {
+        $result = $this->table(ErrorTable::TABLE)->select(array("id"=>$id_error));
+        $result = $result->current();
+        if($result === False)
+        {
+            return NULL;
+        }
+        return $result;
+    }
 }
 
