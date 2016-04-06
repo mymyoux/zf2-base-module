@@ -319,7 +319,7 @@ function join_paths() {
     return preg_replace('#/+#','/',join('/', $paths));
 }
 
-function cleanObject($object)
+function cleanObject($object, $excludes = array())
 {
     if(!is_array($object))
     {
@@ -327,9 +327,13 @@ function cleanObject($object)
     }
     foreach($object as $key=>$value)
     {
+        if(in_array($key, $excludes))
+        {
+            continue;
+        }
         if(is_numeric($key))
         {
-            $object[$key] = cleanObject($object[$key]);
+            $object[$key] = cleanObject($object[$key], $excludes);
         }
         if($value === NULL)
         {
@@ -338,8 +342,8 @@ function cleanObject($object)
         {
             if(is_array($value))
             {
-                $object[$key] = cleanObject($object[$key]);
-                if(sizeof($object[$key])==0)
+                $object[$key] = cleanObject($object[$key], $excludes);
+                if(sizeof($object[$key])==0 && !is_array($object[$key]))
                 {
                     unset($object[$key]);
                 }
