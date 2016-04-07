@@ -134,6 +134,7 @@ class APIController extends FrontController
                 $view->setVariable("line", $e->getLine());
             }
 
+            
             $id_exception = $this->getErrorTable()->logError($e);
         }
 
@@ -154,7 +155,8 @@ class APIController extends FrontController
         try
         {
             $error = $view->getVariable("error");
-
+            if(isset($error) && ($this->isLocal() || (isset($params["debug"]) && $params["debug"])))
+                $view->setVariable("original_request", array("get"=>$_GET, "post"=>$_POST));
             $api_stats["success"] = !isset($error);
             if(isset($error))
             {
