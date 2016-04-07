@@ -122,7 +122,7 @@ class ReplayController extends \Core\Console\CoreController
 
                 $listener->setServiceLocator( $this->sm );
                 $this->getLogger()->normal("replay job: ".$id);
-                $listener->executeJob(json_decode($result["json"], True));
+                $listener->preexecute(json_decode($result["json"], True));
             }catch(\Exception $e)
             {
                 $failed[] = $id;

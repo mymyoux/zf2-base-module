@@ -55,12 +55,14 @@ class Job implements ServiceLocatorAwareInterface {
 
         if (!$this->beanstalkd->getConnection()->isServiceListening())
         {
+
+            $classname = ucfirst(camel($this->tube));
             $this->sendAlert();
             $modules = $this->sm->get("ApplicationConfig")["modules"];
             $modules =  array_reverse($modules);
             foreach($modules as $module)
             {
-                $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . ucfirst($this->tube);
+                $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . $classname;
                 if (false === class_exists($object_name))
                 {
                     continue;
@@ -75,7 +77,7 @@ class Job implements ServiceLocatorAwareInterface {
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
-            $listener->executeJob( $this->job );
+            $listener->preexecute( $this->job );
 
             $this->sm->get('BeanstalkdLogTable')->setSend($id, 2);
 
