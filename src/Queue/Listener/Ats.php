@@ -251,8 +251,9 @@ class Ats extends ListenerAbstract implements ListenerInterface
         {
             $id_api = $exist['id_api'];
 
-            // $modelCandidate = $this->api->put('candidates/' . $id_api . '/properties/firstName', json_encode('coucou'));
-            $dd = $this->api->get('candidates/81039b47-ff2c-4814-bbfa-7b20f8bdf1a6/properties');//, ['query' => ['content' => 'PROFILE']]);
+            $modelCandidate = $this->api->put('candidates/' . $id_api . '/properties/email', ['value' => 'coucou@yborder.com']);
+            // $modelCandidate = $this->api->put('candidates', $model->toAPI());
+            // $dd = $this->api->get('candidates/81039b47-ff2c-4814-bbfa-7b20f8bdf1a6/properties');//, ['query' => ['content' => 'PROFILE']]);
 
             dd($dd);
 
@@ -271,7 +272,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 'attachmentType'    => 'AVATAR',
                 'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $candidate['picture']))
             ];
-            var_dump('https://app.yborder.com/' . $candidate['picture']);
+
             $this->api->post('candidates/' . $id_api . '/attachments', $params);
         }
 
