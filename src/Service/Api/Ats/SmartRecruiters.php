@@ -123,7 +123,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function put( $ressource, $_params = [] )
     {
-        return $this->request('PUT', $ressource, ['body' => $_params]);
+        return $this->request('PUT', $ressource, ['json' => $_params]);
     }
 
     public function json( $ressource, $_params = [] )
@@ -135,11 +135,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     {
         return $this->request('GET', $ressource, ['query' => $_params]);
     }
-
-    // public function custom( $ressource, $_params )
-    // {
-    //     return $this->request('CUSTOM', $ressource, $_params);
-    // }
 
     public function request( $method, $ressource, $_params )
     {
