@@ -10,8 +10,10 @@ namespace Core\Service\Api\Ats;
 
 use Zend\Http\Request;
 use Core\Service\Api\AbstractAts;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-class SmartRecruiters extends AbstractAts
+class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Twitter\Twitter
@@ -24,13 +26,28 @@ class SmartRecruiters extends AbstractAts
     private $refresh_token;
 
     private $user = null;
+    private $has_refresh = false;
 
     public function __construct($consumer_key, $consumer_secret)
     {
         $this->client           = new \GuzzleHttp\Client();
-        $this->consumer_key    = $consumer_key;
-        $this->consumer_secret = $consumer_secret;
-        // $this->api = new \Twitter\Twitter($consumer_key, $consumer_secret);
+        $this->consumer_key     = $consumer_key;
+        $this->consumer_secret  = $consumer_secret;
+
+        $this->models           = [
+            'jobs'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
+            'candidates'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
+        ];
+    }
+
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->sm = $serviceLocator;
+    }
+
+    public function getServiceLocator()
+    {
+        return $this->sm;
     }
 
     public function init()
@@ -43,9 +60,10 @@ class SmartRecruiters extends AbstractAts
         // $this->api = new \Twitter\Twitter($consumer_key, $consumer_secret);
     }
 
-    public function setAccessToken($access_token)
+    public function setAccessToken($access_token, $refresh_token)
     {
-        $this->access_token = $access_token;
+        $this->access_token     = $access_token;
+        $this->refresh_token    = $refresh_token;
     }
 
     public function getLoginUrl($data)
@@ -98,35 +116,132 @@ class SmartRecruiters extends AbstractAts
         return $this->api->getAccessTokenSecret();
     }
 
-    public function request( $method, $ressource, array $_params )
+    public function post( $ressource, $_params = [] )
+    {
+        return $this->request('POST', $ressource, ['body' => $_params]);
+    }
+
+    public function put( $ressource, $_params = [] )
+    {
+        return $this->request('PUT', $ressource, ['body' => $_params]);
+    }
+
+    public function json( $ressource, $_params = [] )
+    {
+        return $this->request('POST', $ressource, ['json' => $_params]);
+    }
+
+    public function get( $ressource, $_params = [] )
+    {
+        return $this->request('GET', $ressource, ['query' => $_params]);
+    }
+
+    // public function custom( $ressource, $_params )
+    // {
+    //     return $this->request('CUSTOM', $ressource, $_params);
+    // }
+
+    public function request( $method, $ressource, $_params )
     {
         $path   = 'https://api.smartrecruiters.com/';
 
-        if (!empty($this->access_token))
+        try
         {
-            $params = [
-                'headers'         => ['Authorization' => 'Bearer ' . $this->access_token]
-            ] + $_params;
-        }
-        else
-        {
-            $params = $_params;
-        }
+            if (!empty($this->access_token))
+            {
+                $params = [
+                    'headers'         => ['Authorization' => 'Bearer ' . $this->access_token]
+                ] + $_params;
+            }
+            else
+            {
+                $params = $_params;
+            }
 
-        if ('GET' === $method)
-            $data = $this->client->get($path . $ressource, $params);
-        else
-        {
             if ('identity/oauth/token' === $ressource)
+            {
                 $path = 'https://www.smartrecruiters.com/';
-            $data = $this->client->post($path . $ressource, [
-                'body' => [
-                    $params
-                ]
-            ]);
+            }
+
+            $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
+        }
+        catch (\Exception $e)
+        {
+            if (401 === $e->getCode() && false === $this->has_refresh)
+            {
+                $this->has_refresh = true;
+                // no authorize, try to refresh
+
+                $old_access_token   = $this->access_token;
+                $this->access_token = null;
+
+                try
+                {
+                    $json = $this->request('POST', 'identity/oauth/token', [
+                        'body'  => [
+                            'grant_type'    => 'refresh_token',
+                            'refresh_token' => $this->refresh_token,
+                            'client_id'     => $this->consumer_key,
+                            'client_secret' => $this->consumer_secret
+                        ]
+                    ]);
+
+                    if (isset($json['access_token']) && isset($json['refresh_token']))
+                    {
+                        $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
+
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
+
+                        $this->has_refresh = false;
+
+                        return $this->request( $method, $ressource, $_params );
+                    }
+                    else
+                    {
+                        throw $e;
+                    }
+                }
+                catch (\Exception $ee)
+                {
+                    throw $e;
+                }
+            }
+            else
+            {
+                throw $e;
+            }
         }
 
         $data = $data->json();
+
+        $ressources = explode('/', $ressource);
+
+        if (true === isset($this->models[ $ressources[0] ]))
+        {
+            $modelClass = $this->models[ $ressources[0] ];
+            $sm         = $this->sm;
+
+            if (isset($data['content']))
+            {
+                $data['content'] = array_map(function($item) use ($modelClass, $sm){
+                    $model = new $modelClass();
+
+                    $model->setServiceLocator( $sm );
+                    $model->exchangeArray($item);
+
+                    return $model;
+                }, $data['content']);
+            }
+            else
+            {
+                $model = new $modelClass();
+
+                $model->setServiceLocator( $sm );
+                $model->exchangeArray($data);
+
+                $data = $model;
+            }
+        }
 
         return $data;
     }
@@ -148,27 +263,17 @@ class SmartRecruiters extends AbstractAts
                 if ( NULL !== $code )
                 {
                     $json = $this->request('POST', 'identity/oauth/token', [
+                    'body'  => [
                         'grant_type'    => 'authorization_code',
                         'code'          => $code,
                         'client_id'     => $this->consumer_key,
                         'client_secret' => $this->consumer_secret
+                        ]
                     ]);
-                    // $res = $this->client->post('https://www.smartrecruiters.com/identity/oauth/token', [
-                    //     'body' => [
-                    //         'grant_type'    => 'authorization_code',
-                    //         'code'          => $code,
-                    //         'client_id'     => $this->consumer_key,
-                    //         'client_secret' => $this->consumer_secret
-                    //     ]
-                    // ]);
-
-                    // $json = $res->json();
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
-                        $this->setAccessToken( $json['access_token'] );
-
-                        $this->refresh_token = $json['refresh_token'];
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
 
                         $user = $this->request('GET', 'users/me', []);
                     }
@@ -195,7 +300,7 @@ class SmartRecruiters extends AbstractAts
         }
         catch( \Exception $e )
         {
-            dd($e->getMessage());
+            // dd($e->getMessage());
             return NULL;
         }
 

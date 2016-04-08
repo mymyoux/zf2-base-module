@@ -22,29 +22,43 @@ function is_url( $text )
  */
 function dd($data)
 {
-    echo '<pre>';
-        $stack = debug_backtrace();
-        $line = $stack[0];
-        echo $line["file"].":".$line["line"]."\n";
-        $line = $stack[1];
-        echo (array_key_exists("class", $line)?$line["class"]."::":"").$line["function"];
-    echo '</pre>';
-    if(function_exists("xdebug_get_code_coverage"))
+    if (php_sapi_name() !== 'cli')
+        echo '<pre>';
+
+    $stack = debug_backtrace();
+    $line = $stack[0];
+    echo $line["file"].":".$line["line"]."\n";
+    $line = $stack[1];
+    echo (array_key_exists("class", $line)?$line["class"]."::":"").$line["function"];
+
+    if (php_sapi_name() !== 'cli')
+        echo '</pre>';
+
+    if (function_exists("xdebug_get_code_coverage"))
     {
         //xebug
         var_dump($data);
-    }else
+    }
+    else
     {
-        echo '<pre>';
-        debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS   ,15);
-        echo '</pre>';
-        echo '<pre>';
-        ob_start();
-        var_dump($data);
-        $content = ob_get_contents();
-        ob_end_clean();
-        echo htmlspecialchars($content,ENT_QUOTES);
-        echo '</pre>';
+        if (php_sapi_name() !== 'cli')
+        {
+            echo '<pre>';
+            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS   ,15);
+            echo '</pre>';
+            echo '<pre>';
+            ob_start();
+            var_dump($data);
+            $content = ob_get_contents();
+            ob_end_clean();
+            echo htmlspecialchars($content,ENT_QUOTES);
+            echo '</pre>';
+        }
+        else
+        {
+            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS   ,15);
+            var_dump($data);
+        }
 
     }
 
