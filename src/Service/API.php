@@ -78,28 +78,21 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $controller = ucfirst($controller);
         $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
 
-        if(!class_exists($namespace))
+       $modules = $this->sm->get("ApplicationConfig")["modules"];
+       $modules =  array_reverse($modules);
+        foreach($modules as $module)
         {
-            $type = 'Application';
-
-            $namespace = '\Application\Controller\\' . $controller.'Controller';
-            if (!class_exists($namespace)) {
-
-                $appconfig = $this->sm->get("ApplicationConfig");
-                if(isset($appconfig) && isset($appconfig["modules"]) && count($appconfig["modules"]))
-                {
-                    $modules = $appconfig["modules"];
-                    $last_module = $modules[count($modules)-1];
-                    if($last_module != $type)
-                    {
-                        $type = $last_module;
-                        $namespace = '\\'.$type.'\Controller\\' . $controller.'Controller';
-                    }
-                }
-                 if (!class_exists($namespace)) {
-                    throw new \Exception('bad_controller:'.$controller);
-                }
+            $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
+            if (false === class_exists($object_name))
+            {
+                continue;
             }
+            $type = $module;
+            break;
+        }
+        if (false === class_exists($object_name))
+        {
+            throw new \Exception('bad_controller:'.$controller, 1);
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
 
