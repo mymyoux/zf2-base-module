@@ -7,10 +7,12 @@ use Pheanstalk\Pheanstalk;
 abstract class ListenerAbstract
 {
     protected $sm;
+    protected $api;
 
     public function setServiceLocator( $sm )
     {
         $this->sm = $sm;
+        $this->api = $sm->get("API");
     }
 
     protected function buryJob(PheanstalkJob $job, Pheanstalk $queue)
@@ -29,6 +31,23 @@ abstract class ListenerAbstract
         }
 
         $queue->bury($job);
+    }
+    public function __call($method, $params)
+    {
+        $plugin = $this->plugin($method);
+        if (is_callable($plugin)) {
+            return call_user_func_array($plugin, $params);
+        }
+
+        return $plugin;
+    }
+    public function plugin($name, array $options = null)
+    {
+        return $this->getPluginManager()->get($name, $options);
+    }
+    protected function getPluginManager()
+    {
+        return $this->sm->get("ControllerPluginManager");
     }
     abstract public function executeJob( $data );
     public function preexecute($data)

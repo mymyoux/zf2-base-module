@@ -178,8 +178,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         // Check Annotations for the method
         $reflectedMethod = new \ReflectionMethod($namespace.'Controller', $methodName);
-
         $apiRequest->setServiceLocator($this->sm);
+        $apiRequest->setGivenParams(count($arguments)>2?$arguments[2]:[]);
         $apiRequest->setUser($context->hasUser()?$context->getUser():$this->sm->get("Identity")->getUser());
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..

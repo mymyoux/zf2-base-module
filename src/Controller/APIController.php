@@ -179,10 +179,6 @@ class APIController extends FrontController
 
         return $view;
     }
-
-
-
-
     public function getStatsTable()
     {
         return $this->sm->get("StatsTable");
@@ -191,30 +187,6 @@ class APIController extends FrontController
     public function getErrorTable()
     {
         return $this->sm->get("ErrorTable");
-    }
-    /**
-     * @ghost\Paginate(limit=4)
-     * @ghost\Roles(needs="admin",forbidden="visitor")
-     * @ghost\Param(name="param1",requirements="\d+",required=true)
-     * @ghost\Param(name="param2", required=true)
-     * @ghost\Filters("filter1,filter2,filter3,filter4")
-     * @return JsonModel
-     */
-    public function echoAPI()
-    {
-        $view = new JsonModel();
-        /**
-         * @var $request \Core\Service\Api\Request
-         */
-        $request = $this->params("request");
-
-        var_dump($request->params);
-
-        $request->filters->apply("test");
-        $view->setVariable("test","ok");
-        $view->setVariable("params",$request->params);
-
-        return $view;
     }
 
 }
