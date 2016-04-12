@@ -44,6 +44,12 @@ class Request implements ServiceLocatorAwareInterface
 
     private $errors;
 
+    public $givenparams;
+
+    public function setGivenParams($givenparams)
+    {
+        $this->givenparams = $givenparams;
+    }
     public function setUser($user)
     {
         $this->user = $user;
