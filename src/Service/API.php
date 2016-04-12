@@ -288,7 +288,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
             if (false === $context->isFromFront()) // in APP call
             {
-                if ($result->count() === 0)
+                if (!is_array($result) && method_exists($result, 'count') && $result->count() === 0)
                     $result = null;
             }
 
