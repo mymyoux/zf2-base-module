@@ -35,8 +35,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $this->consumer_secret  = $consumer_secret;
 
         $this->models           = [
-            'jobs'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
-            'candidates'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
+            'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
+            'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
         ];
     }
 
@@ -158,6 +158,11 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 $path = 'https://www.smartrecruiters.com/';
             }
 
+            if (php_sapi_name() === 'cli')
+            {
+                echo '[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params) . PHP_EOL;
+            }
+
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
         }
         catch (\Exception $e)
@@ -172,13 +177,11 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
                 try
                 {
-                    $json = $this->request('POST', 'identity/oauth/token', [
-                        'body'  => [
-                            'grant_type'    => 'refresh_token',
-                            'refresh_token' => $this->refresh_token,
-                            'client_id'     => $this->consumer_key,
-                            'client_secret' => $this->consumer_secret
-                        ]
+                    $json = $this->post('identity/oauth/token', [
+                        'grant_type'    => 'refresh_token',
+                        'refresh_token' => $this->refresh_token,
+                        'client_id'     => $this->consumer_key,
+                        'client_secret' => $this->consumer_secret
                     ]);
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
@@ -187,7 +190,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
                         $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
 
-                        $this->has_refresh = false;
+                        // $this->has_refresh = false;
 
                         return $this->request( $method, $ressource, $_params );
                     }
@@ -206,14 +209,20 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 throw $e;
             }
         }
+        $data   = $data->json();
+        $found  = false;
 
-        $data = $data->json();
-
-        $ressources = explode('/', $ressource);
-
-        if (true === isset($this->models[ $ressources[0] ]))
+        foreach ($this->models as $regex => $modelClass)
         {
-            $modelClass = $this->models[ $ressources[0] ];
+            if (preg_match('/' . $regex . '/', $ressource) > 0)
+            {
+                $found = true;
+                break;
+            }
+        }
+
+        if (true === $found)
+        {
             $sm         = $this->sm;
 
             if (isset($data['content']))

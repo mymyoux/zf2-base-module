@@ -16,6 +16,8 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
+use Zend\View\Variables;
+use Zend\View\Model\ConsoleModel;
 
 /**
  * Class API
@@ -261,7 +263,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         if (null === $result)
         {
-
             $result = $this->forward()->dispatch($namespace, $request);
         }
         if(isset($request['params']))
@@ -284,7 +285,17 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         if ($result instanceof ViewModel)
         {
-            $result = $result->getVariables();
+            if ($result instanceof ConsoleModel)
+            {
+                $result = $result->getVariables();
+
+
+                if (isset($result['result']))
+                    $result = $result['result'];
+
+            }
+            else
+                $result = $result->getVariables();
 
             if (false === $context->isFromFront()) // in APP call
             {
@@ -294,7 +305,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
             if (!isset($result[$result_name]))
             {
-                $result = [ $result_name => $result ];
+                $result = [ $result_name => ($result instanceof Variables) ? (array) $result : $result ];
             }
         }
         if (!is_array($result))
@@ -333,7 +344,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $formatted_result->api_data = $api_data;
         $formatted_result->request  = $this;
         $formatted_result->success  = true;
-        if(!$context->isJSON())
+
+        if(!$context->isJSON() || !$context->isFromFront())
         {
             $formatted_result->value = $result[$result_name];
         }

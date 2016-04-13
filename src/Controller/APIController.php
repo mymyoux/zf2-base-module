@@ -24,6 +24,7 @@ class APIController extends FrontController
         $controller = $this->params()->fromRoute("cont", NULL);
         $action     = $this->params()->fromRoute("act", "index");
         $id         = $this->params()->fromRoute("id", NULL);
+
         $params     = array_merge($this->params()->fromPost(), $this->params()->fromQuery());
         $method     = isset($params["method"])?$params["method"]:$this->getRequest()->getMethod();
 
@@ -134,7 +135,7 @@ class APIController extends FrontController
                 $view->setVariable("line", $e->getLine());
             }
 
-            
+
             $id_exception = $this->getErrorTable()->logError($e);
         }
 
@@ -164,14 +165,14 @@ class APIController extends FrontController
             }
             if(isset($id_exception))
             {
-                $api_stats["id_error"] = $id_exception;                 
+                $api_stats["id_error"] = $id_exception;
             }
 
             $api_stats["value"] = json_encode($view->getVariables(), \JSON_PRETTY_PRINT);
             $api_stats["type"] = $this->sm->get("Route")->getType();
 
             $this->getStatsTable()->recordAPICall($api_stats);
-            
+
         }catch(\Exception $e)
         {
             //silent
