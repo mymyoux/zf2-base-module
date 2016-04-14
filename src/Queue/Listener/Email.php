@@ -79,7 +79,15 @@ class Email extends ListenerAbstract implements ListenerInterface
         }
         else
         {
-            $result = $this->createMandrill()->messages()->sendTemplate($template, $m_message, [], $async);
+            if ($template === 'raw-content')
+            {
+                $m_message->html = $message->global_merge_vars[0]->content;
+                $result          = $this->createMandrill()->messages()->send($m_message, $async);
+            }
+            else
+            {
+                $result = $this->createMandrill()->messages()->sendTemplate($template, $m_message, [], $async);
+            }
         }
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);

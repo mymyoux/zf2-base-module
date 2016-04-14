@@ -48,7 +48,14 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
 
     public function prepareEmail($config, $data)
     {
-        
+
+    }
+
+    public function sendRaw($type, $content, $email, $email_sender = NULL, $sender = NULL, $subject = NULL)
+    {
+        $data = ['content' => $content];
+
+        return $this->sendEmailTemplate($type, 'raw-content', $email, $email_sender, $sender, $subject, $data);
     }
 
     public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL)
