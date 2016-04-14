@@ -81,6 +81,40 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
                 $this->upsertCandidate($id_candidate, $user, $ats, false);
             break;
+            case 'close_by_candidate':
+                // update status to rejected
+                $id_candidate   = (int) $data['id_candidate'];
+                $candidate      = $this->sm->get('UserTable')->getUser($id_candidate);
+                if(!isset($candidate))
+                {
+                    dd('error candidate not exist');
+                }
+
+                $exist = $this->sm->get('AtsCandidateTable')->getByCandidateID( $id_candidate, $ats['id_ats'] );
+                $id_api = $exist['id_api'];
+
+                $this->api->put('candidates/' . $id_api . '/status', ['status' => 'REJECTED']);
+
+                // SEND A MESSAGE ?!
+                // /!\
+                $content    = 'Candidate close the process.';
+                // send message to company
+                $this->sendMessage($content, $id_candidate, $user, $ats);
+            break;
+            case 'close_by_company':
+                // update status to rejected
+                $id_candidate   = (int) $data['id_candidate'];
+                $candidate      = $this->sm->get('UserTable')->getUser($id_candidate);
+                if(!isset($candidate))
+                {
+                    dd('error candidate not exist');
+                }
+
+                $exist = $this->sm->get('AtsCandidateTable')->getByCandidateID( $id_candidate, $ats['id_ats'] );
+                $id_api = $exist['id_api'];
+
+                $this->api->put('candidates/' . $id_api . '/status', ['status' => 'REJECTED']);
+            break;
         }
     }
 
@@ -273,7 +307,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
         //     }
         // }
 
-
+        $place = $this->sm->get('UserTable')->getPlaceUser($candidate['id_user']);
 
         $model = new \Application\Model\Ats\Smartrecruiters\CandidateModel();
 
@@ -282,7 +316,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
         {
             // token of the smartrecruiters conversation's
             $token = generate_token(30);
-            $model->importFromCV( $candidate['cv'], $token, $anonymize );
+            $model->importFromCV( $candidate['cv'], $token, $place, $anonymize );
 
             $modelCandidate = $this->api->json('candidates', $model->toAPI());
 
@@ -298,40 +332,85 @@ class Ats extends ListenerAbstract implements ListenerInterface
         {
             $relation_exist = $this->sm->get('AtsCompanyCandidateTable')->getBy($user->getCompany()->id_company, $user->id, $exist['id_ats_candidate']);
             // token of the smartrecruiters conversation's
-            $token = $relation_exist['token'];
+            $token          = $relation_exist['token'];
             // update the candidate
-            $id_api = $exist['id_api'];
-            $model->importFromCV( $candidate['cv'], $token, $anonymize );
-            dd( $model->toAPI());
+            $id_api         = $exist['id_api'];
 
-$modelCandidate = $this->api->json('candidates', $model->toAPI());
-            // $modelCandidate = $this->api->put('candidates/' . $id_api . '/properties/email', ['value' => 'coucou@yborder.com']);
-            // $modelCandidate = $this->api->put('candidates', $model->toAPI());
-            // $dd = $this->api->get('candidates/properties', ['query' => ['content' => 'PROFILE']]);
+            $model->importFromCV( $candidate['cv'], $token, $place, $anonymize );
+            $api_data = $model->toAPI();
 
-            // dd($dd);
+            // always set the name the user has in SM platform
+            // because the employee can edit this (and not us :/)
+            $api_data['firstName'] = $this->sm->get('AtsCandidateTable')->getValue( $exist['id_ats_candidate'], 'firstName' );
+            $api_data['lastName'] = $this->sm->get('AtsCandidateTable')->getValue( $exist['id_ats_candidate'], 'lastName' );
 
-            // $modelCandidate = $this->api->put('candidates', $model->toAPI());
+            // update values & DB association
+            $modelCandidate = $this->api->json('candidates', $api_data);
+            $modelCandidate->setAtsCandidateId( $exist['id_ats_candidate'] );
+            $modelCandidate->saveValues();
 
-            // $modelCandidate->setAtsCandidateId( $exist['id_ats_candidate'] );
-            // $modelCandidate->saveValues();
-
-            // $this->sm->get('AtsCandidateTable')->updateCandidate( $modelCandidate->id, $ats['id_ats'], $id_candidate );
+            $this->sm->get('AtsCandidateTable')->updateCandidate( $modelCandidate->id, $ats['id_ats'], $id_candidate );
         }
-
-        // upload image
-        if (null !== $candidate['picture'])
+        // upload candidate AVATAR
+        if (null !== $candidate['cv']['picture'])
         {
             $params = [
                 'attachmentType'    => 'AVATAR',
-                'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $candidate['picture']))
+                'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $candidate['cv']['picture']))
             ];
 
-            $this->api->post('candidates/' . $id_api . '/attachments', $params);
+            try
+            {
+                $this->api->post('candidates/' . $id_api . '/attachments', $params);
+            }
+            catch (\Exception $e)
+            {
+                // if error : do nothing. Reason : Same image so do not need to update.
+            }
         }
 
+        if (false === $anonymize && true === $candidate['cv']['has_pdf'])
+        {
+            // upload the CV
+            $pdf_link   = $this->sm->get('CVTable')->getCVPDF($candidate['id_user']);
 
-        dd($modelCandidate->toArray());
+            if (null !== $pdf_link)
+            {
+                $pdf_link   = str_replace('public/', '', $pdf_link);
+
+                $params     = [
+                    'attachmentType'    => 'RESUME',
+                    'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $pdf_link), generate_token(30) . '.pdf')
+                ];
+
+                $this->api->post('candidates/' . $id_api . '/attachments', $params);
+            }
+        }
+
+        if (true === $anonymize)
+        {
+            $status = 'NEW';
+        }
+        else
+        {
+            $status     = 'IN_REVIEW';
+            $content    = 'Candidate ' . $candidate['cv']['firstname'] . ' ' . $candidate['cv']['lastname'] . ' accept your intouch request.' . PHP_EOL . 'Email : ' . $candidate['cv']['email'];
+            // send message to company
+            $this->sendMessage($content, $id_candidate, $user, $ats);
+        }
+
+        // update status
+        $this->api->put('candidates/' . $id_api . '/status', ['status' => $status]);
+    }
+
+    private function sendMessage( $content, $id_candidate, $user, $ats )
+    {
+        $reply_to = $this->sm->get('AtsMessageTable')->getReplyTo( $id_candidate, $user->id );
+
+        if (null !== $reply_to)
+        {
+            $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $reply_to);
+        }
     }
 
 }
