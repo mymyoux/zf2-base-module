@@ -183,7 +183,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 if (null === $exist)
                 {
                     // find candidate by email
-                    $id_ats_candidate = $this->sm->get('AtsCandidateTable')->saveCandidate($details->id, $ats['id_ats'], (null === $id_candidate ? null : $candidate->id));
+                    $id_ats_candidate = $this->sm->get('AtsCandidateTable')->saveCandidate($details->id, $ats['id_ats'], (null === $candidate->id ? null : $candidate->id));
                 }
                 else
                 {
@@ -409,7 +409,9 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
         if (null !== $reply_to)
         {
+            $this->sm->get('Email')->setDebug(false);
             $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $reply_to);
+            $this->sm->get('Email')->setDebug(true);
         }
     }
 
