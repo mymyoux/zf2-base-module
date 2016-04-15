@@ -110,6 +110,7 @@ return array(
         'invokables' => array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
+            'Core\Controller\Ask' => 'Core\Controller\AskController',
             'Core\Controller\Error' => 'Core\Controller\ErrorController',
             'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
             'Core\Console\Queue\Replay' => 'Core\Console\Queue\ReplayController',

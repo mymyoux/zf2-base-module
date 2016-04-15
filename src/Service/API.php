@@ -80,28 +80,21 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $controller = ucfirst($controller);
         $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
 
-        if(!class_exists($namespace))
+       $modules = $this->sm->get("ApplicationConfig")["modules"];
+       $modules =  array_reverse($modules);
+        foreach($modules as $module)
         {
-            $type = 'Application';
-
-            $namespace = '\Application\Controller\\' . $controller.'Controller';
-            if (!class_exists($namespace)) {
-
-                $appconfig = $this->sm->get("ApplicationConfig");
-                if(isset($appconfig) && isset($appconfig["modules"]) && count($appconfig["modules"]))
-                {
-                    $modules = $appconfig["modules"];
-                    $last_module = $modules[count($modules)-1];
-                    if($last_module != $type)
-                    {
-                        $type = $last_module;
-                        $namespace = '\\'.$type.'\Controller\\' . $controller.'Controller';
-                    }
-                }
-                 if (!class_exists($namespace)) {
-                    throw new \Exception('bad_controller:'.$controller);
-                }
+            $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
+            if (false === class_exists($object_name))
+            {
+                continue;
             }
+            $type = $module;
+            break;
+        }
+        if (false === class_exists($object_name))
+        {
+            throw new \Exception('bad_controller:'.$controller, 1);
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
 
@@ -187,8 +180,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         // Check Annotations for the method
         $reflectedMethod = new \ReflectionMethod($namespace.'Controller', $methodName);
-
         $apiRequest->setServiceLocator($this->sm);
+        $apiRequest->setGivenParams(count($arguments)>2?$arguments[2]:[]);
         $apiRequest->setUser($context->hasUser()?$context->getUser():$this->sm->get("Identity")->getUser());
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..
@@ -278,7 +271,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             {
                 if (is_array($result))
                     $result['warning_non_valid_params'] = array_values($diff);
-                else
+                else if ($result instanceof ViewModel)
                     $result->setVariable('warning_non_valid_params', array_values($diff));
             }
         }
