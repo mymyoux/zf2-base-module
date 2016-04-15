@@ -16,6 +16,7 @@ use Core\Table\TranslationTable;
 use Core\Model\TokenModel;
 use Core\Model\UserModel;
 use Core\Table\ErrorTable;
+use Core\Table\AskTable;
 use Core\Table\MailTable;
 use Core\Table\RoleTable;
 use Core\Table\TokenTable;
@@ -117,6 +118,10 @@ class Module
                 'StatsTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new StatsTable(new TableGateway(StatsTable::TABLE_API_CALL,$dbAdapter, NULL, NULL));
+                },
+                'AskTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new AskTable(new TableGateway(AskTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'MailTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
