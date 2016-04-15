@@ -351,12 +351,21 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
             $this->sm->get('AtsCandidateTable')->updateCandidate( $modelCandidate->id, $ats['id_ats'], $id_candidate );
         }
+
         // upload candidate AVATAR
         if (null !== $candidate['cv']['picture'])
         {
+            if (true === file_exists(ROOT_PATH . $candidate['cv']['picture']))
+                $filepath = ROOT_PATH . '/public/' . $candidate['cv']['picture'];
+            else
+                $filepath = 'http://app.yborder.com' . $candidate['cv']['picture'];
+
+            if (php_sapi_name() === 'cli')
+                echo 'filepath : ' . $filepath . PHP_EOL;
+
             $params = [
                 'attachmentType'    => 'AVATAR',
-                'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $candidate['cv']['picture']))
+                'file'              => new PostFile('file', $filepath)
             ];
 
             try
@@ -376,11 +385,20 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
             if (null !== $pdf_link)
             {
-                $pdf_link   = str_replace('public/', '', $pdf_link);
+                 if (true === file_exists(ROOT_PATH . $pdf_link))
+                    $filepath = ROOT_PATH . $pdf_link;
+                else
+                {
+                    $pdf_link   = str_replace('public/', '', $pdf_link);
+                    $filepath = 'http://app.yborder.com/' . $pdf_link;
+                }
+
+                if (php_sapi_name() === 'cli')
+                    echo 'filepath : ' . $filepath . PHP_EOL;
 
                 $params     = [
                     'attachmentType'    => 'RESUME',
-                    'file'              => new PostFile('file', file_get_contents('https://app.yborder.com/' . $pdf_link), generate_token(30) . '.pdf')
+                    'file'              => new PostFile('file', file_get_contents($filepath), generate_token(30) . '.pdf')
                 ];
 
                 $this->api->post('candidates/' . $id_api . '/attachments', $params);
@@ -409,9 +427,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
         if (null !== $reply_to)
         {
-            $this->sm->get('Email')->setDebug(false);
             $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $reply_to);
-            $this->sm->get('Email')->setDebug(true);
         }
     }
 
