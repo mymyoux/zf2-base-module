@@ -51,9 +51,9 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
 
     }
 
-    public function sendRaw($type, $content, $email, $email_sender = NULL, $sender = NULL, $subject = NULL)
+    public function sendRaw($type, $content, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $attachments = [])
     {
-        $data = ['content' => $content];
+        $data = ['content' => $content, 'attachments' => $attachments];
 
         return $this->sendEmailTemplate($type, 'raw-content', $email, $email_sender, $sender, $subject, $data);
     }
@@ -99,12 +99,19 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         // $mandrill       = $this->createMandrill();
         $sender_hash    = null;
         $headers        = null;
+        $attachments    = [];
 
         if (is_array($data) && isset($data['sender_hash']))
             $sender_hash = $data['sender_hash'];
 
         if (is_array($data) && isset($data['_headers']))
             $headers = $data['_headers'];
+
+        if (is_array($data) && isset($data['attachments']))
+        {
+            $attachments = $data['attachments'];
+            unset($data['attachments']);
+        }
 
         if(!is_numeric_array($data))
         {
@@ -187,6 +194,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         $message->important     = false;
         $message->track_opens   = true;
         $message->track_clicks  = true;
+        $message->attachments   = $attachments;
 
         if (null !== $sender_hash)
         {
