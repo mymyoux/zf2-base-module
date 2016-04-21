@@ -12,6 +12,7 @@ use Zend\Http\Request;
 use Core\Service\Api\AbstractAts;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
+use Core\Model\Ats\Api\ResultListModel;
 
 class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterface
 {
@@ -35,8 +36,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $this->consumer_secret  = $consumer_secret;
 
         $this->models           = [
-            'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
-            'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
+            'jobs(\/[^\/]+){0,1}$'          => '\Core\Model\Ats\Smartrecruiters\JobModel',
+            'candidates(\/[^\/]+){0,1}$'    => '\Core\Model\Ats\Smartrecruiters\CandidateModel',
         ];
     }
 
@@ -346,6 +347,24 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     }
 
     /**
+     * Get job details by ID
+     *
+     * @param  string $id ID of the job
+     * @return AtsJobModel     Model of the job
+     */
+    public function getCandidateHistory( $id )
+    {
+        $histories  = $this->get('candidates/' . $id . '/status/history', ['limit' => 100]);
+
+        $result = new ResultListModel();
+
+        $result->setContent($histories['content']);
+        $result->setTotalFound($histories['totalFound']);
+
+        return $result;
+    }
+
+    /**
      * Ask in touch candidate by company
      *
      * @param  string $id_api_candidate [description]
@@ -370,4 +389,132 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         return $data['results'];
     }
+
+    /**
+     * Get exclude functions for jobs (defined in config)
+     *
+     * @return array String of function ID
+     */
+    public function getExcludeFunctions()
+    {
+        return (isset($this->config['exclude_function']) ? $this->config['exclude_function'] : []);
+    }
+
+    /**
+     * Check if a job can be inserted into our DB
+     *
+     * @param    $job class JobModel extends JobCoreModel implements AbstractJobModel
+     * @return boolean      True if the job is valid
+     */
+    public function isJobValid( $job )
+    {
+        $is_valid       = true;
+        $text           = $job->getDescription();
+        $tag_place      = $this->sm->get('PlaceTable')->getPlaceFromShortCountryName($job->location['country']);
+        $languageCode   = $this->sm->get('DetectLanguage')->simpleDetect($text);
+
+        if (true === in_array($job->function['id'], $this->getExcludeFunctions()))
+        {
+            $this->sm->get('Log')->warn('Exclude ' . $job->getName() . ' with function ' . $job->function['label']);
+            $is_valid = false;
+        }
+
+        if ('none' === $text || empty($text))
+        {
+            $this->sm->get('Log')->warn('Qualification empty');
+            $is_valid = false;
+        }
+
+        if ($job->language['code'] !== 'en' || $languageCode !== 'en')
+        {
+            $this->sm->get('Log')->warn('Exclude language is : ' . $job->language['code'] . ' ' . $languageCode);
+            $is_valid = false;
+        }
+
+        return $is_valid;
+    }
+
+    /**
+     * Get job details by ID
+     *
+     * @param  string $id ID of the job
+     * @return AtsJobModel     Model of the job
+     */
+    public function getJob( $id )
+    {
+        return $this->get('jobs/' . $id);
+    }
+
+    /**
+     * Get jobs
+     *
+     * @param  integer $offset Offset
+     * @param  integer $limit  Limit
+     * @return array           Array[totalFound, content[JobModels...]]
+     */
+    public function getJobs( $offset, $limit )
+    {
+        $params = [
+            'offset'    => (int) $offset,
+            'limit'     => (int) $limit
+        ];
+
+        $result = new ResultListModel();
+        $data   = $this->get('jobs', $params);
+
+        $result->setContent($data['content']);
+        $result->setTotalFound($data['totalFound']);
+
+        return $result;
+    }
+
+    public function getCandidates( $offset, $limit )
+    {
+        $params = [
+            'offset'    => (int) $offset,
+            'limit'     => (int) $limit
+        ];
+
+        $result = new ResultListModel();
+        $data   = $this->get('candidates', $params);
+
+        $result->setContent($data['content']);
+        $result->setTotalFound($data['totalFound']);
+
+        return $result;
+    }
+
+    /**
+     * Get information of the company (of the current user)
+     *
+     * @return array Data of the company
+     */
+    public function getCompanyInformation()
+    {
+        return $this->get('configuration/company', []);
+    }
+
+    /**
+     * Get the URL of the candidate (in the ATS interface)
+     *
+     * @param  string $id ID of the candidate
+     * @return string     URL
+     */
+    public function getUrlCandidate( $id )
+    {
+        return 'https://www.smartrecruiters.com/app/people/' . $id . '/messages';
+    }
+
+    /**
+     * Update the state of a candidate
+     *
+     * @param  string $id_api ID of the candidate
+     * @param  string $state  State
+     * @return Array          API result
+     */
+    public function updateCandidateState($id_api, $state)
+    {
+        return $this->api->put('candidates/' . $id_api . '/status', ['status' => $state]);
+    }
+
 }
