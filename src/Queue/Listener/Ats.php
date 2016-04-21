@@ -36,10 +36,6 @@ class Ats extends ListenerAbstract implements ListenerInterface
         $this->sm->get('Email')->setAsync( true );
         $this->sm->get('Email')->setMergeLanguage( 'handlebars' );
 
-        // $positions = $this->sm->get('MarketplaceSearchTable')->getPositionsPercent();
-        // $positions = $this->sm->get('TagTable')->getTopTagsPositions();
-
-
         $YBAPI      = $this->sm->get("API");
         $api_name   = $data['ats'];
         $ats        = $this->sm->get('AtsTable')->getAts( $api_name );
@@ -48,7 +44,10 @@ class Ats extends ListenerAbstract implements ListenerInterface
         $user = $this->sm->get('UserTable')->getNetworkByUser( $api_name, $data['id_user'] );
 
         if (null === $user)
+        {
+            $this->sm->get('Log')->error('User who did the action not exist');
             return;
+        }
 
         $this->api->setAccessToken( $user['access_token'], $user['refresh_token'] );
 
@@ -169,8 +168,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
         switch ($data['ressource'])
         {
             case 'company':
-                // get company info
-                $company = $this->api->get('configuration/company', []);
+                $company = $this->api->getCompanyInformation();
 
                 if (null === $this->sm->get('AtsCompanyTable')->getByAPIID($company['identifier'], $ats['id_ats']))
                     $this->sm->get('AtsCompanyTable')->saveCompany( $company['identifier'], $ats['id_ats'], $company['name'], $user->getCompany()->id_company );
@@ -198,13 +196,10 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 if ($data['debug'])
                     $this->sm->get("Email")->setDebug( true );
 
-                // dd($candidates);
-
-                $email_param['candidates'] = array_map(function($item) use($candidates) {
-                    $item['url'] = 'https://www.smartrecruiters.com/app/people/' . $candidates[ $item['id_user'] ]['id'] . '/messages';
-
-                    return $item;
-                }, $email_param['candidates']);
+                foreach ($email_param['candidates'] as &$candidate)
+                {
+                    $candidate['url'] = $this->api>-getUrlCandidate( $candidates[ $item['id_user'] ]['id'] );
+                }
 
                 $this->sm->get("Email")->sendEmailTemplate([$template, 'search'], $template, $user, $email_param);
 
@@ -218,15 +213,17 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 // update status to rejected
                 $id_candidate   = (int) $data['id_candidate'];
                 $candidate      = $this->sm->get('UserTable')->getUser($id_candidate);
-                if(!isset($candidate))
+
+                if (!isset($candidate))
                 {
-                    dd('error candidate not exist');
+                    $this->sm->get('Log')->error('Candidate not exist');
+                    return;
                 }
 
                 $exist = $this->sm->get('AtsCandidateTable')->getByCandidateID( $id_candidate, $ats['id_ats'] );
                 $id_api = $exist['id_api'];
 
-                $this->api->put('candidates/' . $id_api . '/status', ['status' => 'REJECTED']);
+                $this->api->updateCandidateState( $id_api, 'REJECTED');
 
                 // SEND A MESSAGE ?!
                 // /!\
@@ -238,15 +235,17 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 // update status to rejected
                 $id_candidate   = (int) $data['id_candidate'];
                 $candidate      = $this->sm->get('UserTable')->getUser($id_candidate);
-                if(!isset($candidate))
+
+                if (!isset($candidate))
                 {
-                    dd('error candidate not exist');
+                    $this->sm->get('Log')->error('Candidate not exist');
+                    return;
                 }
 
                 $exist = $this->sm->get('AtsCandidateTable')->getByCandidateID( $id_candidate, $ats['id_ats'] );
                 $id_api = $exist['id_api'];
 
-                $this->api->put('candidates/' . $id_api . '/status', ['status' => 'REJECTED']);
+                $this->api->updateCandidateState( $id_api, 'REJECTED');
             break;
         }
     }
@@ -254,44 +253,49 @@ class Ats extends ListenerAbstract implements ListenerInterface
     private function getJobs($user, $ats)
     {
         $positions      = $this->sm->get('MarketplaceSearchTable')->getPositionsPercent();
-        $params_jobs    = ['limit' => 100, 'offset' => 0];
-        $jobs           = $this->api->get('jobs', $params_jobs);
+        $offset         = 0;
+        $limit          = 100;
+        $jobs           = $this->api->getJobs($offset, $limit);
         $YBorder        = $this->sm->get('Api');
         $company        = $this->sm->get('AtsCompanyTable')->getByIDCompany($user->getCompany()->id_company);
 
-        while ($params_jobs['offset'] < $jobs['totalFound'])
+        while ($offset < $jobs->getTotalFound())
         {
-            foreach ($jobs['content'] as $job)
-            {
-                $details    = $this->api->get('jobs/' . $job->id);
-                $exist      = $this->sm->get('AtsJobTable')->getByAPIID( $details->id, $ats['id_ats'] );
+            $content = $jobs->getContent();
 
+            foreach ($content as $job)
+            {
+                $details    = $this->api->getJob( $job->id );
+                $exist      = $this->sm->get('AtsJobTable')->getByAPIID( $details->id, $ats['id_ats'] );
 
                 if (null === $exist)
                 {
-                    list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details->getName(), $details->getDescription());//, $sm_association, $details['function']['id'] );
-
-                    if (null !== $tags_name)
+                    if (true === $this->api->isJobValid( $details ))
                     {
-                        $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
-                            'search'    => implode(' ', $tags_name),
-                            'tags'      => ['position' => [$position['id_position']]]
-                        ]);
+                        list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details->getName(), $details->getDescription());//, $sm_association, $details['function']['id'] );
 
-                        $data           = $result->value;
-                        $api_data       = $result->api_data->paginate->jsonSerialize();
-
-                        if (!empty($api_data['token']))
+                        if (null !== $tags_name)
                         {
-                            $params = [
-                                'name'          => $details->getName(),
-                                'description'   => $details->getDescription(),
-                                'has_alert'     => $details->hasAlert(),
-                                'is_public'     => $details->isPublic(),
-                                'token'         => $api_data['token']
-                            ];
+                            $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
+                                'search'    => implode(' ', $tags_name),
+                                'tags'      => ['position' => [$position['id_position']]]
+                            ]);
 
-                            $YBorder->job->module('company')->user($user)->save(null, 'POST', $params);
+                            $data           = $result->value;
+                            $api_data       = $result->api_data->paginate->jsonSerialize();
+
+                            if (!empty($api_data['token']))
+                            {
+                                $params = [
+                                    'name'          => $details->getName(),
+                                    'description'   => $details->getDescription(),
+                                    'has_alert'     => $details->hasAlert(),
+                                    'is_public'     => $details->isPublic(),
+                                    'token'         => $api_data['token']
+                                ];
+
+                                $YBorder->job->module('company')->user($user)->save(null, 'POST', $params);
+                            }
                         }
                     }
 
@@ -306,24 +310,26 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 $details->saveValues();
             }
 
-            $params_jobs['offset'] += $params_jobs['limit'];
+            $offset += $limit;
 
-            $jobs = $this->api->get('jobs', $params_jobs);
+            $jobs = $this->api->getJobs($offset, $limit);
         }
     }
 
     private function getCandidates($user, $ats)
     {
-        $params = ['limit' => 100, 'offset' => 0];
+        $offset         = 0;
+        $limit          = 100;
+        $candidates     = $this->api->getCandidates( $offset, $limit );
 
-        $candidates = $this->api->get('candidates', $params);
-
-        while ($params['offset'] < $candidates['totalFound'])
+        while ($offset < $candidates->getTotalFound())
         {
-            foreach ($candidates['content'] as $details)
+            $content = $candidates->getContent();
+
+            foreach ($content as $details)
             {
                 $exist      = $this->sm->get('AtsCandidateTable')->getByAPIID( $details->id, $ats['id_ats'] );
-                $histories  = $this->api->get('candidates/' . $details->id . '/status/history', ['limit' => 100]);
+                $histories  = $this->api->getCandidateHistory( $details->id );
 
                 $candidate  = $this->sm->get('UserTable')->getUserByEmail( $details->email );
 
@@ -352,8 +358,14 @@ class Ats extends ListenerAbstract implements ListenerInterface
                     }
                 }
 
-                $history    = array_pop($histories['content']);
-                $state      = $history['status'];
+                $state = null;
+
+                if ($histories->getTotalFound() > 0)
+                {
+                    $data_histories = $histories->getContent();
+                    $history        = array_pop($data_histories);
+                    $state          = $history['status'];
+                }
 
                 $details->setAtsCandidateId( $id_ats_candidate );
                 $details->saveValues();
@@ -381,9 +393,9 @@ class Ats extends ListenerAbstract implements ListenerInterface
                     $job_id = $job['id_ats_job'];
                 }
 
-                if (null === $exist)
+                if (null === $exist && $histories->getTotalFound() > 0)
                 {
-                    foreach ($histories['content'] as $history)
+                    foreach ($data_histories as $history)
                         $this->sm->get('AtsCompanyCandidateTable')->insertHistory($user->getCompany()->id_company, $user->id, $id_ats_candidate, $history['status'], $job_id, date('Y-m-d H:i:s', strtotime($history['changedOn'])));
                 }
 
@@ -398,9 +410,9 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 }
             }
 
-            $params['offset'] += $params['limit'];
+            $offset += $limit;
 
-            $candidates = $this->api->get('candidates', $params);
+            $candidates = $this->api->getCandidates($offset, $limit);
         }
     }
 
