@@ -72,6 +72,21 @@ class ApiManager extends CoreService
 
         return $api->canLogin();
     }
+
+    public function typeAuthorize($name, $type)
+    {
+        if($name == "manual")
+        {
+            return True;
+        }
+        if(!$this->has($name))
+        {
+            return False;
+        }
+        $api = $this->get($name);
+
+        return in_array($type, $api->typeAuthorize());
+    }
     /**
      * Tests if the api allow mutiple connectors
      * @param $name Api's name

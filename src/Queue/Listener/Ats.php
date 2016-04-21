@@ -8,6 +8,10 @@ use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
 use GuzzleHttp\Post\PostFile;
 
+use Application\Model\Marketplace\SearchModel;
+
+use DetectLanguage\DetectLanguage;
+
 class Ats extends ListenerAbstract implements ListenerInterface
 {
 
@@ -29,23 +33,11 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
     public function executeJob( $data )
     {
-        // text search for jobs
-        // $text = '<p><b>What you will need to be successful:</b></p><ul><li>Exceptional proficiency in iOS mobile development (Objective-C and/or Swift) or outstanding ability to learn;</li><li>Believe in the power of technology as a global game changer;</li><li>Out of the box thinking and mindset of constant knowledge sharing;</li><li>Implacable willingness to build massive, solid and reliable applications that scale; </li><li>Assertive contribution to the decision making process and team roadmap;</li><li>True team spirit that embraces the power that agility assigns to developers;</li><li>Firm belief that “Done is better than perfect” and that “The member is the boss” are compelling values;</li><li>Be humble, structured, organized, motivated by innovation and a relentless doer; </li><li>Enjoy working as a team-player and learning from others;</li><li>Having some cool projects on AppStore is a plus. </li><li>A fun attitude.</li></ul>';
+        $this->sm->get('Email')->setAsync( true );
+        $this->sm->get('Email')->setMergeLanguage( 'handlebars' );
 
-        // $text       = strip_tags($text);
-        // $searches   = $this->sm->get('MarketplaceSearchTable')->searchToTags($text);
-        // // remove <= 2 words length
-        // $searches   = array_filter($searches, function($item){
-        //     return mb_strlen($item) > 2;
-        // });
-
-        // $searches   = array_map(function($item){
-        //     return preg_replace('/[^A-Za-z0-9 ]+/', '', $item);
-        // }, $searches);
-
-        // $tags = $this->sm->get('TagTable')->getTagByNamesForClean($searches, true);
-
-        // dd($tags);
+        // $positions = $this->sm->get('MarketplaceSearchTable')->getPositionsPercent();
+        // $positions = $this->sm->get('TagTable')->getTopTagsPositions();
 
 
         $YBAPI      = $this->sm->get("API");
@@ -63,8 +55,126 @@ class Ats extends ListenerAbstract implements ListenerInterface
         // get the real user
         $user = $this->sm->get('UserTable')->getUser( $data['id_user'] );
 
+        // $sm_exclude = [
+        //     'accounting_auditing',
+        //     'administrative',
+        //     'advertising',
+        //     'business_development',
+        //     'consulting',
+        //     'customer_service',
+        //     'distribution',
+        //     'education',
+        //     'finance',
+        //     'general_business',
+        //     'health_care_provider',
+        //     'human_resources',
+        //     'legal',
+        //     'manufacturing',
+        //     'marketing',
+        //     'other',
+        //     'production',
+        //     'public_relations',
+        //     'purchasing',
+        //     'sales',
+        //     'strategy_planning',
+        //     'supply_chain',
+        //     'training',
+        //     'writing_editing',
+        // ];
+
+        // $sm_association = [
+        //     'analyst'  => 1, // DS
+        //     'research'  => 1, // DS
+        //     'art_creative'  => 2, // UX/UI
+        //     'design'  => 2, // DS
+        //     'product_management'  => 21, // Product manager
+        //     'quality_assurance'  => 11, // QA / Test
+        // ];
+
+        // // blablacar
+        // // Intuit2
+        // // Ubisoft2
+        // $jobs       = json_decode(file_get_contents('https://api.smartrecruiters.com/v1/companies/Ubisoft2/postings'), true);
+        // $success    = 0;
+        // $max        = 0;
+        // $YBorder    = $this->sm->get('Api');
+
+        // foreach ($jobs['content'] as $job)
+        // {
+        //     $details        = json_decode(file_get_contents($job['ref']), true);
+        //     $tag_place      = $this->sm->get('PlaceTable')->getPlaceFromShortCountryName($details['location']['country']);
+        //     $text           = $details['jobAd']['sections']['qualifications']['text'];
+        //     $languageCode   = 'en';//$this->sm->get('DetectLanguage')->simpleDetect($text);
+
+        //     if (true === in_array($details['function']['id'], $sm_exclude))
+        //     {
+        //         $this->sm->get('Log')->warn('Exclude ' . $details['name'] . ' with function ' . $details['function']['label']);
+        //         continue;
+        //     }
+
+        //     if ('none' === $text || empty($text))
+        //     {
+        //         $this->sm->get('Log')->warn('Qualification empty');
+        //         continue;
+        //     }
+
+        //     if ($details['language']['code'] !== 'en' || $languageCode !== 'en')
+        //     {
+        //         $this->sm->get('Log')->warn('Exclude language is : ' . $details['language']['code'] . ' ' . $languageCode);
+        //         continue;
+        //     }
+
+        //     // $this->sm->get('Log')->warn($details['function']['label']);
+        //     $this->sm->get('Log')->info('Place ' . $tag_place['name']);
+
+        //     // list($tags_name, $position) = $this->convertJob( $details['name'], $details['jobAd']['sections']['qualifications']['text'], $positions );
+        //     list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details['name'], $text, $sm_association, $details['function']['id'] );
+        //     $success    += (null !== $position);
+        //     $max        += 1;
+
+        //     if (null !== $position && count($tags_name) > 0)
+        //     {
+        //         $search_tags    = [
+        //             'position'  => [ $position['id_position'] ]
+        //         ];
+
+        //         if (null !== $tag_place)
+        //             $search_tags['location']  = [ $tag_place['id_place'] ];
+
+        //         $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
+        //             'search'    => implode(' ', $tags_name),
+        //             'tags'      => $search_tags
+        //         ]);
+
+        //         $data           = $result->value;
+
+        //         var_dump(count($data));
+        //         var_dump(implode(' ', $tags_name), $search_tags);
+        //     }
+
+
+        //     // if (null !== $position)
+        //     //     break;
+        //     // if (null !== $position)
+        //     // // echo 'NAME: ' . $details['name'] . PHP_EOL;
+        //     // echo PHP_EOL;
+
+        // }
+
+        // $this->sm->get('Log')->info('Success ' . $success . '/' . $max);
+
+        // exit();
+        // $this->getJobs($user, $ats);
+
         switch ($data['ressource'])
         {
+            case 'company':
+                // get company info
+                $company = $this->api->get('configuration/company', []);
+
+                if (null === $this->sm->get('AtsCompanyTable')->getByAPIID($company['identifier'], $ats['id_ats']))
+                    $this->sm->get('AtsCompanyTable')->saveCompany( $company['identifier'], $ats['id_ats'], $company['name'], $user->getCompany()->id_company );
+            break;
             case 'jobs':
                 $this->getJobs($user, $ats);
             break;
@@ -72,9 +182,32 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 $this->getCandidates($user, $ats);
             break;
             case 'create_candidate_anonyme' :
-                $id_candidate = (int) $data['id_candidate'];
+                $ids_candidate  = $data['ids_candidate'];
+                $template       = $data['template'];
+                $email_param    = $data['email_param'];
+                $candidates     = [];
 
-                $this->upsertCandidate($id_candidate, $user, $ats, true);
+                foreach ($ids_candidate as $id_candidate)
+                {
+                    $id_candidate = (int) $id_candidate;
+
+                    $candidates[ $id_candidate ] = $this->upsertCandidate($id_candidate, $user, $ats, true);
+                    $candidates[ $id_candidate ] = $candidates[ $id_candidate ]->toAPI();
+                }
+
+                if ($data['debug'])
+                    $this->sm->get("Email")->setDebug( true );
+
+                // dd($candidates);
+
+                $email_param['candidates'] = array_map(function($item) use($candidates) {
+                    $item['url'] = 'https://www.smartrecruiters.com/app/people/' . $candidates[ $item['id_user'] ]['id'] . '/messages';
+
+                    return $item;
+                }, $email_param['candidates']);
+
+                $this->sm->get("Email")->sendEmailTemplate([$template, 'search'], $template, $user, $email_param);
+
             break;
             case 'create_candidate_full' :
                 $id_candidate = (int) $data['id_candidate'];
@@ -99,7 +232,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 // /!\
                 $content    = 'Candidate close the process.';
                 // send message to company
-                $this->sendMessage($content, $id_candidate, $user, $ats);
+                $this->sendEmail($content, $id_candidate, $user, $ats);
             break;
             case 'close_by_company':
                 // update status to rejected
@@ -120,35 +253,44 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
     private function getJobs($user, $ats)
     {
-        $params_jobs = ['limit' => 100, 'offset' => 0];
-
-        $jobs = $this->api->get('jobs', $params_jobs);
+        $positions      = $this->sm->get('MarketplaceSearchTable')->getPositionsPercent();
+        $params_jobs    = ['limit' => 100, 'offset' => 0];
+        $jobs           = $this->api->get('jobs', $params_jobs);
+        $YBorder        = $this->sm->get('Api');
+        $company        = $this->sm->get('AtsCompanyTable')->getByIDCompany($user->getCompany()->id_company);
 
         while ($params_jobs['offset'] < $jobs['totalFound'])
         {
             foreach ($jobs['content'] as $job)
             {
-                $details = $this->api->get('jobs/' . $job->id);
-
-                $params = [
-                    'name'          => $details->getName(),
-                    'description'   => $details->getDescription(),
-                    'has_alert'     => $details->hasAlert(),
-                    'is_public'     => $details->isPublic(),
-                    'token'         => $details->getToken()
-                ];
-
-                // @HOW TO GET TOKEN ?!
-                // @HOW TO GET TAGS  ?!
-
-                // HERE save YBorder job
-                // $YBorder->jobs->module('company')->user($user)->saveJob(null, 'POST', $params);
-
-                $exist = $this->sm->get('AtsJobTable')->getByAPIID( $details->id, $ats['id_ats'] );
+                $details    = $this->api->get('jobs/' . $job->id);
+                $exist      = $this->sm->get('AtsJobTable')->getByAPIID( $details->id, $ats['id_ats'] );
 
                 if (null === $exist)
                 {
-                    $id_ats_job = $this->sm->get('AtsJobTable')->saveJob($details->id, $ats['id_ats'], null);
+                    // $params = [
+                    //     'name'          => $details->getName(),
+                    //     'description'   => $details->getDescription(),
+                    //     'has_alert'     => $details->hasAlert(),
+                    //     'is_public'     => $details->isPublic(),
+                    //     'token'         => $details->getToken()
+                    // ];
+
+                    // list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details->getName(), $details->getDescription());//, $sm_association, $details['function']['id'] );
+                    // list($tags_name, $position) = $this->convertJob( $details->getDescription(), $positions );
+
+                    // $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
+                    //     'search'    => implode(' ', $tags_name),
+                    //     'tags'      => ['position' => [$position['id_position']]]
+                    // ]);
+
+                    // $data           = $result->value;
+
+
+
+                    // HERE save YBorder job
+                    // $YBorder->jobs->module('company')->user($user)->saveJob(null, 'POST', $params);
+                    $id_ats_job = $this->sm->get('AtsJobTable')->saveJob($details->id, $ats['id_ats'], $company['id_ats_company'], null);
                 }
                 else
                 {
@@ -184,6 +326,14 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 {
                     // find candidate by email
                     $id_ats_candidate = $this->sm->get('AtsCandidateTable')->saveCandidate($details->id, $ats['id_ats'], (null === $candidate ? null : $candidate->id));
+
+                    // add to job search email in order to never add them to YB alert
+                    if (null !== $candidate)
+                    {
+                        $query = new SearchModel();
+
+                        $this->sm->get('MarketplaceSearchMailTable')->insertMail($user, $query, $candidate->id);
+                    }
                 }
                 else
                 {
@@ -352,13 +502,19 @@ class Ats extends ListenerAbstract implements ListenerInterface
             $this->sm->get('AtsCandidateTable')->updateCandidate( $modelCandidate->id, $ats['id_ats'], $id_candidate );
         }
 
+        $picture = null;
+        if (!empty($candidate['cv']['picture']))
+            $picture = $candidate['cv']['picture'];
+        else if (!empty($candidate['picture']))
+            $picture = $candidate['picture'];
+
         // upload candidate AVATAR
-        if (null !== $candidate['cv']['picture'])
+        if (null !== $picture)
         {
-            if (true === file_exists(ROOT_PATH . $candidate['cv']['picture']))
-                $filepath = ROOT_PATH . '/public/' . $candidate['cv']['picture'];
+            if (true === file_exists(ROOT_PATH . $picture))
+                $filepath = ROOT_PATH . '/public/' . $picture;
             else
-                $filepath = 'http://app.yborder.com' . $candidate['cv']['picture'];
+                $filepath = 'https://app.yborder.com' . $picture;
 
             if (php_sapi_name() === 'cli')
                 echo 'filepath : ' . $filepath . PHP_EOL;
@@ -390,7 +546,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 else
                 {
                     $pdf_link   = str_replace('public/', '', $pdf_link);
-                    $filepath = 'http://app.yborder.com/' . $pdf_link;
+                    $filepath = 'https://app.yborder.com/' . $pdf_link;
                 }
 
                 if (php_sapi_name() === 'cli')
@@ -401,27 +557,52 @@ class Ats extends ListenerAbstract implements ListenerInterface
                     'file'              => new PostFile('file', file_get_contents($filepath), generate_token(30) . '.pdf')
                 ];
 
-                $this->api->post('candidates/' . $id_api . '/attachments', $params);
+                try
+                {
+                    $this->api->post('candidates/' . $id_api . '/attachments', $params);
+                }
+                catch (\Exception $e)
+                {
+                    // if error : do nothing. Reason : Same image so do not need to update.
+                }
             }
         }
 
         if (true === $anonymize)
         {
             $status = 'NEW';
+
+            $content = 'Candidate #[CANDIDATE:' . $id_api . '] was added.' . PHP_EOL;
+
+            $this->api->sendMessage( $content, true );
         }
         else
         {
             $status     = 'IN_REVIEW';
             $content    = 'Candidate ' . $candidate['cv']['firstname'] . ' ' . $candidate['cv']['lastname'] . ' accept your intouch request.' . PHP_EOL . 'Email : ' . $candidate['cv']['email'];
             // send message to company
-            $this->sendMessage($content, $id_candidate, $user, $ats);
+            $this->sendEmail($content, $id_candidate, $user, $ats);
+
+            // send message API
+            $content = 'Candidate #[CANDIDATE:' . $id_api . '] ' . $candidate['cv']['firstname'] . ' ' . $candidate['cv']['lastname'] . ' is now in touch with your company.' . PHP_EOL;
+
+            $this->api->sendMessage( $content, true );
         }
 
-        // update status
-        $this->api->put('candidates/' . $id_api . '/status', ['status' => $status]);
+        try
+        {
+            // update status
+            $this->api->put('candidates/' . $id_api . '/status', ['status' => $status]);
+        }
+        catch (\Exception $e)
+        {
+            // if error : do nothing. Reason : Same image so do not need to update.
+        }
+
+        return $modelCandidate;
     }
 
-    private function sendMessage( $content, $id_candidate, $user, $ats )
+    private function sendEmail( $content, $id_candidate, $user, $ats )
     {
         $reply_to = $this->sm->get('AtsMessageTable')->getReplyTo( $id_candidate, $user->id );
 
@@ -430,5 +611,4 @@ class Ats extends ListenerAbstract implements ListenerInterface
             $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $reply_to);
         }
     }
-
 }
