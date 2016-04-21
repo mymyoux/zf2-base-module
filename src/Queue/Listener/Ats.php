@@ -266,30 +266,35 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 $details    = $this->api->get('jobs/' . $job->id);
                 $exist      = $this->sm->get('AtsJobTable')->getByAPIID( $details->id, $ats['id_ats'] );
 
+
                 if (null === $exist)
                 {
-                    // $params = [
-                    //     'name'          => $details->getName(),
-                    //     'description'   => $details->getDescription(),
-                    //     'has_alert'     => $details->hasAlert(),
-                    //     'is_public'     => $details->isPublic(),
-                    //     'token'         => $details->getToken()
-                    // ];
+                    list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details->getName(), $details->getDescription());//, $sm_association, $details['function']['id'] );
 
-                    // list($tags_name, $position) = $this->sm->get('AtsService')->convertJob( $details->getName(), $details->getDescription());//, $sm_association, $details['function']['id'] );
-                    // list($tags_name, $position) = $this->convertJob( $details->getDescription(), $positions );
+                    if (null !== $tags_name)
+                    {
+                        $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
+                            'search'    => implode(' ', $tags_name),
+                            'tags'      => ['position' => [$position['id_position']]]
+                        ]);
 
-                    // $result         = $YBorder->marketplace->module('company')->user($user)->data(NULL, "GET", [
-                    //     'search'    => implode(' ', $tags_name),
-                    //     'tags'      => ['position' => [$position['id_position']]]
-                    // ]);
+                        $data           = $result->value;
+                        $api_data       = $result->api_data->paginate->jsonSerialize();
 
-                    // $data           = $result->value;
+                        if (!empty($api_data['token']))
+                        {
+                            $params = [
+                                'name'          => $details->getName(),
+                                'description'   => $details->getDescription(),
+                                'has_alert'     => $details->hasAlert(),
+                                'is_public'     => $details->isPublic(),
+                                'token'         => $api_data['token']
+                            ];
 
+                            $YBorder->job->module('company')->user($user)->save(null, 'POST', $params);
+                        }
+                    }
 
-
-                    // HERE save YBorder job
-                    // $YBorder->jobs->module('company')->user($user)->saveJob(null, 'POST', $params);
                     $id_ats_job = $this->sm->get('AtsJobTable')->saveJob($details->id, $ats['id_ats'], $company['id_ats_company'], null);
                 }
                 else

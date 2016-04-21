@@ -43,6 +43,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
         $this->sm = $serviceLocator;
+
+        $this->init();
     }
 
     public function getServiceLocator()
@@ -52,12 +54,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function init()
     {
-
-    }
-
-    public function setApi( $consumer_key, $consumer_secret )
-    {
-        // $this->api = new \Twitter\Twitter($consumer_key, $consumer_secret);
+        $apis           = $this->sm->get('AppConfig')->get('apis');
+        $this->config   = $apis['smartrecruiters'];
     }
 
     public function setAccessToken($access_token, $refresh_token)
@@ -69,22 +67,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     public function getLoginUrl($data)
     {
         // mob.local/company/user/login/smartrecruiters
-        $scopes         = [
-            'candidates_read',
-            'candidates_create',
-            'candidates_offers_read',
-            'candidates_manage',
-            'candidate_status_read',
-            // 'configuration_read',
-            // 'configuration_manage',
-            'jobs_read',
-            // 'jobs_manage',
-            // 'jobs_publications_manage',
-            'users_read',
-            // 'users_manage',
-            'messages_write',
-        ];
-        $redirect_uri   = $data['redirect_uri'];
+        $scopes         = $this->config['scopes'];
+        $redirect_uri   = $this->config['redirect_uri'];
         $url            = 'https://www.smartrecruiters.com/identity/oauth/allow?client_id=' . $this->consumer_key . '&redirect_uri=' . rawurlencode($redirect_uri) . '&scope=' . rawurlencode(implode(' ', $scopes));
 
         return $url;
@@ -93,15 +77,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function isAuthenticated()
     {
-        return true;
-        dd('a');
-        $user = $this->api->getUser();
-        if($this->api->getUser()!=0)
-        {
-            return true;
-        }
-
-        return false;
+        return (null !== $this->access_token);
     }
     /**
      * @inheritDoc
