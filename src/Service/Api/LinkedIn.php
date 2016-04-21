@@ -21,6 +21,11 @@ class LinkedIn extends HLinkedIn implements IAPI
      */
     protected $config;
 
+    public function typeAuthorize()
+    {
+        return ['company', 'candidate', null, 'cabinet'];
+    }
+
     /**
      * @inheritDoc
      */

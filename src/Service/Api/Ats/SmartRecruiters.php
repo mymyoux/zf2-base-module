@@ -75,13 +75,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             'candidates_offers_read',
             'candidates_manage',
             'candidate_status_read',
-            'configuration_read',
-            'configuration_manage',
+            // 'configuration_read',
+            // 'configuration_manage',
             'jobs_read',
-            'jobs_manage',
-            'jobs_publications_manage',
+            // 'jobs_manage',
+            // 'jobs_publications_manage',
             'users_read',
-            'users_manage',
+            // 'users_manage',
             'messages_write',
         ];
         $redirect_uri   = $data['redirect_uri'];
@@ -160,7 +160,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
             if (php_sapi_name() === 'cli')
             {
-                echo '[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params) . PHP_EOL;
+                $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
             }
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
@@ -336,8 +336,62 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return array("id","name", "email", "first_name", "last_name", "access_token", "access_token_secret", "followers_count", "friends_count","screen_name","link");
     }
 
-    public function canLogin()
+    /**
+     * Send message into SM Home
+     *
+     * @param  string  $content             content of the message.
+     * @param  boolean $share_with_everyone true if everyone can see the message.
+     * @return array
+     */
+    public function sendMessage( $content, $share_with_everyone = false)
     {
-        return array_key_exists("login", $this->config) && $this->config["login"] === True;
+        $params = [
+            'content'   => 'YBorder: '. $content,
+            'shareWith' => [
+                'everyone'  => $share_with_everyone
+            ]
+        ];
+
+        return $this->json('messages/shares', $params);
+    }
+    /**
+     * Get candidate current state
+     *
+     * @param  string $id_api_candidate [description]
+     * @return array                    [description]
+     */
+    public function getCandidateState( $id_api_candidate )
+    {
+        $histories  = $this->get('candidates/' . $id_api_candidate . '/status/history', ['limit' => 1]);
+        $history    = array_pop($histories['content']);
+        $state      = $history['status'];
+
+        return $state;
+    }
+
+    /**
+     * Ask in touch candidate by company
+     *
+     * @param  string $id_api_candidate [description]
+     * @return array                    [description]
+     */
+    public function askInTouch( $id_api_candidate )
+    {
+        $content = 'Intouch request sent to #[CANDIDATE:' . $id_api_candidate  . ']';
+
+        return $this->sendMessage( $content, true );
+    }
+
+    /**
+     * API Public : search companies by name
+     *
+     * @param  [type] $query [description]
+     * @return [type]        [description]
+     */
+    public function searchCompany( $query )
+    {
+        $data = $this->get('companyNames', ['q' => $query]);
+
+        return $data['results'];
     }
 }

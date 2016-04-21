@@ -15,6 +15,11 @@ abstract class AbstractAPI implements IAPI
      * @var array Module's config api's part
      */
     protected $config;
+
+    public function typeAuthorize()
+    {
+        return ['company', 'candidate', null, 'cabinet'];
+    }
     /**
      * @inheritDoc
      */

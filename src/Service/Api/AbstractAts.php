@@ -11,5 +11,13 @@ namespace Core\Service\Api;
 
 abstract class AbstractAts extends AbstractAPI//implements IAPI
 {
-
+	public function typeAuthorize()
+	{
+		return ['company'];
+	}
+	public function canLogin()
+	{
+		return true;
+	}
+	// public function getJobs();
 }
