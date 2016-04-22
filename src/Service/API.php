@@ -37,6 +37,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Table.php');
         AnnotationRegistry::registerFile($folder.'Response.php');
         AnnotationRegistry::registerFile($folder.'Order.php');
+        AnnotationRegistry::registerFile($folder.'Back.php');
     }
 
     /**
@@ -151,6 +152,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
 
         $apiRequest = new Request();
+        $apiRequest->fromFront = $context->isFromFront();
 
         // Check Annotations for the class
         $reflectedClass = new \ReflectionClass($namespace.'Controller');

@@ -46,6 +46,13 @@ class Request implements ServiceLocatorAwareInterface
 
     public $givenparams;
 
+    public $fromFront = False;
+
+    public function isFromFront()
+    {
+        return $this->fromFront;
+    }
+
     public function setGivenParams($givenparams)
     {
         $this->givenparams = $givenparams;
