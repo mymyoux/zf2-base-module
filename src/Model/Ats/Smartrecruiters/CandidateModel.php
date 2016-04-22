@@ -112,14 +112,14 @@ class CandidateModel extends CandidateCoreModel
 
 	public function toAPI()
 	{
-		$data = $this->toArray();
+		$data = parent::toAPI();
 
-		foreach ($data as $key => $value)
-		{
-			if ($value === null)
-			{
-				unset($data[$key]);
-			}
+	    // always set the name the user has in SM platform
+	    // because the employee can edit this (and not us :/)
+	    if (null !== $this->getAtsCandidateId())
+	    {
+		    $data['firstName'] 	= $this->sm->get('AtsCandidateTable')->getValue( $this->getAtsCandidateId(), 'firstName' );
+		    $data['lastName'] 	= $this->sm->get('AtsCandidateTable')->getValue( $this->getAtsCandidateId(), 'lastName' );
 		}
 
 		return $data;

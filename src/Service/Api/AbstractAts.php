@@ -21,7 +21,7 @@ abstract class AbstractAts extends AbstractAPI
 	}
 
 	/**
-     * Get exclude functions for jobs (defined in config)
+     * Get exclude functions ID for jobs (defined in config)
      *
      * @return array String of function ID
      */
@@ -51,6 +51,13 @@ abstract class AbstractAts extends AbstractAPI
      * @return boolean      True if the job is valid
      */
 	abstract public function isJobValid( $job );
+
+    /**
+     * Get the Job ID of a candidate (if he has one)
+     * @param  string $id_api_candidate DB ID of the ATS candidate
+     * @return string                   ID of the job or NULL
+     */
+    abstract public function getJobId( $id_api_candidate );
 
     /**
      * Get candidates
@@ -103,10 +110,37 @@ abstract class AbstractAts extends AbstractAPI
 	abstract public function getCandidateState( $id_api_candidate );
 
     /**
+     * Upload the candidate profile picture
+     *
+     * @param  string $id_api   ID of the candidate
+     * @param  string $picture  URL of the image
+     * @return boolean          True if upload is a success
+     */
+    abstract public function uploadCandidatePicture( $id_api, $picture );
+
+    /**
+     * Upload the candidate resume
+     *
+     * @param  string $id_api   ID of the candidate
+     * @param  string $pdf_link PDF link of the resume
+     * @return boolean          True if upload is a success
+     */
+    abstract public function uploadCandidateResume( $id_api, $pdf_link );
+
+    /**
      * Get information of the company (of the current user)
      *
      * @return array Data of the company
      */
     abstract public function getCompanyInformation();
 
+    /**
+     * Send a message to the ATS platform (use a LOG from YBorder action)
+     *
+     * @param  string  $content             Message content text
+     * @param  boolean $share_with_everyone If you want to share this message with everyone in the ATS
+     * @return MessageModel                 Message model
+     */
+    abstract public function sendMessage($content, $share_with_everyone = false);
 }
+
