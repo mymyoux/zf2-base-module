@@ -270,7 +270,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             {
                 if (is_array($result))
                     $result['warning_non_valid_params'] = array_values($diff);
-                else
+                else if ($result instanceof ViewModel)
                     $result->setVariable('warning_non_valid_params', array_values($diff));
             }
         }
