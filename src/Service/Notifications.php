@@ -38,6 +38,12 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     {
         
     }
+    public function noAsk($type)
+    {
+        $channel = "alert";
+        $message = ":cold_sweat: Ask type:".$type." has no class handler\n";
+        return $this->sendNotification($channel, $message);
+    }
     public function sendError($info)
     {
          if(in_array($info["message"], ["You are not allowed to be on this page", "[API Exception] not_allowed"]))
