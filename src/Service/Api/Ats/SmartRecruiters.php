@@ -13,6 +13,7 @@ use Core\Service\Api\AbstractAts;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Core\Model\Ats\Api\ResultListModel;
+use GuzzleHttp\Post\PostFile;
 
 class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterface
 {
@@ -514,7 +515,88 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
      */
     public function updateCandidateState($id_api, $state)
     {
-        return $this->api->put('candidates/' . $id_api . '/status', ['status' => $state]);
+        return $this->put('candidates/' . $id_api . '/status', ['status' => $state]);
     }
 
+    public function uploadCandidatePicture( $id_api, $picture )
+    {
+        if (true === file_exists(ROOT_PATH . $picture))
+            $filepath = ROOT_PATH . '/public/' . $picture;
+        else
+            $filepath = 'https://app.yborder.com' . $picture;
+
+        if (php_sapi_name() === 'cli')
+            echo 'filepath : ' . $filepath . PHP_EOL;
+
+        $params = [
+            'attachmentType'    => 'AVATAR',
+            'file'              => new PostFile('file', $filepath)
+        ];
+
+        try
+        {
+            $this->post('candidates/' . $id_api . '/attachments', $params);
+        }
+        catch (\Exception $e)
+        {
+            // if error : do nothing. Reason : Same image so do not need to update.
+            return false;
+        }
+
+        return true;
+    }
+
+    public function uploadCandidateResume( $id_api, $pdf_link )
+    {
+        // upload the RESUME
+        if (true === file_exists(ROOT_PATH . $pdf_link))
+            $filepath = ROOT_PATH . $pdf_link;
+        else
+        {
+            $pdf_link   = str_replace('public/', '', $pdf_link);
+            $filepath = 'https://app.yborder.com/' . $pdf_link;
+        }
+
+        if (php_sapi_name() === 'cli')
+            echo 'filepath : ' . $filepath . PHP_EOL;
+
+        $params     = [
+            'attachmentType'    => 'RESUME',
+            'file'              => new PostFile('file', file_get_contents($filepath), generate_token(30) . '.pdf')
+        ];
+
+        try
+        {
+            $this->post('candidates/' . $id_api . '/attachments', $params);
+        }
+        catch (\Exception $e)
+        {
+            // if error : do nothing. Reason : Same image so do not need to update.
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getJobId( $id_ats_candidate )
+    {
+        $state  = null;
+        $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_job_id');
+
+        if (null === $job_id)
+        {
+            $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_job_id');
+
+            if (null !== $job_id)
+            {
+                $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
+            }
+        }
+        else
+        {
+            $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_status');
+        }
+
+        return [$job_id, $state];
+    }
 }

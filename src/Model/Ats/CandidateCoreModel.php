@@ -5,9 +5,10 @@ namespace Core\Model\Ats;
 use Core\Model\CoreModel;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class CandidateCoreModel extends CoreModel
+abstract class CandidateCoreModel extends CoreModel
 {
-	private $sm;
+	protected $sm;
+	private $_id_ats_candidate = null;
 
 	public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
@@ -45,9 +46,24 @@ class CandidateCoreModel extends CoreModel
 		}
 		else
 		{
-			// echo 'save ' . $key . ' => ' . $value . PHP_EOL;
 			$this->sm->get('AtsCandidateTable')->saveCandidateValue( $this->getAtsCandidateId(), $key, $value );
 		}
 	}
 
+	public function toAPI()
+	{
+		$data = $this->toArray();
+
+		foreach ($data as $key => $value)
+		{
+			if ($value === null)
+			{
+				unset($data[$key]);
+			}
+		}
+
+		return $data;
+	}
+
+	abstract public function importFromCV( $data, $token, $place, $anonymize = true );
 }

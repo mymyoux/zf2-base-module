@@ -6,7 +6,6 @@ use Core\Queue\ListenerInterface;
 
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
-use GuzzleHttp\Post\PostFile;
 
 use Application\Model\Marketplace\SearchModel;
 
@@ -181,8 +180,8 @@ class Ats extends ListenerAbstract implements ListenerInterface
             break;
             case 'create_candidate_anonyme' :
                 $ids_candidate  = $data['ids_candidate'];
-                $template       = $data['template'];
-                $email_param    = $data['email_param'];
+                // $template       = $data['template'];
+                // $email_param    = $data['email_param'];
                 $candidates     = [];
 
                 foreach ($ids_candidate as $id_candidate)
@@ -193,15 +192,15 @@ class Ats extends ListenerAbstract implements ListenerInterface
                     $candidates[ $id_candidate ] = $candidates[ $id_candidate ]->toAPI();
                 }
 
-                if ($data['debug'])
-                    $this->sm->get("Email")->setDebug( true );
+                // if ($data['debug'])
+                //     $this->sm->get("Email")->setDebug( true );
 
-                foreach ($email_param['candidates'] as &$candidate)
-                {
-                    $candidate['url'] = $this->api>-getUrlCandidate( $candidates[ $item['id_user'] ]['id'] );
-                }
+                // foreach ($email_param['candidates'] as &$candidate)
+                // {
+                //     $candidate['url'] = $this->api>-getUrlCandidate( $candidates[ $item['id_user'] ]['id'] );
+                // }
 
-                $this->sm->get("Email")->sendEmailTemplate([$template, 'search'], $template, $user, $email_param);
+                // $this->sm->get("Email")->sendEmailTemplate([$template, 'search'], $template, $user, $email_param);
 
             break;
             case 'create_candidate_full' :
@@ -370,22 +369,26 @@ class Ats extends ListenerAbstract implements ListenerInterface
                 $details->setAtsCandidateId( $id_ats_candidate );
                 $details->saveValues();
 
+                list($job_id, $tmp_state) = $this->api->getJobId( $id_ats_candidate );
+
+                if (null !== $tmp_state)
+                    $state = $tmp_state;
                 // check if add job id
-                $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_job_id');
+                // $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_job_id');
 
-                if (null === $job_id)
-                {
-                    $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_job_id');
+                // if (null === $job_id)
+                // {
+                //     $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_job_id');
 
-                    if (null !== $job_id)
-                    {
-                        $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
-                    }
-                }
-                else
-                {
-                    $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_status');
-                }
+                //     if (null !== $job_id)
+                //     {
+                //         $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
+                //     }
+                // }
+                // else
+                // {
+                //     $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_status');
+                // }
 
                 if ($job_id !== null)
                 {
@@ -395,6 +398,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
                 if (null === $exist && $histories->getTotalFound() > 0)
                 {
+                    // historyModel ?
                     foreach ($data_histories as $history)
                         $this->sm->get('AtsCompanyCandidateTable')->insertHistory($user->getCompany()->id_company, $user->id, $id_ats_candidate, $history['status'], $job_id, date('Y-m-d H:i:s', strtotime($history['changedOn'])));
                 }
@@ -474,9 +478,10 @@ class Ats extends ListenerAbstract implements ListenerInterface
         //     }
         // }
 
-        $place = $this->sm->get('UserTable')->getPlaceUser($candidate['id_user']);
+        $place      = $this->sm->get('UserTable')->getPlaceUser($candidate['id_user']);
 
-        $model = new \Application\Model\Ats\Smartrecruiters\CandidateModel();
+        $model_name = '\Core\Model\Ats\\' . ucfirst($ats['name']) . '\CandidateModel';
+        $model      = new $model_name();
 
         // save candidate
         if (null === $exist)
@@ -485,13 +490,12 @@ class Ats extends ListenerAbstract implements ListenerInterface
             $token = generate_token(30);
             $model->importFromCV( $candidate['cv'], $token, $place, $anonymize );
 
-            $modelCandidate = $this->api->json('candidates', $model->toAPI());
+            $modelCandidate     = $this->api->json('candidates', $model->toAPI());
+            $id_api             = $modelCandidate->id;
+            $id_ats_candidate   = $this->sm->get('AtsCandidateTable')->saveCandidate( $id_api, $ats['id_ats'], $id_candidate );
 
-            $id_ats_candidate = $this->sm->get('AtsCandidateTable')->saveCandidate( $modelCandidate->id, $ats['id_ats'], $id_candidate );
             $modelCandidate->setAtsCandidateId( $id_ats_candidate );
             $modelCandidate->saveValues();
-
-            $id_api = $modelCandidate->id;
 
             $this->sm->get('AtsCompanyCandidateTable')->save($user->getCompany()->id_company, $user->id, $id_ats_candidate, 'LEAD', $token);
         }
@@ -505,11 +509,6 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
             $model->importFromCV( $candidate['cv'], $token, $place, $anonymize );
             $api_data = $model->toAPI();
-
-            // always set the name the user has in SM platform
-            // because the employee can edit this (and not us :/)
-            $api_data['firstName'] = $this->sm->get('AtsCandidateTable')->getValue( $exist['id_ats_candidate'], 'firstName' );
-            $api_data['lastName'] = $this->sm->get('AtsCandidateTable')->getValue( $exist['id_ats_candidate'], 'lastName' );
 
             // update values & DB association
             $modelCandidate = $this->api->json('candidates', $api_data);
@@ -528,60 +527,16 @@ class Ats extends ListenerAbstract implements ListenerInterface
         // upload candidate AVATAR
         if (null !== $picture)
         {
-            if (true === file_exists(ROOT_PATH . $picture))
-                $filepath = ROOT_PATH . '/public/' . $picture;
-            else
-                $filepath = 'https://app.yborder.com' . $picture;
-
-            if (php_sapi_name() === 'cli')
-                echo 'filepath : ' . $filepath . PHP_EOL;
-
-            $params = [
-                'attachmentType'    => 'AVATAR',
-                'file'              => new PostFile('file', $filepath)
-            ];
-
-            try
-            {
-                $this->api->post('candidates/' . $id_api . '/attachments', $params);
-            }
-            catch (\Exception $e)
-            {
-                // if error : do nothing. Reason : Same image so do not need to update.
-            }
+            $this->api->uploadCandidatePicture( $id_api, $picture );
         }
 
         if (false === $anonymize && true === $candidate['cv']['has_pdf'])
         {
-            // upload the CV
             $pdf_link   = $this->sm->get('CVTable')->getCVPDF($candidate['id_user']);
 
             if (null !== $pdf_link)
             {
-                 if (true === file_exists(ROOT_PATH . $pdf_link))
-                    $filepath = ROOT_PATH . $pdf_link;
-                else
-                {
-                    $pdf_link   = str_replace('public/', '', $pdf_link);
-                    $filepath = 'https://app.yborder.com/' . $pdf_link;
-                }
-
-                if (php_sapi_name() === 'cli')
-                    echo 'filepath : ' . $filepath . PHP_EOL;
-
-                $params     = [
-                    'attachmentType'    => 'RESUME',
-                    'file'              => new PostFile('file', file_get_contents($filepath), generate_token(30) . '.pdf')
-                ];
-
-                try
-                {
-                    $this->api->post('candidates/' . $id_api . '/attachments', $params);
-                }
-                catch (\Exception $e)
-                {
-                    // if error : do nothing. Reason : Same image so do not need to update.
-                }
+                $this->api->uploadCandidateResume( $id_api, $pdf_link );
             }
         }
 
@@ -609,7 +564,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
         try
         {
             // update status
-            $this->api->put('candidates/' . $id_api . '/status', ['status' => $status]);
+            $this->api->updateCandidateState($id_api, $status);
         }
         catch (\Exception $e)
         {
