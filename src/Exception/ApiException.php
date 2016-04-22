@@ -11,9 +11,11 @@ namespace Core\Exception;
 
 class ApiException extends \Exception{
 
-	const ERROR_NOT_ALLOWED = "not_allowed";
+    const ERROR_NOT_ALLOWED = "not_allowed";
+	const ERROR_NOT_ALLOWED_FROM_FRONT = "not_allowed_from_front";
 	public static $ERRORS = array(
-		ApiException::ERROR_NOT_ALLOWED=>1,
+        ApiException::ERROR_NOT_ALLOWED=>1,
+		ApiException::ERROR_NOT_ALLOWED_FROM_FRONT=>2, 
 	);
     public $object;
     protected $cleanMessage;
@@ -25,6 +27,7 @@ class ApiException extends \Exception{
         	if(isset(ApiException::$ERRORS[$message]))
         	{
         		$code = ApiException::$ERRORS[$message];
+
         	}
         }
         $message = '[API Exception] ' . $message;

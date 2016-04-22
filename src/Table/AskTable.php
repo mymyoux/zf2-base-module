@@ -63,6 +63,7 @@ class AskTable extends CoreTable
    public function answerAPI($user, $apirequest)
    {
 
+    
         $keys = array("answer", "id_external_answer", "id_user");
         $value = array();
         foreach($apirequest->params as $key=>$v)
@@ -74,6 +75,9 @@ class AskTable extends CoreTable
         }
         $value["id_user"] = $user->getRealID();
         $this->table(AskTable::TABLE)->update($value, array("id_ask"=>$apirequest->params->id_ask->value));
+
+        $job = $this->sm->get('QueueService')->createJob('ask', array("id_ask"=>$apirequest->params->id_ask->value));
+        $job->send();
    }
    public function getAllTypes($user, $apirequest)
    {
@@ -85,6 +89,12 @@ class AskTable extends CoreTable
             {
                 return $item["type"];
             }, $result->toArray());
+   }
+   public function getAskByID($id_ask)
+   {
+        $result =  $this->table(AskTable::TABLE)->select(array("id_ask"=>$id_ask));
+        $result = $result->current();
+        return $result === False?NULL:$result;
    }
    public function getAll($user, $apirequest)
    {
@@ -112,6 +122,7 @@ class AskTable extends CoreTable
 
         $request = $apirequest->paginate->apply($request);
         $result = $this->execute($request);
+
         return $result->toArray();
    }
 }
