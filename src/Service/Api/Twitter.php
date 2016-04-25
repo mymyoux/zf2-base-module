@@ -7,9 +7,9 @@
  */
 
 namespace Core\Service\Api;
-use Zend\Http\Request;
+use Zend\Http\Request as RQ;
 
-require(ROOT_PATH."/vendor/twitter/twitter.php");
+require_once(ROOT_PATH."/vendor/twitter/twitter.php");
 
 class Twitter extends AbstractAPI
 {
@@ -106,7 +106,7 @@ class Twitter extends AbstractAPI
      * Must be called when the callback url for an api is called
      * @param Request $request
      */
-    public function callbackRequest(Request $request)
+    public function callbackRequest(RQ $request)
     {
         $oauthToken = $request->getQuery()->get( 'oauth_token', NULL );
         $oauthVerifier = $request->getQuery()->get( 'oauth_verifier', NULL );
