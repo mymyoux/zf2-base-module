@@ -131,6 +131,14 @@ class Param extends CoreAnnotation
                     }
                 }
                 else
+                if($this->requirements == "email")
+                {
+                   if(!is_email($d))
+                   {
+                      throw new ApiException($this->name . " must be an email format", 10);
+                   }
+                }
+                else
                 if (preg_match('/^' . $this->requirements . '$/', $d) === 0)
                     throw new ApiException($this->name . " requirements syntax error : " . $this->requirements, 10);
             }

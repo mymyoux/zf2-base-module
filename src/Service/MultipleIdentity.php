@@ -8,12 +8,16 @@
 
 namespace Core\Service;
 
+use Core\Model\UserModel;
 
 class MultipleIdentity extends CoreService implements IIdentity
 {
     private $_identities;
     private $_cases_apis;
     private $_configured_apis;
+
+    private $roles;
+    public $role;
     /**
      * @var UserModel
      */
@@ -40,7 +44,8 @@ class MultipleIdentity extends CoreService implements IIdentity
             $this->_configured_apis[] = mb_strtolower($api);
         }
         $this->_identities = array();
-
+        $this->detectTLoginToken();
+        $this->detectRLoginToken();
         if(!empty($this->session->id_user))
         {
             $token_table = $this->sm->get("TokenTable");
@@ -63,6 +68,73 @@ class MultipleIdentity extends CoreService implements IIdentity
                 $this->user = NULL;
             }
         }
+
+    }
+    /**
+     * @return \Core\Table\TokenTable
+     */
+    protected function getTokenTable()
+    {
+        return $this->sm->get("TokenTable");
+    }
+    protected function detectRLoginToken()
+    {
+        if(php_sapi_name() == "cli")
+        {
+            return;
+        }
+        if(!empty($this->session->id_user))
+        {
+            return;
+        }
+        $params = $this->sm->get("controllerpluginmanager")->get("params");
+        $token = $params->fromQuery("rtoken", NULL);
+        if(!isset($token))
+        {
+            return;
+        }
+        $api = $this->sm->get("API");
+        $result = $api->token->useonetoken(NULL, "GET", array("token"=>$token));
+        if(!isset($result->value))
+        {
+            //false or expired token
+            return;
+        }
+
+        $user = $this->getUserTable()->getUser($result->value);
+        if(!isset($user))
+        {
+            return;
+        }
+        $this->session->id_user = $user->id;
+        $this->session->generateDeviceToken();
+        $this->getTokenTable()->generateUserToken();
+    }
+    protected function detectTLoginToken()
+    {
+        if(php_sapi_name() == "cli")
+        {
+            return;
+        }
+        $params = $this->sm->get("controllerpluginmanager")->get("params");
+        $token = $params->fromQuery("ltoken", NULL);
+        if(!isset($token))
+        {
+            return;
+        }
+        $user = $this->getUserTable()->getUserFromLoginToken($token);
+        if(!isset($user))
+        {
+            return;
+        }
+        if(!$user->hasRole(UserModel::ROLE_TEMP))
+        {
+            //no temp
+            return;
+        }
+        $this->session->id_user = $user->id;
+        $this->session->generateDeviceToken();
+        $this->getTokenTable()->generateUserToken();
     }
     public function logConnection()
     {
