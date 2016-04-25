@@ -7,6 +7,7 @@
  */
 namespace Core\Table;
 use Core\Exception\Exception;
+use Core\Exception\ApiException;
 use Core\Model\UserModel;
 
 class UserTable extends CoreTable{
@@ -14,6 +15,39 @@ class UserTable extends CoreTable{
     const TABLE = "user";
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
+
+    public function createAPI($user, $apirequest)
+    {
+        $user = $this->getUsersFromEmail($apirequest->params->email->value);
+        if(!empty($user))
+        {
+            $user = $user[0];
+            throw new ApiException("Email already registered for user ".$user["id_user"]);
+        }
+        $keys = ["first_name", "last_name", "email", "type"];
+        $data = [];
+        foreach($keys as $key)
+        {
+            if(isset($apirequest->params->$key->value))
+            {
+                $data[$key] = $apirequest->params->$key->value;
+            }
+        }
+        $id_user = $this->createUser($data, $keys);
+        $user = $this->getUser($id_user);
+
+        return ["id_user"=>$id_user,"token"=>$user->token];
+    }
+    public function getUserFromLoginToken($token)
+    {
+        $result = $this->table(UserTable::TABLE_TOKEN)->select(array("token"=>$token));
+        $result = $result->current();
+        if($result === False)
+        {
+            return NULL;
+        }
+        return $this->getUser($result["id_user"]);
+    }
     public function authenticate($email, $password)
     {
         $result = $this->table(UserTable::TABLE_MANUAL)->select(array("email"=>trim($email)));
@@ -85,6 +119,7 @@ class UserTable extends CoreTable{
             return NULL;
         }
         $user = new UserModel();
+        $user->setIsIdentity(true);
         $user->exchangeArray($result);
         return $user;
     }
@@ -172,6 +207,12 @@ class UserTable extends CoreTable{
         if(!isset($email))
         {
             return array();
+        }
+        if(!isset($apis))
+        {
+            $api_manager = $this->sm->get("APIManager");
+            $apis = $api_manager->getAllLoggable();
+            $apis[] = "manual";
         }
 
 
