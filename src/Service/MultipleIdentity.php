@@ -79,6 +79,10 @@ class MultipleIdentity extends CoreService implements IIdentity
     }
     protected function detectRLoginToken()
     {
+        if(php_sapi_name() == "cli")
+        {
+            return;
+        }
         if(!empty($this->session->id_user))
         {
             return;
