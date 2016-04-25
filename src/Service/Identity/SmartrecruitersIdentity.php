@@ -53,29 +53,14 @@ class SmartrecruitersIdentity extends APIIdentity
     public function callbackRequest(Request $request)
     {
         $user = $this->api->callbackRequest($request);
-        // if(isset($user))
-        // {
-        //     $user->link= "https://www.twitter/".$user->screen_name;
-        //     $this->getUser()
-        //     $user = $this->_formatUserData($user);
-        //     $userTable = $this->sm->get('UserTable');
-        //     $user_twitter = $userTable->getUserFromAPIID($this->name, array("id_twitter"=>$user["id"]));
-        //     if(!isset($user_twitter))
-        //     {
-        //         if($this->sm->get("Identity")->isLoggued())
-        //         {
-        //             $userTable->addAPIToUser($this->name, $user);
 
-        //         }else
-        //         {
-        //             $userTable->createUserFromAPI($this->name, $user);
-        //         }
-        //     }
-        // }
+        // always call parent::callbackRequest
         parent::callbackRequest($request);
-        //TODO:why ?
-        // return $user;
+
+        // always return null
+        return null;
     }
+
     protected function _getDefaultColumns()
     {
         return array_merge(parent::_getDefaultColumns(), ['access_token', 'refresh_token', 'role', 'active']);

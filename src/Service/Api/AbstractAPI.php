@@ -72,6 +72,7 @@ abstract class AbstractAPI implements IAPI
     public function getUserForDatabase()
     {
         $user = $this->getUser();
+        if (null === $user) return [];
         $keys = $this->getDatabaseColumns();
         $sanitazed_user = array();
         foreach($keys as $key)

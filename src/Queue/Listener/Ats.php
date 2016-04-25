@@ -169,7 +169,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
             case 'company':
                 $company = $this->api->getCompanyInformation();
 
-                if (null === $this->sm->get('AtsCompanyTable')->getByAPIID($company['identifier'], $ats['id_ats']))
+                if (null !== $company && null === $this->sm->get('AtsCompanyTable')->getByAPIID($company['identifier'], $ats['id_ats']))
                     $this->sm->get('AtsCompanyTable')->saveCompany( $company['identifier'], $ats['id_ats'], $company['name'], $user->getCompany()->id_company );
             break;
             case 'jobs':
