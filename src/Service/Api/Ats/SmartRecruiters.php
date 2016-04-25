@@ -136,16 +136,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 $path = 'https://www.smartrecruiters.com/';
             }
 
-            if (php_sapi_name() === 'cli')
-            {
-                $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
-            }
+            $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
         }
         catch (\Exception $e)
         {
-            if (401 === $e->getCode() && false === $this->has_refresh)
+            if (401 === $e->getCode() && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
             {
                 $this->has_refresh = true;
                 // no authorize, try to refresh
@@ -282,7 +279,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
         catch( \Exception $e )
         {
-            // dd($e->getMessage());
             return NULL;
         }
 
@@ -311,7 +307,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     }
     protected function getDatabaseColumns()
     {
-        return array("id","name", "email", "first_name", "last_name", "access_token", "access_token_secret", "followers_count", "friends_count","screen_name","link");
+        return array("id","name", "email", "first_name", "last_name", "access_token", 'refresh_token', "role", "active");
     }
 
     /**
@@ -492,7 +488,14 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
      */
     public function getCompanyInformation()
     {
-        return $this->get('configuration/company', []);
+        try
+        {
+            return $this->get('configuration/company', []);
+        }
+        catch (\Exception $e)
+        {
+            return null;
+        }
     }
 
     /**

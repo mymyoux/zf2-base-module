@@ -117,7 +117,8 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         if (true === $this->display_time)
             $begin = '[' . date('Y-m-d H:i:s') . '] ' . $begin;
 
-        $this->sm->get('console')->write($begin . $message . $end . ($rc ? PHP_EOL : ''), $color);
+        if (php_sapi_name() === 'cli')
+            $this->sm->get('console')->write($begin . $message . $end . ($rc ? PHP_EOL : ''), $color);
     }
 
     public function debug( $message, $bg = false )
@@ -166,7 +167,8 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         if (true === $this->display_time)
             $begin = '[' . date('Y-m-d H:i:s') . '] ' . $begin;
 
-		$this->sm->get('console')->write($begin . $message . $end . PHP_EOL, $color);
+        if (php_sapi_name() === 'cli')
+		  $this->sm->get('console')->write($begin . $message . $end . PHP_EOL, $color);
     }
 
 	public function getConsole()
