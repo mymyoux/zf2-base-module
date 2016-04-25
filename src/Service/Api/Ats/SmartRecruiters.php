@@ -142,6 +142,20 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
         catch (\Exception $e)
         {
+            // Client error response [url] https://api.smartrecruiters.com/configuration/company [status code] 401 [reason phrase] Unauthorized
+            preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
+            if (count($matches) > 0)
+            {
+                list($original_message, $e_url, $e_code, $e_message) = $matches;
+                $e = new SmartrecruitersException($e_message, $e_code);
+            }
+            else
+            {
+                // not an API Exception
+                throw $e;
+            }
+
+            // dd($e->getMessage());
             if (401 === $e->getCode() && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
             {
                 $this->has_refresh = true;
@@ -258,7 +272,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                     }
                     else
                     {
-                        throw new \Exception( 'SmartRecruiters API error' );
+                        throw new SmartrecruitersException( 'SmartRecruiters API error' );
                     }
 
                     $user = $this->formatUser( $user );
@@ -269,12 +283,12 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 }
                 else
                 {
-                    throw new \Exception( 'SmartRecruiters API error' );
+                    throw new SmartrecruitersException( 'SmartRecruiters API error' );
                 }
             }
             else
             {
-                throw new \Exception($error_description, $code);
+                throw new SmartrecruitersException($error_description, $code);
             }
         }
         catch( \Exception $e )
@@ -492,7 +506,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         {
             return $this->get('configuration/company', []);
         }
-        catch (\Exception $e)
+        catch (SmartrecruitersException $e)
         {
             return null;
         }
@@ -602,4 +616,9 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         return [$job_id, $state];
     }
+}
+
+class SmartrecruitersException extends \Exception
+{
+
 }
