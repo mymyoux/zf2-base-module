@@ -95,6 +95,7 @@ class UserModel extends CoreModel
         if(($key = array_search($role, $this->roles)) !== False)
         {
             unset($this->roles[$key]);
+            $this->roles = array_values($this->roles);
         }
     }
     public function addAPI($name, \ArrayObject $data)
