@@ -16,8 +16,8 @@ class UserModel extends CoreModel
     public $first_name;
     public $last_name;
     protected $isIdentity = False;
-     protected $roles;
-         private $_ids;
+    protected $roles;
+    protected $_ids;
     public $role;
     /**
      *  Login token
@@ -121,4 +121,4 @@ class UserModel extends CoreModel
     {
         return isset($this->id) && $this->id!=0;
     }
-} 
+}
