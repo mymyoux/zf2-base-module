@@ -48,6 +48,6 @@ class LinkedInIdentity extends APIIdentity
     public function getUser($type = NULL)
     {
         $user = parent::getUser($type);
-        return toArray($user, True);
+        return $user;
     }
-} 
+}
