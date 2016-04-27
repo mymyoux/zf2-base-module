@@ -197,7 +197,7 @@ class Ats extends ListenerAbstract implements ListenerInterface
 
                 // foreach ($email_param['candidates'] as &$candidate)
                 // {
-                //     $candidate['url'] = $this->api>-getUrlCandidate( $candidates[ $item['id_user'] ]['id'] );
+                //     $candidate['url'] = $this->api->getUrlCandidate( $candidates[ $item['id_user'] ]['id'] );
                 // }
 
                 // $this->sm->get("Email")->sendEmailTemplate([$template, 'search'], $template, $user, $email_param);
@@ -451,11 +451,18 @@ class Ats extends ListenerAbstract implements ListenerInterface
         // $state = $this->getCompanyTable()->getCandidateState($this->identity->user->getCompany(), $user, $employees);
         $cv->retrieveReferences();
 
+        $cabinet = $candidate->getCabinet();
+
         if (true === $anonymize)
             $cv = $this->sm->get('CandidateService')->anonymize( $cv );
 
         $candidate->cv = $cv;
         $candidate = $candidate->toCompanyArray();
+        $candidate['cv']['cabinet'] = $cabinet->toArray();
+
+        $place = $this->sm->get('PlaceTable')->getByID( $cabinet->id_place );
+        $candidate['cv']['cabinet']['place_name'] = $place->name;
+
 
         if (true === $anonymize)
             $candidate = $this->sm->get('CandidateService')->anonymize( $candidate );

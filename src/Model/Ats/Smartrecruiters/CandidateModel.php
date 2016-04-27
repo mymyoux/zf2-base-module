@@ -86,6 +86,34 @@ class CandidateModel extends CandidateCoreModel
 			];
 		}, $data['xp']);
 
+		// add qualification
+		if (true === isset($data['qualification']))
+		{
+			$description 	= 'Salary: ' . $data['qualification']['salary'] . PHP_EOL;
+			$description   .= 'delay_availability: ' . $data['qualification']['delay_availability'] . PHP_EOL;
+			$description   .= 'academic_level: ' . $data['qualification']['academic_level'] . PHP_EOL;
+			$description   .= 'academic_reputation: ' . $data['qualification']['academic_reputation'] . PHP_EOL;
+			$description   .= 'personal_skills: ' . $data['qualification']['personal_skills'] . PHP_EOL;
+			$description   .= 'motivation: ' . $data['qualification']['motivation'] . PHP_EOL;
+			$description   .= 'technical_level: ' . $data['qualification']['technical_level'] . PHP_EOL;
+			$description   .= 'experience: ' . $data['qualification']['experience'] . ' years' . PHP_EOL;
+			$description   .= 'accompanied: ' . $data['qualification']['accompanied'] . PHP_EOL;
+			$description   .= 'english_level: ' . $data['qualification']['english_level'] . PHP_EOL;
+
+			$description   .= 'analyse: ' . $data['qualification']['analyse'] . PHP_EOL;
+
+			$qualification = [
+				'title'			=> 'YBorder qualification',
+				'company'		=> $data['cabinet']['name'] . ', ' . $data['cabinet']['place_name'],
+				'description'	=> $description,
+				'current'		=> true,
+				'startDate'		=> date('Y-m'),
+				'endDate'		=> date('Y-m', strtotime('+1 year')),
+			];
+
+			array_unshift($this->experience, $qualification);
+		}
+
 		$this->experience = array_filter($this->experience, function($item){
 			return $item !== null;
 		});
