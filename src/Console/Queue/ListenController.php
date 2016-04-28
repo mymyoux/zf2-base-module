@@ -7,6 +7,7 @@ use Zend\Mvc\MvcEvent;
 
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
+use Pheanstalk\Job as PheanstalkJob;
 
 class ListenController extends \Core\Console\CoreController
 {
