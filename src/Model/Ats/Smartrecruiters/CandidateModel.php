@@ -89,18 +89,54 @@ class CandidateModel extends CandidateCoreModel
 		// add qualification
 		if (true === isset($data['qualification']))
 		{
-			$description 	= 'Salary: ' . $data['qualification']['salary'] . PHP_EOL;
-			$description   .= 'delay_availability: ' . $data['qualification']['delay_availability'] . PHP_EOL;
-			$description   .= 'academic_level: ' . $data['qualification']['academic_level'] . PHP_EOL;
-			$description   .= 'academic_reputation: ' . $data['qualification']['academic_reputation'] . PHP_EOL;
-			$description   .= 'personal_skills: ' . $data['qualification']['personal_skills'] . PHP_EOL;
-			$description   .= 'motivation: ' . $data['qualification']['motivation'] . PHP_EOL;
-			$description   .= 'technical_level: ' . $data['qualification']['technical_level'] . PHP_EOL;
-			$description   .= 'experience: ' . $data['qualification']['experience'] . ' years' . PHP_EOL;
-			$description   .= 'accompanied: ' . $data['qualification']['accompanied'] . PHP_EOL;
-			$description   .= 'english_level: ' . $data['qualification']['english_level'] . PHP_EOL;
+			$tabs = [];
 
-			$description   .= 'analyse: ' . $data['qualification']['analyse'] . PHP_EOL;
+			$tabs['Salary']   				= ': ' . $data['qualification']['salary'];
+			$tabs['delay_availability']   	= ': ' . $data['qualification']['delay_availability'];
+			$tabs['academic_level']   		= ': ' . $data['qualification']['academic_level'];
+			$tabs['academic_reputation']   	= ': ' . $data['qualification']['academic_reputation'];
+			$tabs['personal_skills']  		= ': ' . $data['qualification']['personal_skills'];
+			$tabs['motivation']   			= ': ' . $data['qualification']['motivation'];
+			$tabs['technical_level']   		= ': ' . $data['qualification']['technical_level'];
+			$tabs['experience']   			= ': ' . $data['qualification']['experience'] . ' years';
+			$tabs['accompanied']   			= ': ' . $data['qualification']['accompanied'];
+			$tabs['english_level']  		= ': ' . $data['qualification']['english_level'];
+
+			$max = 0;
+			foreach ($tabs as $key => $tab)
+			{
+				if (mb_strlen($key) > $max) $max = mb_strlen($key);
+			}
+
+			foreach ($tabs as $key => $tab)
+			{
+           		$spaces     = str_repeat(' ', $max - mb_strlen($key) + 5 );
+           		$tabs[$key] 		= $key . $spaces . $tab;
+			}
+
+			// 2 columns
+			$max = 0;
+			foreach ($tabs as $key => $tab)
+			{
+				if (mb_strlen($tab) > $max) $max = mb_strlen($tab);
+			}
+
+			$descriptions = [];
+			reset($tabs);
+		    while ($tab = current($tabs))
+		    {
+		    	$next = next($tabs);
+           		$spaces     = str_repeat(' ', $max - mb_strlen($tab) + 10 );
+
+		    	$descriptions[] = $tab . $spaces . $next;
+
+		        next($tabs);
+		    }
+
+			$descriptions[] = '';
+			$descriptions[] = $data['cabinet']['name'] . ': ' .$data['qualification']['analyse'];
+
+			$description = implode(PHP_EOL, $descriptions);
 
 			$qualification = [
 				'title'			=> 'YBorder qualification',
@@ -111,9 +147,12 @@ class CandidateModel extends CandidateCoreModel
 				'endDate'		=> date('Y-m', strtotime('+1 year')),
 			];
 
+
 			array_unshift($this->experience, $qualification);
 		}
 
+		// echo ($description);
+		// exit();
 		$this->experience = array_filter($this->experience, function($item){
 			return $item !== null;
 		});
