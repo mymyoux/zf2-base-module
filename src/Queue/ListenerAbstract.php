@@ -15,23 +15,6 @@ abstract class ListenerAbstract
         $this->api = $sm->get("API");
     }
 
-    protected function buryJob(PheanstalkJob $job, Pheanstalk $queue)
-    {
-        /** @var \OG_Model_Queue_FailedJobs $modelFailedJobs */
-        $modelFailedJobs = \OG_Core_Base::getModel('Queue/FailedJobs');
-        try {
-            $modelFailedJobs->insert([
-                'queue_id'   => $job->getId(),
-                'queue'      => implode(', ', $queue->listTubesWatched()),
-                'connection' => $queue->getConnection()->getHost() . ':' . $queue->getConnection()->getPort(),
-                'payload'    => $job->getData()
-            ]);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getmessage();
-        }
-
-        $queue->bury($job);
-    }
     public function __call($method, $params)
     {
         $plugin = $this->plugin($method);
