@@ -37,8 +37,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $this->consumer_secret  = $consumer_secret;
 
         $this->models           = [
-            'jobs(\/[^\/]+){0,1}$'          => '\Core\Model\Ats\Smartrecruiters\JobModel',
-            'candidates(\/[^\/]+){0,1}$'    => '\Core\Model\Ats\Smartrecruiters\CandidateModel',
+            'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
+            'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
         ];
     }
 
