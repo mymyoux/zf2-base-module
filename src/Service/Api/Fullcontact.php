@@ -8,7 +8,7 @@
 
 namespace Core\Service\Api;
 
-use Zend\Http\Request;
+use Zend\Http\Request as ZendRequest;
 use Core\Service\Api\AbstractAPI;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
@@ -91,6 +91,10 @@ class FullContact extends AbstractAPI implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
+            if ($ressource === 'person.json' && $e->getCode() === 404)
+            {
+                return null;
+            }
             throw $e;
         }
         $data   = $data->json();
@@ -102,7 +106,7 @@ class FullContact extends AbstractAPI implements ServiceLocatorAwareInterface
      * Must be called when the callback url for an api is called
      * @param Request $request
      */
-    public function callbackRequest(Request $request)
+    public function callbackRequest(ZendRequest $request)
     {
         return NULL;
     }
