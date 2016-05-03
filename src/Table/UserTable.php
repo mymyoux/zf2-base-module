@@ -204,6 +204,7 @@ class UserTable extends CoreTable{
      */
     public function getUsersFromEmail($email, $apis = NULL)
     {
+
         if(!isset($email))
         {
             return array();
@@ -215,12 +216,12 @@ class UserTable extends CoreTable{
             $apis[] = "manual";
         }
 
-
         $users = $this->table()->select(array("email"=>$email))->toArray();
         $ids = array_map(function($item)
         {
             return $item["id_user"];
         }, $users);
+
         if(!empty($ids))
         {
             $where = $this->select()->where->notIn("id_user", $ids);
