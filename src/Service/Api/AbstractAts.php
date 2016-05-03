@@ -15,10 +15,6 @@ abstract class AbstractAts extends AbstractAPI
 	{
 		return ['company'];
 	}
-	public function canLogin()
-	{
-		return true;
-	}
 
 	/**
      * Get exclude functions ID for jobs (defined in config)
