@@ -13,7 +13,7 @@ abstract class AbstractAts extends AbstractAPI
 {
 	public function typeAuthorize()
 	{
-		return ['company'];
+		return [];
 	}
 
 	/**
