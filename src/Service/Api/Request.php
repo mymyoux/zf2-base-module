@@ -63,17 +63,45 @@ class Request implements ServiceLocatorAwareInterface
     }
     public function add($key, CoreObject $value)
     {
+        //for params
+        if(in_array("Core\Annotations\IMetaObject", class_implements($value)))
+        {
+            $metakey = $value->getAPIKey();
+            if(!isset($this->$metakey))
+            {
+                $metainstance = $value->getAPIObject();
+                $this->$metakey = $metainstance;
+            }
+            $this->$metakey->$key = $value;
+        }else
+        {
+            $this->$key = $value;
+        }
+        /*
         if($value instanceof ParamObject)
         {
+            dd(class_implements($value));
             if(!isset($this->params))
             {
                 $this->params = new \stdClass();
+                $this->params->toArray = function($keys)
+                {
+                    $data = [];
+                    foreach($this->params as $key=>$value)
+                    {
+                        if(in_array($key, $keys))
+                        {
+                            $data[$key] = $value;
+                        }
+                    }
+                    return $data;
+                };
             }
             $this->params->$key = $value;
         }else
         {
             $this->$key = $value;
-        }
+        }*/
     }
     public function isValid($apiRequest)
     {
