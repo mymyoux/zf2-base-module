@@ -7,6 +7,7 @@ use Zend\Mvc\MvcEvent;
 
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
+use Pheanstalk\Job as PheanstalkJob;
 
 class ListenController extends \Core\Console\CoreController
 {
@@ -42,7 +43,7 @@ class ListenController extends \Core\Console\CoreController
 
         $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
 
-        
+
         $modules = $this->sm->get("ApplicationConfig")["modules"];
         $modules = array_reverse($modules);
         $classname = ucfirst(camel($name));
@@ -110,8 +111,11 @@ class ListenController extends \Core\Console\CoreController
 
             }
         }
+    }
 
-
+    protected function buryJob(PheanstalkJob $job, Pheanstalk $queue)
+    {
+        $queue->bury($job);
     }
 
     public function work()
