@@ -97,6 +97,12 @@ class FullContact extends AbstractAPI implements ServiceLocatorAwareInterface
             }
             throw $e;
         }
+
+        $this->call_remaining   = (int) $data->getHeader('x-rate-limit-remaining');
+        $this->call_limit       = (int) $data->getHeader('x-rate-limit-limit');
+
+        $this->sm->get('Log')->info( $this->call_remaining . '/' . $this->call_limit);
+
         $data   = $data->json();
 
         return $data;
