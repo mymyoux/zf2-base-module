@@ -3,6 +3,7 @@
 namespace Core\Queue;
 
 use Pheanstalk\Pheanstalk;
+use Pheanstalk\PheanstalkInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 class Job implements ServiceLocatorAwareInterface {
@@ -37,7 +38,7 @@ class Job implements ServiceLocatorAwareInterface {
      *
      * @return int
      */
-    public function send()
+    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY )
     {
         $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube );
 
@@ -55,7 +56,6 @@ class Job implements ServiceLocatorAwareInterface {
 
         if (!$this->beanstalkd->getConnection()->isServiceListening())
         {
-
             $classname = ucfirst(camel($this->tube));
             $this->sendAlert();
             $modules = $this->sm->get("ApplicationConfig")["modules"];
@@ -73,7 +73,6 @@ class Job implements ServiceLocatorAwareInterface {
             {
                 throw new \Exception('Class `' . $object_name . '` not exist', 1);
             }
-
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
@@ -84,7 +83,12 @@ class Job implements ServiceLocatorAwareInterface {
             return true;
         }
 
-        return $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job));
+        if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
+        {
+            sleep( $delay );
+        }
+
+        return $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
     }
 
     private function sendAlert()
