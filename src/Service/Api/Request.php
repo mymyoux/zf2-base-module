@@ -77,31 +77,6 @@ class Request implements ServiceLocatorAwareInterface
         {
             $this->$key = $value;
         }
-        /*
-        if($value instanceof ParamObject)
-        {
-            dd(class_implements($value));
-            if(!isset($this->params))
-            {
-                $this->params = new \stdClass();
-                $this->params->toArray = function($keys)
-                {
-                    $data = [];
-                    foreach($this->params as $key=>$value)
-                    {
-                        if(in_array($key, $keys))
-                        {
-                            $data[$key] = $value;
-                        }
-                    }
-                    return $data;
-                };
-            }
-            $this->params->$key = $value;
-        }else
-        {
-            $this->$key = $value;
-        }*/
     }
     public function isValid($apiRequest)
     {
