@@ -102,10 +102,12 @@ class APIController extends FrontController
             }
             else if($returnView instanceof ViewModel)
             {
+
                 $view->setVariable("data", $returnView->getVariables());
             }
             else
             {
+
                 $view->setVariable("data", $returnView);
             }
             $view->setVariable("api_data", $result->api_data);
@@ -169,14 +171,13 @@ class APIController extends FrontController
 
             $api_stats["value"] = json_encode($view->getVariables(), \JSON_PRETTY_PRINT);
             $api_stats["type"] = $this->sm->get("Route")->getType();
-
             $this->getStatsTable()->recordAPICall($api_stats);
             
         }catch(\Exception $e)
         {
             //silent
         }
-
+        //dd((array)$view->getVariables()["data"]);
         return $view;
     }
     public function getStatsTable()
