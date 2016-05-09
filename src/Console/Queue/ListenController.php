@@ -46,7 +46,7 @@ class ListenController extends \Core\Console\CoreController
 
         $modules = $this->sm->get("ApplicationConfig")["modules"];
         $modules = array_reverse($modules);
-        $classname = ucfirst(camel($name));
+        $classname = ucfirst(camel($name, '-', '\\'));
         foreach($modules as $module)
         {
             $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . $classname;
@@ -73,7 +73,6 @@ class ListenController extends \Core\Console\CoreController
         {
             try
             {
-
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
@@ -97,6 +96,7 @@ class ListenController extends \Core\Console\CoreController
             catch (\Exception $e)
             {
                 $this->getLogger()->error("ERROR! " . $e->getMessage());
+                $this->sm->get('ErrorTable')->logError( $e );
 
                 $jobsStats = $this->queue->statsJob($job);
 
