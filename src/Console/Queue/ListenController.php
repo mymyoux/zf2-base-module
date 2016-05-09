@@ -73,7 +73,6 @@ class ListenController extends \Core\Console\CoreController
         {
             try
             {
-
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
@@ -97,6 +96,7 @@ class ListenController extends \Core\Console\CoreController
             catch (\Exception $e)
             {
                 $this->getLogger()->error("ERROR! " . $e->getMessage());
+                $this->sm->get('ErrorTable')->logError( $e );
 
                 $jobsStats = $this->queue->statsJob($job);
 
