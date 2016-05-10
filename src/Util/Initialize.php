@@ -575,3 +575,26 @@ function split_version($name)
     return False;
 
 }
+
+function delete_directory($path) {
+    if (!file_exists($path)) {
+        return true;
+    }
+
+    if (!is_dir($path)) {
+        return unlink($path);
+    }
+
+    foreach (scandir($path) as $item) {
+        if ($item == '.' || $item == '..') {
+            continue;
+        }
+
+        if (!delete_directory($path . DIRECTORY_SEPARATOR . $item)) {
+            return false;
+        }
+
+    }
+
+    return rmdir($path);
+}

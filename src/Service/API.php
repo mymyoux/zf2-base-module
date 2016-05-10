@@ -290,6 +290,16 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             {
                 unset($diff[$index]);
             }
+            $index = array_search("ltoken", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
+            $index = array_search("rtoken", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
             if(!empty($diff))
             {
                 if (is_array($result))
