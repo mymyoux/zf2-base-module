@@ -119,6 +119,12 @@ class APIController extends FrontController
             $view->setVariable("api_error", $e->getCleanErrorMessage());
             $view->setVariable("api_error_code", $e->getCode());
             $id_exception = $this->getErrorTable()->logError($e);
+            if($this->isLocal())
+            {
+                $view->setVariable("api_error_stack", explode("\n", $e->getTraceAsString()));
+                $view->setVariable("api_error_line", $e->getLine());
+                $view->setVariable("api_error_file", $e->getFile());
+            }
         }
         catch(\Exception $e)
         {
