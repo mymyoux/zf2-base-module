@@ -447,10 +447,6 @@ class _Binder
     {
         return $this->method("post");
     }
-    public function get()
-    {
-        return $this->method("get");
-    }
     public function module($module)
     {
         $this->_module  = $module;
