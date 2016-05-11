@@ -421,7 +421,14 @@ class UserTable extends CoreTable{
         {
             return False;
         }
-        $api_id = "id_".$api;
+        if($api == "manual")
+        {
+            $api_id = "id_user";
+            $data["password"] = $this->getHashedPassword(trim($data["password"]));
+        }else
+        {
+            $api_id = "id_".$api;
+        }
         if(!array_key_exists($api_id, $data) && array_key_exists("id", $data))
         {
             $data[$api_id] = $data["id"];
