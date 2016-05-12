@@ -331,7 +331,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
      * @param  boolean $share_with_everyone true if everyone can see the message.
      * @return array
      */
-    public function sendMessage( $content, $share_with_everyone = false)
+    public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
         $params = [
             'content'   => 'YBorder: '. $content,
@@ -358,14 +358,14 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     }
 
     /**
-     * Get job details by ID
+     * Get candidate state history
      *
-     * @param  string $id ID of the job
-     * @return AtsJobModel     Model of the job
+     * @param  AtsCandidateModel $candidate ID of the job
+     * @return ResultListModel   History list
      */
-    public function getCandidateHistory( $id )
+    public function getCandidateHistory( $candidate )
     {
-        $histories  = $this->get('candidates/' . $id . '/status/history', ['limit' => 100]);
+        $histories  = $this->get('candidates/' . $candidate->id . '/status/history', ['limit' => 100]);
 
         $result = new ResultListModel();
 
@@ -385,7 +385,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     {
         $content = 'Intouch request sent to #[CANDIDATE:' . $id_api_candidate  . ']';
 
-        return $this->sendMessage( $content, true );
+        return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
     /**
@@ -477,6 +477,21 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $result->setTotalFound($data['totalFound']);
 
         return $result;
+    }
+
+    public function createCandidate( $model )
+    {
+        return $this->json('candidates', $model->toAPI());
+    }
+
+    public function updateCandidate( $model )
+    {
+        return $this->createCandidate( $model );
+    }
+
+    public function addCandidateQualification( $model )
+    {
+        // do nothing because it's done in the creation
     }
 
     public function getCandidates( $offset, $limit )
@@ -618,7 +633,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     }
 }
 
-class SmartrecruitersException extends \Exception
+class SmartrecruitersException extends Exception
 {
 
 }
