@@ -597,6 +597,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         {
             $application    = $this->get('applications/' . $id_application, true);
             $from_stage_id  = $application['current_stage']['id'];
+
             if ($application['status'] !== 'active')
                 return null;
 
