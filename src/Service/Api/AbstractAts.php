@@ -65,12 +65,36 @@ abstract class AbstractAts extends AbstractAPI
     abstract public function getCandidates( $offset, $limit );
 
     /**
+     * Create a new candidate
+     *
+     * @param  AtsCoreModel $model Candidate model
+     * @return AtsCoreModel        Candidate model
+     */
+    abstract public function createCandidate( $model );
+
+    /**
+     * Update new candidate
+     *
+     * @param  AtsCoreModel $model Candidate model
+     * @return AtsCoreModel        Candidate model
+     */
+    abstract public function updateCandidate( $model );
+
+    /**
+     * Add qualification
+     *
+     * @param  AtsCoreModel $model Candidate model
+     * @return void
+     */
+    abstract public function addCandidateQualification( $model );
+
+    /**
      * Get candidate state history
      *
-     * @param  string $id ID of the candidate
-     * @return ResultListeModel     All history state
+     * @param  AtsCandidateModel $candidate ID of the job
+     * @return ResultListModel   History list
      */
-    abstract public function getCandidateHistory( $id );
+    abstract public function getCandidateHistory( $candidate );
 
     /**
      * Get the URL of the candidate (in the ATS interface)
@@ -133,10 +157,11 @@ abstract class AbstractAts extends AbstractAPI
     /**
      * Send a message to the ATS platform (use a LOG from YBorder action)
      *
+     * @param  string  $id_api              ID of the candidate
      * @param  string  $content             Message content text
      * @param  boolean $share_with_everyone If you want to share this message with everyone in the ATS
      * @return MessageModel                 Message model
      */
-    abstract public function sendMessage($content, $share_with_everyone = false);
+    abstract public function sendMessage($id_api, $content, $share_with_everyone = false);
 }
 
