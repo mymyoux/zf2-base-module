@@ -447,11 +447,18 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function searchCompany( $query )
     {
-        // $data = $this->get('companyNames', ['q' => $query]);
+        if (empty($query)) return null;
 
-        // return $data['results'];
+        try
+        {
+            $data = $this->client->get('https://api.greenhouse.io/v1/boards/' . $query . '/embed/jobs');
 
-        return [];
+            return $data->json();
+        }
+        catch(\Exception $e)
+        {
+            return null;
+        }
     }
 
     /**
