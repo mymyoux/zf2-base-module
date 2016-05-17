@@ -71,7 +71,6 @@ class CoreController  extends AbstractActionController
         $acl = $this->sm->get("ACL");
         $acl->setServiceLocator($this->sm);
         $this->identity->setACL($acl);
-
         //$this->api = $this->sm->get("API");
 
 
@@ -88,7 +87,7 @@ class CoreController  extends AbstractActionController
      */
     protected function postInit(\Zend\Mvc\MvcEvent $event)
     {
-
+        $this->identity->initUser();
     }
 
     /**
