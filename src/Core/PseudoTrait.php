@@ -1,7 +1,7 @@
 <?php
 namespace Core\Core;
 
-use Core\Core\PseudoTrait\PseudoTrait;
+use Core\Core\PseudoTrait\PseudoTrait as PT;
 trait PseudoTrait
 {
    protected $traits = [];
@@ -24,9 +24,9 @@ trait PseudoTrait
         }
         throw new \Exception(get_class($this).": No trait implements the method '".$name."'");
    }
-   public function addPseudoTrait(PseudoTrait $trait)
+   public function addPseudoTrait(PT $trait)
    {
         $this->traits[$trait->getName()] = $trait;
         $trait->link($this);
    }
-} 
+}
