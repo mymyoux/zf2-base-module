@@ -64,10 +64,9 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $this->config   = $apis['greenhouse'];
     }
 
-    public function setAccessToken($access_token, $refresh_token)
+    public function setAccessToken($access_token)
     {
         $this->access_token     = $access_token;
-        $this->refresh_token    = $refresh_token;
     }
 
     public function getLoginUrl($data)
@@ -75,7 +74,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         // mob.local/company/user/login/greenhouse
         $scopes         = $this->config['scopes'];
         $redirect_uri   = $this->config['redirect_uri'];
-        $url            = 'https://www.greenhouse.io/identity/oauth/allow?client_id=' . $this->consumer_key . '&redirect_uri=' . rawurlencode($redirect_uri) . '&scope=' . rawurlencode(implode(' ', $scopes));
+        $url            = 'https://app.greenhouse.io/oauth/authorize?client_id=' . $this->consumer_key . '&redirect_uri=' . rawurlencode($redirect_uri) . '&scope=' . rawurlencode(implode(' ', $scopes)) . '&response_type=token';
 
         return $url;
 
@@ -297,37 +296,27 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function callbackRequest(Request $request)
     {
-        $code               = $request->getQuery()->get( 'code', NULL );
-        $error              = $request->getQuery()->get( 'error', NULL );
-        $error_description  = $request->getQuery()->get( 'error_description', NULL );
+        $error          = null;
+        $access_token   = $request->getQuery()->get( 'access_token', NULL );
+
+        if (null === $access_token)
+        {
+            throw new \Core\Exception\NewLayoutException('greenhouse', 4);
+        }
 
         try
         {
             if ( NULL === $error )
             {
-                if ( NULL !== $code )
+                if ( NULL !== $access_token )
                 {
-                    $json = $this->request('POST', 'identity/oauth/token', [
-                    'body'  => [
-                        'grant_type'    => 'authorization_code',
-                        'code'          => $code,
-                        'client_id'     => $this->consumer_key,
-                        'client_secret' => $this->consumer_secret
-                        ]
-                    ]);
+                    $this->setAccessToken( $access_token );
 
-                    if (isset($json['access_token']) && isset($json['refresh_token']))
-                    {
-                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
+                    $user = $this->get('current_user');
 
-                        $user = $this->request('GET', 'users/me', []);
-                    }
-                    else
-                    {
-                        throw new GreenHouseException( 'SmartRecruiters API error' );
-                    }
+                    // dd($user);
 
-                    $user = $this->formatUser( $user );
+                    // $user = $this->formatUser( $user );
 
                     $this->user = $user;
 
