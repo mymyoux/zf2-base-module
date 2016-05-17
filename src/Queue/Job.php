@@ -56,6 +56,11 @@ class Job implements ServiceLocatorAwareInterface {
 
         if (!$this->beanstalkd->getConnection()->isServiceListening())
         {
+            if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
+            {
+                $this->sm->get('Log')->warn('waiting for ' . $delay . ' secs...');
+                sleep( $delay );
+            }
             $classname = ucfirst(camel($this->tube));
             $this->sendAlert();
             $modules = $this->sm->get("ApplicationConfig")["modules"];
@@ -81,11 +86,6 @@ class Job implements ServiceLocatorAwareInterface {
             $this->sm->get('BeanstalkdLogTable')->setSend($id, 2);
 
             return true;
-        }
-
-        if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
-        {
-            sleep( $delay );
         }
 
         return $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
