@@ -37,8 +37,19 @@ class ParamObject extends CoreObject implements IMetaObject
 }
 class ParamClass
 {
-    public function toArray($keys)
+    public function toArray(...$args)
     {
+        $keys = [];
+        foreach($args as $key=>$value)
+        {
+            if(is_array($value))
+            {
+                $keys = array_merge($keys, $value);
+            }else
+            {
+                $keys[] = $value;
+            }
+        }
         $data = [];
         foreach($this as $key=>$value)
         {

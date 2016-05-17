@@ -87,17 +87,32 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
          if(isset($arguments))
         {
-            if(sizeof($arguments))
+            $index = 0;
+            if(sizeof($arguments)>$index)
             {
-                $request['id'] = $arguments[0];
+                if(is_string($arguments[$index]))
+                {
+                    $index--;
+                }else
+                {
+                    $request['id'] = $arguments[$index];
+                }
             }
-            if(sizeof($arguments)>1)
+            $index++;
+            if(sizeof($arguments)>$index)
             {
-                $request['method'] = $arguments[1];
+                if(is_array($arguments[$index]))
+                {
+                    $index--;
+                }else
+                {
+                    $request['method'] = $arguments[$index];
+                }
             }
-            if(sizeof($arguments)>2)
+            $index++;
+            if(sizeof($arguments)>$index)
             {
-                $request['params'] = $arguments[2];
+                $request['params'] = $arguments[$index];
             }
         }
 
@@ -275,6 +290,16 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             {
                 unset($diff[$index]);
             }
+            $index = array_search("ltoken", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
+            $index = array_search("rtoken", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
             if(!empty($diff))
             {
                 if (is_array($result))
@@ -365,6 +390,7 @@ class _Binder
     private $_user;
     private $_json;
     private $_module;
+    private $_method;
     public function __construct(API $api, $controller)
     {
         $this->_json        = false;
@@ -376,6 +402,19 @@ class _Binder
     }
     public function __call($action, $arguments)
     {
+
+        if(isset($this->_method))
+        {
+            if(!empty($arguments))
+            {
+                $temp =  $arguments;
+                $arguments = [$this->_method];
+                $arguments[] = $temp[0];
+            }else
+            {
+                $arguments = [$this->_method];
+            }
+        }
         return $this->api->_action($this->controller, $action, $arguments, $this, $this->_module);
     }
     public function hasUser()
@@ -398,6 +437,15 @@ class _Binder
     {
         $this->_user  = $user;
         return $this;
+    }
+    public function method($method)
+    {
+        $this->_method = strtoupper($method);
+        return $this;
+    }
+    public function post()
+    {
+        return $this->method("post");
     }
     public function module($module)
     {

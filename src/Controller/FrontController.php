@@ -133,6 +133,12 @@ class FrontController extends CoreController
                 }
             }
         }
+
+        if($this->identity->isLoggued())
+        {
+            $this->identity->addRoleToUser();
+        }
+
     }
 
     /**

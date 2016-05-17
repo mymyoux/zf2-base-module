@@ -28,7 +28,7 @@ class MultipleIdentity extends CoreService implements IIdentity
     public $acl;
     public function setACL($acl)
     {
-        $this->acl;
+        $this->acl = $acl;
     }
     public function getACL()
     {
@@ -37,6 +37,9 @@ class MultipleIdentity extends CoreService implements IIdentity
     public function init()
     {
 
+    }
+    public function initUser()
+    {
         $this->_cases_apis = $this->sm->get("APIManager")->getAll();
         $this->_configured_apis = array();
         foreach($this->_cases_apis as $api)
@@ -54,6 +57,7 @@ class MultipleIdentity extends CoreService implements IIdentity
                 //GOOD
                 $user_table = $this->sm->get("UserTable");
                 $this->user = $user_table->getUser($this->session->id_user);
+
                 $apis = $user_table->getApis($this->session->id_user);
                 foreach($apis as $api)
                 {
@@ -61,6 +65,7 @@ class MultipleIdentity extends CoreService implements IIdentity
                     $this->$api;
                 }
                 $this->logConnection();
+                $this->addRoleToUser();
             }else
             {
                 //BAD
@@ -117,7 +122,7 @@ class MultipleIdentity extends CoreService implements IIdentity
             return;
         }
         $params = $this->sm->get("controllerpluginmanager")->get("params");
-        $token = $params->fromQuery("ltoken", NULL);
+        $token = $params->fromQuery("ltoken", $params->fromPost("ltoken", NULL));
         if(!isset($token))
         {
             return;
@@ -129,8 +134,12 @@ class MultipleIdentity extends CoreService implements IIdentity
         }
         if(!$user->hasRole(UserModel::ROLE_TEMP))
         {
+            $this->acl->addRoles($user);
             //no temp
-            return;
+            if(!$user->hasRole("ltoken"))
+            {
+                return;
+            }
         }
         $this->session->id_user = $user->id;
         $this->session->generateDeviceToken();
@@ -214,6 +223,15 @@ class MultipleIdentity extends CoreService implements IIdentity
         $this->user = $user;
         $this->session->id_user = $this->user->getRealID();
         $this->sm->get("TokenTable")->generateUserToken();
+        $this->addRoleToUser();
+    }
+    public function addRoleToUser()
+    {
+        if(isset($this->acl) && $this->isLoggued())
+        {
+            $this->acl->addRoles($this->user);
+                
+        }
     }
 
     public function getUser()
