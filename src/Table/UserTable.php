@@ -48,48 +48,68 @@ class UserTable extends CoreTable{
         }
         return $this->getUser($result["id_user"]);
     }
+    public function getIDUserByEmail($email)
+    {
+        if(!isset($email))
+        {
+            return NULL;
+        }
+        $email = trim($email);
+        if(mb_strlen($email) == 0)
+        {
+            return NULL;
+        }
+        $result = $this->table(UserTable::TABLE)->select(array("email"=>$email));
+        $result = $result->current();
+        if($result !== False)
+        {
+            return $result;
+        }
+        $result = $this->table(UserTable::TABLE_MANUAL)->select(array("email"=>$email));
+        $result = $result->current();
+        if($result !== False)
+        {
+            return $result;
+        }
+        $apiManager = $this->sm->get("APIManager");
+        $apis = $apiManager->getAll();
+        foreach($apis as $api)
+        {
+            if($apiManager->canLogin($api))
+            {
+                 $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>$email));
+                 $result = $result->current();
+                 if($result !== False)
+                 {
+                    return $result;
+                 }
+            }
+        }
+        return NULL;
+    }
     public function authenticate($email, $password)
     {
-        $result = $this->table(UserTable::TABLE_MANUAL)->select(array("email"=>trim($email)));
+        $user = $this->getIDUserByEmail($email);
+        if(!isset($user))
+        {
+            throw new \Exception("no_email");
+            return NULL;
+        }
+        $result = $this->table(UserTable::TABLE_MANUAL)->select(array("id_user"=>$user["id_user"]));
         $result = $result->current();
         if($result === False)
         {
-
-            $result = $this->table(UserTable::TABLE)->select(array("email"=>trim($email)));
-            $result = $result->current();
-            if($result === False)
+             $apis = $this->getApis($user["id_user"]);
+            if(!empty($apis))
             {
-                $apiManager = $this->sm->get("APIManager");
-                $apis = $apiManager->getAll();
-                foreach($apis as $api)
-                {
-                    if($apiManager->canLogin($api))
-                    {
-                         $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>trim($email)));
-                         $result = $result->current();
-                         if($result !== False)
-                         {
-                            throw new \Exception("bad_network.use_".$api);
-                            return NULL;
-                         }
-                    }
-                }
-
+                throw new \Exception("bad_network.use_".$apis[0]);
+                return NULL;
             }else
             {
-                $apis = $this->getApis($result["id_user"]);
-                if(!empty($apis))
-                {
-                    throw new \Exception("bad_network.use_".$apis[0]);
-                    return NULL;
-                }else
-                {
-                    //can't happen
-                }
+                //can't happen
+                throw new \Exception("unknown");
+                return NULL;
             }
-
-            throw new \Exception("no_email");
-            return NULL;
         }
         $password_good = password_verify(trim($password), $result["password"]);
         if(!$password_good)
@@ -204,6 +224,7 @@ class UserTable extends CoreTable{
      */
     public function getUsersFromEmail($email, $apis = NULL)
     {
+
         if(!isset($email))
         {
             return array();
@@ -215,12 +236,12 @@ class UserTable extends CoreTable{
             $apis[] = "manual";
         }
 
-
         $users = $this->table()->select(array("email"=>$email))->toArray();
         $ids = array_map(function($item)
         {
             return $item["id_user"];
         }, $users);
+
         if(!empty($ids))
         {
             $where = $this->select()->where->notIn("id_user", $ids);
@@ -360,8 +381,8 @@ class UserTable extends CoreTable{
         }
         $manual_data = array();
         $manual_data["email"] = trim($data["email"]);
-        $manual_data["password"] = $this->getHashedPassword(trim($data["password"]));
-        $manual_data["id_manual"] = $id_user;
+        $manual_data["password"] = $data["password"];//$this->getHashedPassword(trim($data["password"]));
+        $manual_data["id_user"] = $id_user;
         $this->addAPIToUser("manual", $manual_data, $id_user);
         $this->updateUser($data, NULL, $id_user);
     }
@@ -400,7 +421,14 @@ class UserTable extends CoreTable{
         {
             return False;
         }
-        $api_id = "id_".$api;
+        if($api == "manual")
+        {
+            $api_id = "id_user";
+            $data["password"] = $this->getHashedPassword(trim($data["password"]));
+        }else
+        {
+            $api_id = "id_".$api;
+        }
         if(!array_key_exists($api_id, $data) && array_key_exists("id", $data))
         {
             $data[$api_id] = $data["id"];
@@ -411,6 +439,7 @@ class UserTable extends CoreTable{
             $id_user = $this->sm->get("Identity")->user->id;
         }
         $row = $this->table($api)->select(array($api_id=>$data[$api_id]));
+        //throw new \Exception("argh");
         if(($row=$row->current())!==False && $row["id_user"] != $id_user && !$this->sm->get("APIManager")->isSharable($api))
         {
             throw new Exception("api.already_used");

@@ -103,10 +103,12 @@ class APIController extends FrontController
             }
             else if($returnView instanceof ViewModel)
             {
+
                 $view->setVariable("data", $returnView->getVariables());
             }
             else
             {
+
                 $view->setVariable("data", $returnView);
             }
             $view->setVariable("api_data", $result->api_data);
@@ -118,6 +120,12 @@ class APIController extends FrontController
             $view->setVariable("api_error", $e->getCleanErrorMessage());
             $view->setVariable("api_error_code", $e->getCode());
             $id_exception = $this->getErrorTable()->logError($e);
+            if($this->isLocal())
+            {
+                $view->setVariable("api_error_stack", explode("\n", $e->getTraceAsString()));
+                $view->setVariable("api_error_line", $e->getLine());
+                $view->setVariable("api_error_file", $e->getFile());
+            }
         }
         catch(\Exception $e)
         {
@@ -138,7 +146,6 @@ class APIController extends FrontController
 
             $id_exception = $this->getErrorTable()->logError($e);
         }
-
         $state_user = array();
         if($this->identity->isLoggued())
         {
@@ -152,7 +159,6 @@ class APIController extends FrontController
         }
 
         $view->setVariable("state_user", $state_user);
-
         try
         {
             $error = $view->getVariable("error");
@@ -170,14 +176,13 @@ class APIController extends FrontController
 
             $api_stats["value"] = json_encode($view->getVariables(), \JSON_PRETTY_PRINT);
             $api_stats["type"] = $this->sm->get("Route")->getType();
-
             $this->getStatsTable()->recordAPICall($api_stats);
 
         }catch(\Exception $e)
         {
             //silent
         }
-
+        //dd((array)$view->getVariables()["data"]);
         return $view;
     }
     public function getStatsTable()

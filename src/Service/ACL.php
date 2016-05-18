@@ -291,6 +291,35 @@ class ACL extends CoreService implements \JsonSerializable
         }
         return array_unique($leveled);
     }
+    public function getRolesFromCategory($category)
+    {
+        if(isset($this->tree[$category]))
+        {
+            return $this->tree[$category];
+        }   
+        return NULL;
+    }
+    public function addRoles($user)
+    {
+        if(!isset($user))
+        {
+            return;
+        }
+        $roles = $user->getRoles();
+
+        foreach($roles as $role)
+        {
+            $subroles = $this->getRolesFromCategory($role);
+            if(isset($subroles))
+            {
+                foreach($subroles as $subrole)
+                {
+                    $user->addRole($subrole);
+                }
+            }
+        }
+            
+    }
     public function __debugInfo()
     {
         return array("__class"=>"ACL", "categories"=>$this->categories, "roles_tree"=>$this->tree);
