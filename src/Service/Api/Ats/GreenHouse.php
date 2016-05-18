@@ -40,6 +40,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $this->models           = [
             'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Greenhouse\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Greenhouse\CandidateModel',
+            'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Greenhouse\HistoryModel',
         ];
 
         $this->user = new \stdClass();
@@ -192,53 +193,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
                 $e = new GreenHouseException($e_message, $e_code);
             }
-            else
-            {
-                // not an API Exception
-                throw $e;
-            }
 
-            // if (401 === $e->getCode() && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
-            // {
-            //     $this->has_refresh = true;
-            //     // no authorize, try to refresh
-
-            //     $old_access_token   = $this->access_token;
-            //     $this->access_token = null;
-
-            //     try
-            //     {
-            //         $json = $this->post('identity/oauth/token', [
-            //             'grant_type'    => 'refresh_token',
-            //             'refresh_token' => $this->refresh_token,
-            //             'client_id'     => $this->consumer_key,
-            //             'client_secret' => $this->consumer_secret
-            //         ]);
-
-            //         if (isset($json['access_token']) && isset($json['refresh_token']))
-            //         {
-            //             $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
-
-            //             $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
-
-            //             // $this->has_refresh = false;
-
-            //             return $this->request( $method, $ressource, $_params );
-            //         }
-            //         else
-            //         {
-            //             throw $e;
-            //         }
-            //     }
-            //     catch (\Exception $ee)
-            //     {
-            //         throw $e;
-            //     }
-            // }
-            // else
-            // {
-                throw $e;
-            // }
+            throw $e;
         }
         $data   = $data->json();
         $found  = false;
@@ -260,8 +216,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             if (is_array($data))
             {
                 $is_content = true;
-                foreach ($data as $d)
-                    if (!is_array($d))
+                foreach ($data as $key => $d)
+                    if (!is_numeric($key))
                         $is_content = false;
             }
 
@@ -637,7 +593,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
-            dd($e->getMessage());
+            // dd($e->getMessage());
             // if error : do nothing. Reason : Same image so do not need to update.
             return false;
         }
@@ -689,7 +645,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function createCandidate( $model )
     {
-        throw new \Exception("TODO", 1);
+        return $this->json('candidates', false, $model->toAPI());
     }
 
     public function updateCandidate( $model )
@@ -705,9 +661,9 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function addCandidateQualification( $model )
     {
-        // qualif wesh
+        $data = $model->getQualification();
 
-        return $this->sendMessage($model->id, 'qualif', true);
+        return $this->sendMessage($model->id, $data, true);
     }
 
     public function getJobId( $id_ats_candidate )
