@@ -37,7 +37,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $this->consumer_secret  = $consumer_secret;
 
         $this->models           = [
-            '\/history$'    => '\Application\Model\Ats\Smartrecruiters\HistoryModel',
+            '\/history$'                    => '\Application\Model\Ats\Smartrecruiters\HistoryModel',
             'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
         ];
@@ -482,7 +482,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function createCandidate( $model )
     {
-        return $this->json('candidates', $model->toAPI());
+        if (null !== $model->id_job)
+        {
+            // insert directly to the job
+            return $this->json('jobs/' . $model->id_job . '/candidates', $model->toAPI());
+        }
+        else
+            return $this->json('candidates', $model->toAPI());
     }
 
     public function updateCandidate( $model )

@@ -70,14 +70,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $this->access_token     = $access_token;
     }
 
-    public function setHarvestKey( $harvest_key, $identity_user = false )
+    public function setHarvestKey( $harvest_key, $id_user = false )
     {
         $this->harvest_key = $harvest_key;
 
-        if (false === $identity_user)
-            $identity_user = $this->sm->get('Identity')->user;
+        if (true === $this->sm->get('Identity')->isLoggued())
+        {
+            $id_user = $this->sm->get('Identity')->user->id;
+        }
 
-        $ats_user          = $this->sm->get('UserTable')->getNetworkByUser('greenhouse', $identity_user->id);
+        $ats_user          = $this->sm->get('UserTable')->getNetworkByUser('greenhouse', $id_user);
 
         if (null !== $ats_user && false === empty($ats_user['id_greenhouse']))
         {
@@ -276,6 +278,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
                     $user = $this->get('current_user');
 
+                    $user['id_greenhouse'] = 'yb' . generate_token(30);
+
                     // dd($user);
 
                     // $user = $this->formatUser( $user );
@@ -324,7 +328,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     }
     protected function getDatabaseColumns()
     {
-        return array("id", "email", "first_name", "last_name", "access_token");
+        return array("id", "email", "first_name", "last_name", "access_token", 'id_greenhouse');
     }
 
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
@@ -554,12 +558,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         else
         {
             $application    = $this->get('applications/' . $id_application, true);
-            $from_stage_id  = $application['current_stage']['id'];
 
-            if ($application['status'] !== 'active')
-                return null;
+            if (null !== $application->current_stage)
+            {
+                $from_stage_id  = $application->current_stage['id'];
 
-            $params        += ['from_stage_id' => $from_stage_id];
+                if ($application->getState() !== 'active')
+                    return null;
+
+                $params        += ['from_stage_id' => $from_stage_id];
+            }
         }
 
         return $this->json('applications/' . $id_application . '/' . $action, true, $params);
@@ -674,24 +682,21 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobId( $id_ats_candidate )
     {
-        // $state  = null;
-        // $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_job_id');
+        $state  = null;
+        $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
 
-        // if (null === $job_id)
-        // {
-        //     $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_job_id');
+        if (null !== $job_id)
+        {
+            $application    = $this->get('applications/' . $job_id, true);
 
-        //     if (null !== $job_id)
-        //     {
-        //         $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
-        //     }
-        // }
-        // else
-        // {
-        //     $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'primaryAssignment_status');
-        // }
+            if (null !== $application->current_stage)
+            {
+                var_dump($application->current_stage);
+                // $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
+            }
+        }
 
-        // return [$job_id, $state];
+        return [$job_id, $state];
     }
 }
 
