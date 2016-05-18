@@ -320,7 +320,7 @@ class UserTable extends CoreTable{
             "facebook"=>array("id_facebook","last_name","first_name","link","locale","name","timezone","verified","gender","access_token","email"),
             "user"=>array("first_name","last_name","type","email","picture"),
             "smartrecruiters"=>array("first_name","last_name","role","email","active", 'id_smartrecruiters', 'access_token', 'refresh_token'),
-            "greenhouse"=>array("first_name","last_name","email", 'id_smartrecruiters', 'access_token', 'harvest_key'),
+            "greenhouse"=>array("first_name","last_name","email", 'id_greenhouse', 'access_token', 'harvest_key'),
         );
         //$keys = array("first_name","last_name","email","picture", "access_token");
         $keys = $meta_keys[$key];

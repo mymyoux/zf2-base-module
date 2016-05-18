@@ -49,7 +49,8 @@ abstract class AbstractAts extends AbstractAPI
 	abstract public function isJobValid( $job );
 
     /**
-     * Get the Job ID of a candidate (if he has one)
+     * Get the Job ID of a candidate (if he has one) from the DB.
+     *
      * @param  string $id_api_candidate DB ID of the ATS candidate
      * @return string                   ID of the job or NULL
      */
