@@ -41,8 +41,12 @@ class MailTable extends CoreTable
             "from" => $this->sm->get("Identity")->isLoggued()?$this->sm->get("Identity")->user->id:0
         );
         $this->table()->insert($data);
+        return $this->table()->lastInsertValue;
     }
-
+    public function updateMail($id, $data)
+    {
+        $this->table()->update($data, array("id"=>$id));
+    }
     public function getMailByTypeAndUser( $type, $id_user, $date )
     {
         $where = $this->select(self::TABLE)->where
