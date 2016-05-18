@@ -81,48 +81,42 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $controller = ucfirst($controller);
         $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
 
-       $modules = $this->sm->get("ApplicationConfig")["modules"];
-       $modules =  array_reverse($modules);
-        foreach($modules as $module)
-        {
-            $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
-            if (false === class_exists($object_name))
-            {
-                continue;
-            }
-            $type = $module;
-            break;
-        }
-        if (false === class_exists($object_name))
-        {
-            throw new \Exception('bad_controller:'.$controller, 1);
-        }
-        $namespace = '\\'.$type.'\Controller\\'.$controller;
 
 
         $request = array(
             'action' => $action,
         );
-        if(isset($arguments))
+
+         if(isset($arguments))
         {
-            if(sizeof($arguments))
+            $index = 0;
+            if(sizeof($arguments)>$index)
             {
-                $request['id'] = $arguments[0];
+                if(is_string($arguments[$index]))
+                {
+                    $index--;
+                }else
+                {
+                    $request['id'] = $arguments[$index];
+                }
             }
-            if(sizeof($arguments)>1)
+            $index++;
+            if(sizeof($arguments)>$index)
             {
-                $request['method'] = $arguments[1];
+                if(is_array($arguments[$index]))
+                {
+                    $index--;
+                }else
+                {
+                    $request['method'] = $arguments[$index];
+                }
             }
-            if(sizeof($arguments)>2)
+            $index++;
+            if(sizeof($arguments)>$index)
             {
-                $request['params'] = $arguments[2];
+                $request['params'] = $arguments[$index];
             }
         }
-
-        $annotationReader = new AnnotationReader();
-
-        $request['action'] = camel($request['action']);
-
 
         $methodName = $request['action'].'API';
         // check if '&method=' exist
@@ -143,6 +137,34 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $method = $request["method"];
         }
+       
+
+
+        $request['action'] = camel($request['action']);
+
+       $modules = $module === NULL?$this->sm->get("ApplicationConfig")["modules"]:[$module];
+       $modules =  array_reverse($modules);
+        foreach($modules as $module)
+        {
+            $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
+            if (false === class_exists($object_name) || !method_exists('\\'.$module.'\Controller\\'.$controller.'Controller', $request['action'].'API'.$method))
+            {
+                continue;
+            }
+            $type = $module;
+            break;
+        }
+        if (false === class_exists($object_name))
+        {
+            throw new \Exception('bad_controller:'.$controller, 1);
+        }
+        $namespace = '\\'.$type.'\Controller\\'.$controller;
+
+
+
+        $annotationReader = new AnnotationReader();
+
+
 
         if(method_exists($namespace.'Controller', $request['action'].'API'.$method))
         {
@@ -150,6 +172,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         else
         {
+            dd($namespace."Controller::".$methodName.$method);
             throw new \Core\Exception\ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
         }
 
@@ -192,7 +215,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $annotation->setServiceLocator( $this->sm );
             $annotation->api = $context;
-
             // get parent class annotation value if not set in method
             if (true === isset($apiRequest->{'class_' . $annotation->key() }))
             {
@@ -265,6 +287,16 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $params_keys = array_keys($request['params']);
             $diff = array_diff($params_keys, $keys);
             $index = array_search("__timestamp", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
+            $index = array_search("ltoken", $diff);
+            if($index !== False)
+            {
+                unset($diff[$index]);
+            }
+            $index = array_search("rtoken", $diff);
             if($index !== False)
             {
                 unset($diff[$index]);
@@ -370,6 +402,7 @@ class _Binder
     private $_user;
     private $_json;
     private $_module;
+    private $_method;
     public function __construct(API $api, $controller)
     {
         $this->_json        = false;
@@ -381,6 +414,19 @@ class _Binder
     }
     public function __call($action, $arguments)
     {
+
+        if(isset($this->_method))
+        {
+            if(!empty($arguments))
+            {
+                $temp =  $arguments;
+                $arguments = [$this->_method];
+                $arguments[] = $temp[0];
+            }else
+            {
+                $arguments = [$this->_method];
+            }
+        }
         return $this->api->_action($this->controller, $action, $arguments, $this, $this->_module);
     }
     public function hasUser()
@@ -403,6 +449,15 @@ class _Binder
     {
         $this->_user  = $user;
         return $this;
+    }
+    public function method($method)
+    {
+        $this->_method = strtoupper($method);
+        return $this;
+    }
+    public function post()
+    {
+        return $this->method("post");
     }
     public function module($module)
     {

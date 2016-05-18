@@ -63,13 +63,16 @@ class Request implements ServiceLocatorAwareInterface
     }
     public function add($key, CoreObject $value)
     {
-        if($value instanceof ParamObject)
+        //for params
+        if(in_array("Core\Annotations\IMetaObject", class_implements($value)))
         {
-            if(!isset($this->params))
+            $metakey = $value->getAPIKey();
+            if(!isset($this->$metakey))
             {
-                $this->params = new \stdClass();
+                $metainstance = $value->getAPIObject();
+                $this->$metakey = $metainstance;
             }
-            $this->params->$key = $value;
+            $this->$metakey->$key = $value;
         }else
         {
             $this->$key = $value;

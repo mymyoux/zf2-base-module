@@ -4,7 +4,7 @@ use Core\Exception\Exception;
 use Core\Exception\ApiException;
 use Zend\Db\Sql\AbstractSql;
 
-class ParamObject extends CoreObject
+class ParamObject extends CoreObject implements IMetaObject
 {
     /**
      * @var string
@@ -26,7 +26,40 @@ class ParamObject extends CoreObject
             $this->value = $data["params"][$this->name];
         }
     }
-
+    public function getAPIKey()
+    {
+        return "params";
+    }
+    public function getAPIObject()
+    {
+        return new ParamClass();
+    }
+}
+class ParamClass
+{
+    public function toArray(...$args)
+    {
+        $keys = [];
+        foreach($args as $key=>$value)
+        {
+            if(is_array($value))
+            {
+                $keys = array_merge($keys, $value);
+            }else
+            {
+                $keys[] = $value;
+            }
+        }
+        $data = [];
+        foreach($this as $key=>$value)
+        {
+            if(in_array($key, $keys))
+            {
+                $data[$key] = $value->value;
+            }
+        }
+        return $data;
+    }
 }
 /**
  *
