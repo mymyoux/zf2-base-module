@@ -43,8 +43,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Greenhouse\HistoryModel',
         ];
 
-        $this->user = new \stdClass();
-        $this->user->id = 259221;
+        $this->user         = new \stdClass();
+        $this->user->id     = null;
     }
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
@@ -70,6 +70,22 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $this->access_token     = $access_token;
     }
 
+    public function setHarvestKey( $harvest_key, $identity_user = false )
+    {
+        $this->harvest_key = $harvest_key;
+
+        if (false === $identity_user)
+            $identity_user = $this->sm->get('Identity')->user;
+
+        $ats_user          = $this->sm->get('UserTable')->getNetworkByUser('greenhouse', $identity_user->id);
+
+        if (null !== $ats_user && false === empty($ats_user['id_greenhouse']))
+        {
+            $this->user = new \stdClass();
+            $this->user->id = (int) $ats_user['id_greenhouse'];
+        }
+    }
+
     public function getLoginUrl($data)
     {
         // mob.local/company/user/login/greenhouse
@@ -91,16 +107,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function getAccessToken()
     {
         return $this->access_token;
-    }
-
-    public function getAccessTokenSecret()
-    {
-        return $this->api->getAccessTokenSecret();
-    }
-
-    public function setHarvestKey( $harvest_key )
-    {
-        $this->harvest_key = $harvest_key;
     }
 
     public function post( $ressource, $is_harvest = false, $_params = [] )
