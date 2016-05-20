@@ -65,6 +65,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $this->config   = $apis['greenhouse'];
     }
 
+    public function getEmailFieldReplyTo()
+    {
+        return 'messageid';
+    }
+
+    public function tagCandidate( $id_api )
+    {
+        return '';
+    }
+
     public function setAccessToken($access_token)
     {
         $this->access_token     = $access_token;
@@ -389,7 +399,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function askInTouch( $id_api_candidate )
     {
-        $content = 'Intouch request sent to #[CANDIDATE:' . $id_api_candidate  . ']';
+        $content = 'A contact request has been sent to #[CANDIDATE:' . $id_api_candidate  . ']';
 
         return $this->sendMessage( $id_api_candidate, $content, true );
     }

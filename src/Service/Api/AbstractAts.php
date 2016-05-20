@@ -16,6 +16,21 @@ abstract class AbstractAts extends AbstractAPI
 		return [];
 	}
 
+    /**
+     * Get the reply-to header from an ATS email
+     *
+     * @return [type] [description]
+     */
+    abstract public function getEmailFieldReplyTo();
+
+    /**
+     * Tag a candidate into the platform
+     *
+     * @param  [type] $id_api [description]
+     * @return [type]         [description]
+     */
+    abstract public function tagCandidate( $id_api );
+
 	/**
      * Get exclude functions ID for jobs (defined in config)
      *
