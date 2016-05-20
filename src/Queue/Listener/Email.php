@@ -71,7 +71,7 @@ class Email extends ListenerAbstract implements ListenerInterface
         $m_message  = new MandrillMessage();
         $m_message = $m_message->fromArray( toArray($message), true );
 
-        $this->log($data->type, $data->user, $template, $data->original_emails, $data->sender, $data->subject);
+        $ids = $this->log($data->type, $data->user, $template, $data->original_emails, $data->sender, $data->subject);
 
         if (null === $template)
         {
@@ -87,6 +87,16 @@ class Email extends ListenerAbstract implements ListenerInterface
             else
             {
                 $result = $this->createMandrill()->messages()->sendTemplate($template, $m_message, [], $async);
+            }
+        }
+
+        foreach($result as $key=>$resultemail)
+        {
+            if(sizeof($ids)>$key)
+            {
+                $this->getMailTable()->updateMail($ids[$key], array("id_mandrill"=>$resultemail["_id"],
+                    "reason"=>isset($resultemail["reject_reason"])?$resultemail["reject_reason"]:NULL,
+                    "status"=>$resultemail["status"]));
             }
         }
 
@@ -113,8 +123,10 @@ class Email extends ListenerAbstract implements ListenerInterface
         }
         if (true === is_array($type)) $type = implode('-', $type);
 
+        $ids = [];
         foreach ($emails as $email)
-            $this->getMailTable()->logEmail($type, $recipient, $html, $email, $sender, $subject);
+            $ids[] = $this->getMailTable()->logEmail($type, $recipient, $html, $email, $sender, $subject);
+        return $ids;
     }
 
     /**

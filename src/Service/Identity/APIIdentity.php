@@ -31,6 +31,15 @@ class APIIdentity extends Identity
         $user = $this->api->getUser();
         return $user;
     }
+     public function getAPIUserEmail()
+    {
+        $user = $this->getAPIUser();
+        if(!isset($user))
+        {
+            return NULL;
+        }
+        return isset($user["email"])?$user["email"]:NULL;
+    }
     public function getUser($type = NULL)
     {
         if($this->user !== NULL)
