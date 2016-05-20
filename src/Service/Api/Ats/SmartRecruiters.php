@@ -61,6 +61,16 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $this->config   = $apis['smartrecruiters'];
     }
 
+    public function getEmailFieldReplyTo()
+    {
+        return 'replyto';
+    }
+
+    public function tagCandidate( $id_api )
+    {
+        return '#[CANDIDATE:' . $id_api . ']';
+    }
+
     public function setAccessToken($access_token, $refresh_token)
     {
         $this->access_token     = $access_token;
@@ -353,7 +363,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     {
         $histories  = $this->get('candidates/' . $id_api_candidate . '/status/history', ['limit' => 1]);
         $history    = array_pop($histories['content']);
-        $state      = $history['status'];
+        $state      = $history->getState();
 
         return $state;
     }
@@ -384,7 +394,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
      */
     public function askInTouch( $id_api_candidate )
     {
-        $content = 'Intouch request sent to #[CANDIDATE:' . $id_api_candidate  . ']';
+        $content = 'A contact request has been sent to ' . $this->tagCandidate( $id_api_candidate );
 
         return $this->sendMessage( $id_api_candidate, $content, true );
     }
