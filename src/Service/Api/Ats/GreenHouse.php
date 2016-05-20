@@ -669,13 +669,19 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function createCandidate( $model )
     {
-        return $this->json('candidates', false, $model->toAPI());
+        $return     = $this->json('candidates', false, $model->toAPI());
+        $model->id  = $return->id;
+
+        // add tags
+        $this->updateCandidate($model);
+
+        return $return;
     }
 
     public function updateCandidate( $model )
     {
         $data = $model->toAPI();
-        // dd($model->toAPI());
+
         $params = [
             'headers'   => ['On-Behalf-Of' => $this->user->id],
         ] + $data;
