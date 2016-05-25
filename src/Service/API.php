@@ -144,11 +144,16 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
        $modules = $module === NULL?$this->sm->get("ApplicationConfig")["modules"]:[$module];
        $modules =  array_reverse($modules);
+       $controllerFound = False;
         foreach($modules as $module)
         {
             $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
             if (false === class_exists($object_name) || !method_exists('\\'.$module.'\Controller\\'.$controller.'Controller', $request['action'].'API'.$method))
             {
+                if(false !== class_exists($object_name))
+                {
+                    $controllerFound = True;
+                }
                 continue;
             }
             $type = $module;
@@ -156,7 +161,13 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         if (false === class_exists($object_name))
         {
-            throw new \Exception('bad_controller:'.$controller, 1);
+            if($controllerFound)
+            {
+                throw new \Exception('bad_method:'.$request['action'].'API'.$method, 1);
+            }else
+            {
+                throw new \Exception('bad_controller:'.$controller, 1);
+            }
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
 
@@ -172,7 +183,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         else
         {
-            dd($namespace."Controller::".$methodName.$method);
             throw new \Core\Exception\ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
         }
 
