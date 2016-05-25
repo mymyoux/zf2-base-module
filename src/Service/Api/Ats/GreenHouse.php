@@ -360,11 +360,22 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getCandidateState( $id_api_candidate )
     {
-        // $histories  = $this->get('candidates/' . $id_api_candidate . '/status/history', ['limit' => 1]);
-        // $history    = array_pop($histories['content']);
-        // $state      = $history['status'];
+        $ats        = $this->sm->get('AtsTable')->getAts( 'greenhouse' );
+        $candidate  = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $ats['id_ats'] );
+        $state      = null;
+        $job_id     = $this->sm->get('AtsCandidateTable')->getValue($candidate['id_ats_candidate'], 'application_ids_0');
 
-        // return $state;
+        if (null !== $job_id)
+        {
+            $application    = $this->get('applications/' . $job_id, true);
+
+            if (null !== $application->current_stage)
+            {
+                $state = $application->current_stage['name'];
+            }
+        }
+
+        return $state;
     }
 
     /**
@@ -707,6 +718,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
             if (null !== $application->current_stage)
             {
+                $state = $application->current_stage['name'];
                 var_dump($application->current_stage);
                 // $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
             }
