@@ -33,6 +33,7 @@ class ErrorTable extends CoreTable
         $info["file"] = $exception->getFile();
         $info["line"] = $exception->getLine();
         $info["stack"] = $exception->getTraceAsString();
+        $info["ip"] = $this->getIP();
 
         if (php_sapi_name() == "cli")
         {
@@ -175,6 +176,13 @@ class ErrorTable extends CoreTable
             }
         }
         $this->table(ErrorTable::TABLE_JAVASCRIPT)->insert($values);
+    }
+    protected function getIP()
+    {
+        if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+          $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+        }
+        return isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:"127.0.0.1";
     }
     public function getError($id_error)
     {
