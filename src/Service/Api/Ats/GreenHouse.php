@@ -613,7 +613,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (isset($filepath_content))
         {
-            $params['content'] = new PostFile('file', $filepath_content);
+            $params['content'] = new PostFile('file', file_get_contents($filepath_content));
         }
         else
         {
@@ -658,7 +658,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (isset($filepath_content))
         {
-            $params['content'] = new PostFile('file', $filepath_content);
+            $params['content'] = new PostFile('file', file_get_contents($filepath_content));
         }
         else
         {

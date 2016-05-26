@@ -579,7 +579,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         $params = [
             'attachmentType'    => 'AVATAR',
-            'file'              => new PostFile('file', $filepath)
+            'file'              => new PostFile('file', file_get_contents($filepath))
         ];
 
         try
