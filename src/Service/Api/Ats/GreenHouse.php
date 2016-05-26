@@ -596,7 +596,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
-        if (true === file_exists(ROOT_PATH . $picture))
+        if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath_content   = ROOT_PATH . '/public/' . $picture;
         else
             $filepath_url       = 'https://app.yborder.com' . $picture;

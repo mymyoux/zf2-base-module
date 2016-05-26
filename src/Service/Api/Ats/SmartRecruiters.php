@@ -569,7 +569,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
-        if (true === file_exists(ROOT_PATH . $picture))
+        if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath = ROOT_PATH . '/public/' . $picture;
         else
             $filepath = 'https://app.yborder.com' . $picture;
