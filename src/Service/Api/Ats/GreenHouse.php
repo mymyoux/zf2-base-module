@@ -607,7 +607,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $params = [
             'type'      => 'photo_url',
             'headers'   => ['On-Behalf-Of' => $this->user->id],
-            'url' => $filepath_url,
             'filename'  => $id_api . '_picture_yborder.jpg'
         ];
 
