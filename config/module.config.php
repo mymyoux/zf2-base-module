@@ -84,6 +84,7 @@ return array(
             'QueueService' => 'Core\Service\Queue',
             'DetectLanguage' => 'Core\Service\DetectLanguage',
             'Log'=>'Core\Service\Log',
+            'CSV' => 'Core\Service\CSV',
         ),
         'services' => array(
 
