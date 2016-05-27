@@ -145,7 +145,6 @@ class APIController extends FrontController
             
             $id_exception = $this->getErrorTable()->logError($e);
         }
-
         $state_user = array();
         if($this->identity->isLoggued())
         {
@@ -159,7 +158,6 @@ class APIController extends FrontController
         }
 
         $view->setVariable("state_user", $state_user);
-
         try
         {
             $error = $view->getVariable("error");
