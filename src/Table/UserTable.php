@@ -381,8 +381,8 @@ class UserTable extends CoreTable{
         }
         $manual_data = array();
         $manual_data["email"] = trim($data["email"]);
-        $manual_data["password"] = $this->getHashedPassword(trim($data["password"]));
-        $manual_data["id_manual"] = $id_user;
+        $manual_data["password"] = $data["password"];//$this->getHashedPassword(trim($data["password"]));
+        $manual_data["id_user"] = $id_user;
         $this->addAPIToUser("manual", $manual_data, $id_user);
         $this->updateUser($data, NULL, $id_user);
     }
@@ -439,6 +439,7 @@ class UserTable extends CoreTable{
             $id_user = $this->sm->get("Identity")->user->id;
         }
         $row = $this->table($api)->select(array($api_id=>$data[$api_id]));
+        //throw new \Exception("argh");
         if(($row=$row->current())!==False && $row["id_user"] != $id_user && !$this->sm->get("APIManager")->isSharable($api))
         {
             throw new Exception("api.already_used");

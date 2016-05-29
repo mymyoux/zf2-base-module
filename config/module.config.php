@@ -82,6 +82,7 @@ return array(
             'AppConfig'=>'Core\Service\Configuration',
             'API'=>'Core\Service\API',
             'QueueService' => 'Core\Service\Queue',
+            'CSV' => 'Core\Service\CSV',
 
         ),
         'services' => array(
