@@ -41,8 +41,30 @@ class MailTable extends CoreTable
             "from" => $this->sm->get("Identity")->isLoggued()?$this->sm->get("Identity")->user->id:0
         );
         $this->table()->insert($data);
+        return $this->table()->lastInsertValue;
     }
-
+   public function getMails($user, $apirequest)
+    {
+      $request = $this->select(array("mail"=>MailTable::TABLE));
+      if(isset($apirequest->params->since->value))
+       {
+        $request = $request->where($request->where->greaterThan("mail.created_time", new Expression("FROM_UNIXTIME(?)", $apirequest->params->since->value)));
+       } 
+       if(isset($apirequest->params->until->value))
+       {
+        $request = $request->where($request->where->lessThan("mail.created_time", new Expression("FROM_UNIXTIME(?)", $apirequest->params->until->value)));
+       }
+       if(isset($apirequest->params->type->value))
+       {
+        $request = $request->where(array("mail.type"=>$apirequest->params->type->value));
+       }
+       $result = $this->execute($request);
+       return $result->toArray();
+    }
+    public function updateMail($id, $data)
+    {
+        $this->table()->update($data, array("id"=>$id));
+    }
     public function getMailByTypeAndUser( $type, $id_user, $date )
     {
         $where = $this->select(self::TABLE)->where

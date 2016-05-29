@@ -514,9 +514,9 @@ function uncamel($string, $delimiter = '-')
    return $string;
 }
 
-function camel($string, $delimiter = '-')
+function camel($string, $delimiter = '-', $replace = '')
 {
-   $string = lcfirst(str_replace(' ', '', ucwords(str_replace($delimiter, ' ', $string))));
+   $string = lcfirst(str_replace(' ', $replace, ucwords(str_replace($delimiter, ' ', $string))));
 
    return $string;
 }
