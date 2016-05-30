@@ -72,10 +72,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return '#[CANDIDATE:' . $id_api . ']';
     }
 
-    public function setAccessToken($access_token, $refresh_token)
+    public function setAccessToken($access_token, $refresh_token, $refresh = true)
     {
         $this->access_token     = $access_token;
         $this->refresh_token    = $refresh_token;
+
+        if ($refresh)
+            $this->has_refresh      = false;
     }
 
     public function getLoginUrl($data)
@@ -189,7 +192,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                     {
                         $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
 
-                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'], false );
 
                         // $this->has_refresh = false;
 
