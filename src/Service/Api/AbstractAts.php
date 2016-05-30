@@ -38,13 +38,21 @@ abstract class AbstractAts extends AbstractAPI
      */
 	abstract public function getExcludeFunctions();
 
-	 /**
+	/**
      * Get job details by ID
      *
      * @param  string $id ID of the job
      * @return AtsJobModel     Model of the job
      */
     abstract public function getJob( $id );
+
+    /**
+     * Get job positions by job model
+     *
+     * @param  string $job Model of the job
+     * @return array           Array[totalFound, content[JobPositionModels...]]
+     */
+    abstract public function getJobPositions( $job );
 
     /**
      * Get jobs
