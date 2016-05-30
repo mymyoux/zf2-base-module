@@ -526,6 +526,16 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         // do nothing because it's done in the creation
     }
 
+    public function isCandidateHired( $state )
+    {
+        return $state === 'HIRED';
+    }
+
+    public function isCandidateProcessClose( $state )
+    {
+        return $state === 'WITHDRAWN' || $state === 'REJECTED';
+    }
+
     public function getCandidates( $offset, $limit )
     {
         $params = [
