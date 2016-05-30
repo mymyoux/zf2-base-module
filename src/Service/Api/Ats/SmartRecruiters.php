@@ -447,7 +447,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             $is_valid = false;
         }
 
-        if ($job->language['code'] !== 'en' || $languageCode !== 'en')
+        if (!empty($job->language['code']) && ($job->language['code'] !== 'en' || $languageCode !== 'en'))
         {
             $this->sm->get('Log')->warn('Exclude language is : ' . $job->language['code'] . ' ' . $languageCode);
             $is_valid = false;
