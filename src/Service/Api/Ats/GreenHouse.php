@@ -515,6 +515,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
+    public function getJobPositions( $job )
+    {
+        $result = new ResultListModel();
+
+        return $result;
+    }
+
     public function getCandidates( $offset, $limit )
     {
         $params = [

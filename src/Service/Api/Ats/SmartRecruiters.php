@@ -38,6 +38,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         $this->models           = [
             '\/history$'                    => '\Application\Model\Ats\Smartrecruiters\HistoryModel',
+            '\/positions$'                  => '\Application\Model\Ats\Smartrecruiters\JobPositionModel',
             'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Smartrecruiters\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Smartrecruiters\CandidateModel',
         ];
@@ -483,6 +484,17 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         $result = new ResultListModel();
         $data   = $this->get('jobs', $params);
+
+        $result->setContent($data['content']);
+        $result->setTotalFound($data['totalFound']);
+
+        return $result;
+    }
+
+    public function getJobPositions( $job )
+    {
+        $data   = $this->get('jobs/' . $job->id . '/positions');
+        $result = new ResultListModel();
 
         $result->setContent($data['content']);
         $result->setTotalFound($data['totalFound']);
