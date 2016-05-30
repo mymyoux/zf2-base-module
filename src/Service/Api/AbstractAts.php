@@ -88,6 +88,9 @@ abstract class AbstractAts extends AbstractAPI
      */
     abstract public function getCandidates( $offset, $limit );
 
+    abstract public function isCandidateHired( $state );
+    abstract public function isCandidateProcessClose( $state );
+
     /**
      * Create a new candidate
      *

@@ -522,6 +522,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
+    public function isCandidateHired( $state )
+    {
+        // return $state === 'HIRED';
+    }
+
+    public function isCandidateProcessClose( $state )
+    {
+        // return $state === 'WITHDRAWN' || $state === 'REJECTED';
+    }
+
     public function getCandidates( $offset, $limit )
     {
         $params = [
