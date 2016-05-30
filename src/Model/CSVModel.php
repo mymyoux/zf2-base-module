@@ -203,6 +203,7 @@ class CSVModel extends CoreModel implements \Iterator {
     } 
     public function toString()
     {
+        $this->parse();
         $rows = array_map(function($row)
             {
                 return $row->toString();
@@ -317,6 +318,7 @@ class RowModel extends CoreModel implements \Iterator
     }
     public function toString()
     {
+        $this->parse();
         if(!isset($this->content))
         {
             $content = implode($this->delimiters[CSVModel::DELIMITER_END_COLUMN], $this->parsedContent);
