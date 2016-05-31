@@ -20,6 +20,8 @@ class MailTable extends CoreTable
 {
 
     const TABLE = "mail";
+    const TABLE_WEBHOOK = "mail_webhook";
+    const TABLE_WEBHOOK_GLOBAL = "mail_webhook_global";
     /**
      * Logs email to the database
      * @param string $type Email's type
@@ -42,6 +44,16 @@ class MailTable extends CoreTable
         );
         $this->table()->insert($data);
         return $this->table()->lastInsertValue;
+    }
+    public function addWebhook($data)
+    {
+        if(isset($data["id_mandrill"]))
+        {
+            $this->table(MailTable::TABLE_WEBHOOK)->insert($data);
+        }else
+        {
+            $this->table(MailTable::TABLE_WEBHOOK_GLOBAL)->insert($data);
+        }
     }
    public function getMails($user, $apirequest)
     {
