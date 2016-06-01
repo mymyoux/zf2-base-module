@@ -14,6 +14,8 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Core\Model\Ats\Api\ResultListModel;
 use GuzzleHttp\Post\PostFile;
+use Application\Model\Ats\Greenhouse\JobPositionModel as GreenhouseJobPositionModel;
+
 
 class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 {
@@ -518,6 +520,19 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function getJobPositions( $job )
     {
         $result = new ResultListModel();
+        $data   = [];
+
+        foreach ($job->openings as $opening)
+        {
+            $model = new GreenhouseJobPositionModel();
+
+            $model->exchangeArray( $opening );
+
+            $data[] = $model;
+        }
+
+        $result->setContent($data);
+        $result->setTotalFound(count($data));
 
         return $result;
     }
