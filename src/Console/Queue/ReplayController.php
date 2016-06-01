@@ -20,7 +20,9 @@ class ReplayController extends \Core\Console\CoreController
      */
     public function startAction()
     {
-        $id = $this->params()->fromRoute('id');
+        $id             = $this->params()->fromRoute('id');
+        $queue_type     = $this->params()->fromRoute('queue', null);
+
         if(!isset($id))
         {
             $this->getLogger()->error('No id given - you must pass it id=xxxx');
@@ -42,7 +44,7 @@ class ReplayController extends \Core\Console\CoreController
                 }
                 if(!is_numeric($subids[0]) || !is_numeric($subids[1]))
                 {
-                    throw new \Exception("Bad format:".$original_id);   
+                    throw new \Exception("Bad format:".$original_id);
                 }
                 $min = intval(trim($subids[0]));
                 $max = intval(trim($subids[1]));
@@ -62,9 +64,9 @@ class ReplayController extends \Core\Console\CoreController
                 $id = str_replace("+", "", $id);
                 if(!is_numeric($id))
                 {
-                    throw new \Exception("Bad format:".$original_id);   
+                    throw new \Exception("Bad format:".$original_id);
                 }
-                $moreids = $this->getBeanstalkdLogTable()->getIdsGreaterThanOrEqual(intval(trim($id)));
+                $moreids = $this->getBeanstalkdLogTable()->getIdsGreaterThanOrEqual(intval(trim($id)), $queue_type);
                 $rebuild_ids = array_merge($rebuild_ids, $moreids);
             }
             else
@@ -74,7 +76,7 @@ class ReplayController extends \Core\Console\CoreController
                     $rebuild_ids[] = intval(trim($id));
                 }else
                 {
-                   throw new \Exception("Bad format:".$original_id);   
+                   throw new \Exception("Bad format:".$original_id);
                 }
             }
         }
@@ -84,7 +86,10 @@ class ReplayController extends \Core\Console\CoreController
         {
             try
             {
-                $result = $this->getBeanstalkdLogTable()->findById($id);
+                if ($queue_type !== null)
+                    $result = $this->getBeanstalkdLogTable()->findByIdAndQueue($id, $queue_type);
+                else
+                    $result = $this->getBeanstalkdLogTable()->findById($id);
 
                  if(!isset($result))
                 {
@@ -146,7 +151,7 @@ class ReplayController extends \Core\Console\CoreController
     public function getBeanstalkdLogTable()
    {
         return $this->sm->get("BeanstalkdLogTable");
-   } 
-   
+   }
+
 
 }
