@@ -156,7 +156,7 @@ class MultipleIdentity extends CoreService implements IIdentity
                 $this->getUserTable()->updateLoginConnection($this->user);
             }
             $delay = 1800000; //30min
-            if($this->user->last_connection+$delay<$timestamp)
+            if($this->user->last_connection+$delay<$timestamp || $this->user->num_connection == 1)
             {
                 $this->getUserTable()->updateConnectionCount($this->user);
                 if((!$this->user->isAdmin()) && !$this->sm->get("AppConfig")->isLocal())
