@@ -13,11 +13,12 @@ use Core\Model\UserModel;
 class UserTable extends CoreTable{
 
     const TABLE = "user";
+    const TABLE_API = "user_api";
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
 
     public function createAPI($user, $apirequest)
-    {
+    { //test
         $user = $this->getUsersFromEmail($apirequest->params->email->value);
         if(!empty($user))
         {
@@ -487,6 +488,7 @@ class UserTable extends CoreTable{
          {
              $id_user = $this->sm->get("Identity")->user->id;
          }
+         $this->table(UserTable::TABLE)->update(array("temp"=>0), array("id_user"=>$id_user));
         $update = $this->update("user_api")->where(
             array("id_user"=>$id_user
         ))->set(array($api=>True));
