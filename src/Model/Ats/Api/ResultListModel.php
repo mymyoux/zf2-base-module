@@ -5,8 +5,8 @@ use Core\Model\CoreModel;
 
 class ResultListModel extends CoreModel
 {
-	public $count;
-	public $content;
+	public $count = 0;
+	public $content = [];
 
 	public function setTotalFound( $count )
 	{
