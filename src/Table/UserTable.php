@@ -18,7 +18,7 @@ class UserTable extends CoreTable{
     const TABLE_TOKEN = "user_login_token";
 
     public function createAPI($user, $apirequest)
-    {
+    { //test
         $user = $this->getUsersFromEmail($apirequest->params->email->value);
         if(!empty($user))
         {
