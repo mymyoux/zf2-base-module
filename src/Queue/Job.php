@@ -61,7 +61,7 @@ class Job implements ServiceLocatorAwareInterface {
                 $this->sm->get('Log')->warn('waiting for ' . $delay . ' secs...');
                 sleep( $delay );
             }
-            $classname = ucfirst(camel($this->tube));
+            $classname = ucfirst(camel($this->tube, '-', '\\'));
             $this->sendAlert();
             $modules = $this->sm->get("ApplicationConfig")["modules"];
             $modules =  array_reverse($modules);
