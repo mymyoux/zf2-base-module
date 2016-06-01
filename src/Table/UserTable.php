@@ -19,6 +19,7 @@ class UserTable extends CoreTable{
 
     public function createAPI($user, $apirequest)
     { //test
+
         $user = $this->getUsersFromEmail($apirequest->params->email->value);
         if(!empty($user))
         {
@@ -36,7 +37,6 @@ class UserTable extends CoreTable{
         }
         $id_user = $this->createUser($data, $keys);
         $user = $this->getUser($id_user);
-
         return ["id_user"=>$id_user,"token"=>$user->token];
     }
     public function getUserFromLoginToken($token)
@@ -509,6 +509,7 @@ class UserTable extends CoreTable{
         }
 
         $data = $this->additionalCreationData();
+
         foreach($data as $key => $value)
         {
             //additional data can't override given data

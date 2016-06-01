@@ -60,8 +60,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             {
                 $user = $email;
                 $email = $user->email;
-
-
             }
         }
         if(($email instanceof \ArrayObject || is_array($email)) && isset($email["email"]))
