@@ -50,10 +50,56 @@ class MailTable extends CoreTable
         if(isset($data["id_mandrill"]))
         {
             $this->table(MailTable::TABLE_WEBHOOK)->insert($data);
+            if(isset($data["id_mandrill"]) && isset($data["type"]) && in_array($data["type"], ["unsub","spam","soft_bounce","hard_bounce"]))
+            {
+                $id_user = $this->getIDUserFromIDMandrill($data["id_mandrill"]);
+                if(!isset($id_user))
+                {
+                    return;
+                }
+                $user = $this->getUserTable()->getUser($id_user);
+                if(!isset($user))
+                {
+                    return;
+                }
+                $this->getNotifications()->alert('unsubscribe_email', $data["type"], $user);
+                $this->getUserTable()->addRole($user, "no_email");
+            }
         }else
         {
             $this->table(MailTable::TABLE_WEBHOOK_GLOBAL)->insert($data);
         }
+    }
+    public function getIDUserFromIDMandrill($id_mandrill)
+    {
+        $result = $this->table()->select(array("id_mandrill"=>$id_mandrill));
+        $result = $result->current();
+        if($result === False)
+        {
+            return NULL;
+        }
+        if($result["id_user"]!=0)
+        {
+            return $result["id_user"];
+        }
+        if(!isset($result["recipient"]))
+        {
+            return NULL;
+        }
+        $users = $this->getUserTable()->getUsersFromEmail($result["recipient"]);
+        if(!empty($users))
+        {
+            return $users[0]["id_user"];
+        }
+        return NULL;
+    }
+    public function getUserTable()
+    {
+        return $this->sm->get("UserTable");
+    }
+    public function getNotifications()
+    {
+        return $this->sm->get("Notifications");
     }
    public function getMails($user, $apirequest)
     {
