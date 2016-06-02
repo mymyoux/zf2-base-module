@@ -161,7 +161,7 @@ class APIController extends FrontController
         try
         {
             $error = $view->getVariable("error");
-            if(isset($error) && ($this->isLocal() || (isset($params["debug"]) && $params["debug"])))
+            if(isset($error) && ($this->isLocal() || (isset($params["debug"]) && $params["debug"])))
                 $view->setVariable("original_request", array("get"=>$_GET, "post"=>$_POST));
             $api_stats["success"] = !isset($error);
             if(isset($error))
