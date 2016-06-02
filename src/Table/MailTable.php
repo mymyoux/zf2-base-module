@@ -50,7 +50,7 @@ class MailTable extends CoreTable
         if(isset($data["id_mandrill"]))
         {
             $this->table(MailTable::TABLE_WEBHOOK)->insert($data);
-            if(isset($data["id_mandrill"]) && isset($data["type"]) && in_array($data["type"], ["unsub","spam","soft_bounce","hard_bounce"]))
+            if(isset($data["id_mandrill"]) && isset($data["type"]) && in_array($data["type"], ["unsub","spam","soft_bounce","hard_bounce","reject"]))
             {
                 $id_user = $this->getIDUserFromIDMandrill($data["id_mandrill"]);
                 if(!isset($id_user))
