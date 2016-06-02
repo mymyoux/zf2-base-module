@@ -191,7 +191,7 @@ class ApiManager extends CoreService
         $api = $this->configuration[$name];
         $cls = $api["class"];
         $reflection_class = new \ReflectionClass($cls);
-        $params = array_key_exists("params", $api)?$api["params"] : NULL;
+        $params = array_key_exists("params", $api)?$api["params"] : [];
         $name = mb_strtolower($name);
         $this->apis[$name] = $reflection_class->newInstanceArgs($params);
         $this->apis[$name]->setConfig($api);
