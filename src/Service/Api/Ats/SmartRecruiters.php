@@ -536,7 +536,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $state === 'WITHDRAWN' || $state === 'REJECTED';
     }
 
-    public function getCandidates( $offset, $limit )
+    public function getCandidates( $offset, $limit, $result_list = null )
     {
         $params = [
             'offset'    => (int) $offset,

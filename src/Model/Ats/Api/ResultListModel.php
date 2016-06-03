@@ -5,8 +5,9 @@ use Core\Model\CoreModel;
 
 class ResultListModel extends CoreModel
 {
-	public $count = 0;
+	public $count 	= 0;
 	public $content = [];
+	public $offset 	= null;
 
 	public function setTotalFound( $count )
 	{
@@ -22,6 +23,11 @@ class ResultListModel extends CoreModel
 		return $this;
 	}
 
+	public function setOffset( $offset )
+	{
+		$this->offset = $offset;
+	}
+
 	public function getTotalFound()
 	{
 		return $this->count;
@@ -30,5 +36,10 @@ class ResultListModel extends CoreModel
 	public function getContent()
 	{
 		return $this->content;
+	}
+
+	public function getOffset()
+	{
+		return $this->offset;
 	}
 }

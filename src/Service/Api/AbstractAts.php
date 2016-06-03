@@ -8,7 +8,6 @@
 
 namespace Core\Service\Api;
 
-
 abstract class AbstractAts extends AbstractAPI
 {
 	public function typeAuthorize()
@@ -86,9 +85,22 @@ abstract class AbstractAts extends AbstractAPI
      * @param  integer $limit  Limit
      * @return array           Array[totalFound, content[CandidateModels...]]
      */
-    abstract public function getCandidates( $offset, $limit );
+    abstract public function getCandidates( $offset, $limit, $result = null );
 
+    /**
+     * Return true if the candidate has been hired
+     *
+     * @param  string  $state state of the candidate
+     * @return boolean        True if hired
+     */
     abstract public function isCandidateHired( $state );
+
+    /**
+     * Return true if the candidate has been rejected or closed
+     *
+     * @param  string  $state state of the candidate
+     * @return boolean        True if close
+     */
     abstract public function isCandidateProcessClose( $state );
 
     /**

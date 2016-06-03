@@ -150,6 +150,9 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function request( $method, $ressource, $_params, $is_harvest = false )
     {
+        // 500 ms sleep
+        usleep(500000);
+
         if (true === $is_harvest)
         {
             if (true === empty($this->harvest_key))
@@ -547,7 +550,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $state === 'rejected';
     }
 
-    public function getCandidates( $offset, $limit )
+    public function getCandidates( $offset, $limit, $result_list = null )
     {
         $params = [
             'per_page' => (int) $limit,

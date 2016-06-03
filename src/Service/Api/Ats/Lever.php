@@ -15,6 +15,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 use Core\Model\Ats\Api\ResultListModel;
 use GuzzleHttp\Post\PostFile;
 use Application\Model\Ats\Lever\JobPositionModel as LeverJobPositionModel;
+use Application\Model\Ats\Lever\HistoryModel as LeverHistoryModel;
 
 
 class Lever extends AbstractAts implements ServiceLocatorAwareInterface
@@ -39,7 +40,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         $this->models           = [
             // 'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Lever\JobModel',
-            // 'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
+            'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
             // 'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\HistoryModel',
         ];
 
@@ -186,24 +187,24 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             $sm         = $this->sm;
             $is_content = false;
 
-            if (is_array($data))
+            if (is_array($data['data']))
             {
                 $is_content = true;
-                foreach ($data as $key => $d)
+                foreach ($data['data'] as $key => $d)
                     if (!is_numeric($key))
                         $is_content = false;
             }
 
             if (true === $is_content)
             {
-                $data = array_map(function($item) use ($modelClass, $sm){
+                $data['data'] = array_map(function($item) use ($modelClass, $sm){
                     $model = new $modelClass();
 
                     $model->setServiceLocator( $sm );
                     $model->exchangeArray($item);
 
                     return $model;
-                }, $data);
+                }, $data['data']);
             }
             else
             {
@@ -295,20 +296,31 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getCandidateHistory( $candidate )
     {
-        // // dd($candidate->application_ids);
-        // foreach ($candidate->application_ids as $application_id)
-        // {
-        //     $histories  = $this->get('applications/' . $application_id, true);
-        //     break;
-        //     // dd($histories);
-        // }
+        $stages     = $this->get('stages', ['limit' => 100]);
+        $data       = [];
+        $histories  = [];
 
-        // $result = new ResultListModel();
+        foreach ($stages['data'] as $stage)
+        {
+            $data[ $stage['id'] ] = $stage['text'];
+        }
 
-        // $result->setContent($histories);
-        // $result->setTotalFound(count($histories));
+        foreach ($candidate->stageChanges as $stage)
+        {
+            $model = new LeverHistoryModel();
 
-        // return $result;
+            $stage['status'] = $data[ $stage['toStageId'] ];
+            $model->exchangeArray( $stage );
+
+            $histories[] = $model;
+        }
+
+        $result = new ResultListModel();
+
+        $result->setContent($histories);
+        $result->setTotalFound(count($histories));
+
+        return $result;
     }
 
     /**
@@ -454,20 +466,24 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         // return $state === 'rejected';
     }
 
-    public function getCandidates( $offset, $limit )
+    public function getCandidates( $offset, $limit, $result_list = null )
     {
-        // $params = [
-        //     'per_page' => (int) $limit,
-        //     'page'     => (int) $offset / (int) $limit + 1
-        // ];
+        $params = ['limit' => 1];
 
-        // $result = new ResultListModel();
-        // $data   = $this->get('candidates', true, $params);
+        if (null !== $result_list)
+        {
+            $params['offset'] = $result_list->getOffset();
+        }
 
-        // $result->setContent($data);
-        // $result->setTotalFound(count($data));
+        $result = new ResultListModel();
+        $data   = $this->get('candidates', $params);
 
-        // return $result;
+        $result->setContent($data['data']);
+        $result->setTotalFound(count($data['data']));
+        if ($data['hasNext'])
+            $result->setOffset($data['next']);
+
+        return $result;
     }
 
     /**
