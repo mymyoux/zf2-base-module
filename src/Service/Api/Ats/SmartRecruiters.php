@@ -27,7 +27,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     private $access_token;
     private $refresh_token;
 
-    private $user = null;
     private $has_refresh = false;
 
     public function __construct($consumer_key, $consumer_secret)
@@ -478,7 +477,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
      * @param  integer $limit  Limit
      * @return array           Array[totalFound, content[JobModels...]]
      */
-    public function getJobs( $offset, $limit )
+    public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = [
             'offset'    => (int) $offset,
