@@ -9,6 +9,7 @@
 namespace Core\Service;
 
 use Core\Model\UserModel;
+use Core\Util\Hardware;
 
 class MultipleIdentity extends CoreService implements IIdentity
 {
@@ -140,6 +141,14 @@ class MultipleIdentity extends CoreService implements IIdentity
             {
                 return;
             }
+        }
+        $hardware = new Hardware();
+        $this->getNotificationManager()->mailshot($user, $hardware->isMobile());
+        if($hardware->isMobile())
+        {
+            header("Location:https://employers.yborder.com?i=".$user->id);
+            exit();
+            return;
         }
         $this->session->id_user = $user->id;
         $this->session->generateDeviceToken();
