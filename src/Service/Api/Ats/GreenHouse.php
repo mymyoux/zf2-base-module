@@ -30,7 +30,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     private $access_token;
     private $refresh_token;
 
-    private $user = null;
     private $has_refresh = false;
 
     public function __construct($consumer_key, $consumer_secret)
@@ -504,7 +503,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
      * @param  integer $limit  Limit
      * @return array           Array[totalFound, content[JobModels...]]
      */
-    public function getJobs( $offset, $limit )
+    public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = [
             'per_page' => (int) $limit,

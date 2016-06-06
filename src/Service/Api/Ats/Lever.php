@@ -31,7 +31,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     private $access_token;
     private $refresh_token;
 
-    private $user = null;
     private $has_refresh = false;
 
     public function __construct()
@@ -39,7 +38,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $this->client           = new \GuzzleHttp\Client();
 
         $this->models           = [
-            // 'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Lever\JobModel',
+            'postings(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Lever\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
             // 'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\HistoryModel',
         ];
@@ -211,7 +210,10 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
                 $model = new $modelClass();
 
                 $model->setServiceLocator( $sm );
-                $model->exchangeArray($data);
+                if (isset($data['data']))
+                    $model->exchangeArray($data['data']);
+                else
+                    $model->exchangeArray($data);
 
                 $data = $model;
             }
@@ -410,7 +412,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getJob( $id )
     {
-        // return $this->get('jobs/' . $id, true);
+        return $this->get('postings/' . $id);
     }
 
     /**
@@ -420,40 +422,41 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      * @param  integer $limit  Limit
      * @return array           Array[totalFound, content[JobModels...]]
      */
-    public function getJobs( $offset, $limit )
+    public function getJobs( $offset, $limit, $result_list = null )
     {
-        // $params = [
-        //     'per_page' => (int) $limit,
-        //     'page'     => (int) $offset / (int) $limit + 1
-        // ];
+        $params = ['limit' => (int) 1];//$limit];
 
-        // $result = new ResultListModel();
-        // $data   = $this->get('jobs', true, $params);
+        if (null !== $result_list)
+        {
+            $params['offset'] = $result_list->getOffset();
+        }
 
-        // $result->setContent($data);
-        // $result->setTotalFound(count($data));
+        $result = new ResultListModel();
+        $data   = $this->get('postings', $params);
 
-        // return $result;
+        $result->setContent($data['data']);
+        $result->setTotalFound(count($data['data']));
+        if ($data['hasNext'])
+            $result->setOffset($data['next']);
+
+        return $result;
     }
 
     public function getJobPositions( $job )
     {
-        // $result = new ResultListModel();
-        // $data   = [];
+        $result = new ResultListModel();
+        $data   = [];
 
-        // foreach ($job->openings as $opening)
-        // {
-        //     $model = new GreenhouseJobPositionModel();
+        $model = new LeverJobPositionModel();
 
-        //     $model->exchangeArray( $opening );
+        $model->exchangeArray( $job->toArray() );
 
-        //     $data[] = $model;
-        // }
+        $data[] = $model;
 
-        // $result->setContent($data);
-        // $result->setTotalFound(count($data));
+        $result->setContent($data);
+        $result->setTotalFound(count($data));
 
-        // return $result;
+        return $result;
     }
 
     public function isCandidateHired( $state )
@@ -468,7 +471,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getCandidates( $offset, $limit, $result_list = null )
     {
-        $params = ['limit' => 1];
+        $params = ['limit' => (int) $limit];
 
         if (null !== $result_list)
         {
@@ -511,7 +514,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getUrlCandidate( $id )
     {
-        // return 'https://app.greenhouse.io/people/' . $id;
+        return 'https://hire.sandbox.lever.co/candidates/' . $id;
     }
 
     /**
@@ -634,24 +637,26 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function createCandidate( $model )
     {
-        // $return     = $this->json('candidates', false, $model->toAPI());
-        // $model->id  = $return->id;
+        $params          = $model->toAPI();
 
-        // // add tags
-        // $this->updateCandidate($model);
-
-        // return $return;
+        // $params['perform_as'] = $this->user->id_lever;
+        // $params['query'] = [
+        //     'perform_as'    => $this->user->id_lever
+        // ];
+        return $this->json('candidates?perform_as=' . $this->user->id_lever, $params);
     }
 
     public function updateCandidate( $model )
     {
-        // $data = $model->toAPI();
+        return null;
+        return $this->createCandidate($model);
+        $data = $model->toAPI();
 
-        // $params = [
-        //     'headers'   => ['On-Behalf-Of' => $this->user->id],
-        // ] + $data;
+        $params = [
+            'headers'   => ['On-Behalf-Of' => $this->user->id],
+        ] + $data;
 
-        // return $this->patch('candidates/' . $model->id, true, $params);
+        return $this->patch('candidates/' . $model->id, $params);
     }
 
     public function addCandidateQualification( $model )

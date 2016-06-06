@@ -10,10 +10,22 @@ namespace Core\Service\Api;
 
 abstract class AbstractAts extends AbstractAPI
 {
+    protected $user = null;
+
 	public function typeAuthorize()
 	{
 		return [];
 	}
+
+    public function setUser( $ats_user )
+    {
+        if (!$this->user)
+        {
+            $this->user         = new \stdClass();
+            $this->user->id     = null;
+        }
+        $this->user = (object) $ats_user;
+    }
 
     /**
      * Get the reply-to header from an ATS email
@@ -60,7 +72,7 @@ abstract class AbstractAts extends AbstractAPI
      * @param  integer $limit  Limit
      * @return array           Array[totalFound, content[JobModels...]]
      */
-    abstract public function getJobs( $offset, $limit );
+    abstract public function getJobs( $offset, $limit, $result_list = null );
 
 	/**
      * Check if a job can be inserted into our DB
