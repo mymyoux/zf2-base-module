@@ -7,6 +7,7 @@
  */
 
 namespace Core\Service\Api;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
 abstract class AbstractAts extends AbstractAPI
 {
@@ -25,6 +26,55 @@ abstract class AbstractAts extends AbstractAPI
             $this->user->id     = null;
         }
         $this->user = (object) $ats_user;
+    }
+
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->sm = $serviceLocator;
+
+        $this->init();
+    }
+
+    public function getServiceLocator()
+    {
+        return $this->sm;
+    }
+
+    public function init()
+    {
+        $class          = get_class($this);
+        $name           = strtolower(substr($class, strrpos($class, '\\') + 1));
+        $apis           = $this->sm->get('AppConfig')->get('apis');
+        $this->config   = $apis[ $name ];
+        $this->ats_name = $name;
+        $this->ats      = $this->sm->get('AtsTable')->getAts( $name );
+    }
+
+    protected function logSendMessage( $id_api_candidate, $content )
+    {
+        $candidate = $this->getCandidateAtsByAPIID( $id_api_candidate );
+
+        if (null === $candidate) return null;
+
+        return $this->sm->get('AtsMessageSendTable')->insertMessage( $candidate['id_ats_candidate'], $content );
+    }
+
+    protected function getLogMessageHistory( $id_api_candidate )
+    {
+        $candidate = $this->getCandidateAtsByAPIID( $id_api_candidate );
+
+        return $this->sm->get('AtsMessageSendTable')->getHistoryContent( $candidate['id_ats_candidate'] );
+    }
+
+    protected function getCandidateAtsByAPIID( $id_api_candidate )
+    {
+        var_dump($this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] ));
+        return $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
+    }
+
+    protected function getCandidateByAPIID( $id_api_candidate )
+    {
+        return $this->sm->get('AtsCandidateTable')->getCoreCandidateByAPIID( $id_api_candidate, $this->ats['id_ats'] );
     }
 
     /**

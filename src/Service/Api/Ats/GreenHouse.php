@@ -11,7 +11,6 @@ namespace Core\Service\Api\Ats;
 use Zend\Http\Request;
 use Core\Service\Api\AbstractAts;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Core\Model\Ats\Api\ResultListModel;
 use GuzzleHttp\Post\PostFile;
 use Application\Model\Ats\Greenhouse\JobPositionModel as GreenhouseJobPositionModel;
@@ -46,24 +45,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $this->user         = new \stdClass();
         $this->user->id     = null;
-    }
-
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->sm = $serviceLocator;
-
-        $this->init();
-    }
-
-    public function getServiceLocator()
-    {
-        return $this->sm;
-    }
-
-    public function init()
-    {
-        $apis           = $this->sm->get('AppConfig')->get('apis');
-        $this->config   = $apis['greenhouse'];
     }
 
     public function getEmailFieldReplyTo()
@@ -752,16 +733,12 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             if (null !== $application->current_stage)
             {
                 $state = $application->current_stage['name'];
-                var_dump($application->current_stage);
-                // $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
             }
         }
 
         return [$job_id, $state];
     }
 }
-
-
 
 class GreenHouseException extends Exception
 {
