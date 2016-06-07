@@ -43,24 +43,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         ];
     }
 
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->sm = $serviceLocator;
-
-        $this->init();
-    }
-
-    public function getServiceLocator()
-    {
-        return $this->sm;
-    }
-
-    public function init()
-    {
-        $apis           = $this->sm->get('AppConfig')->get('apis');
-        $this->config   = $apis['smartrecruiters'];
-    }
-
     public function getEmailFieldReplyTo()
     {
         return 'replyto';
@@ -130,6 +112,9 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function request( $method, $ressource, $_params )
     {
+        // 500 ms sleep
+        usleep(500000);
+
         $path   = 'https://api.smartrecruiters.com/';
 
         try

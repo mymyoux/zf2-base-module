@@ -11,7 +11,6 @@ namespace Core\Service\Api\Ats;
 use Zend\Http\Request;
 use Core\Service\Api\AbstractAts;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use Core\Model\Ats\Api\ResultListModel;
 use GuzzleHttp\Post\PostFile;
 use Application\Model\Ats\Lever\JobPositionModel as LeverJobPositionModel;
@@ -33,6 +32,9 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     private $has_refresh = false;
 
+    private $stages;
+    private $archive_reasons;
+
     public function __construct()
     {
         $this->client           = new \GuzzleHttp\Client();
@@ -45,24 +47,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         $this->user         = new \stdClass();
         $this->user->id     = null;
-    }
-
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->sm = $serviceLocator;
-
-        $this->init();
-    }
-
-    public function getServiceLocator()
-    {
-        return $this->sm;
-    }
-
-    public function init()
-    {
-        $apis           = $this->sm->get('AppConfig')->get('apis');
-        $this->config   = $apis['lever'];
     }
 
     public function getEmailFieldReplyTo()
@@ -125,6 +109,9 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function request( $method, $ressource, $_params = false )
     {
+        // 500 ms sleep
+        usleep(500000);
+
         // The username is your Lever API token and the password should be blank
         $path   = 'https://api.sandbox.lever.co/v1/';
         $auth   = 'Basic ' . base64_encode($this->access_token . ':');
@@ -260,9 +247,11 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
-        // get old content messages
+        $candidate  = $this->getCandidateAtsByAPIID($id_api_candidate);
 
-        $content = date('Y-m-d H:i:s') . ' ' . $content;
+        if (null === $candidate) return null;
+        // get old content messages
+        $history = $this->getLogMessageHistory( $id_api_candidate );
 
         $query = [
             'perform_as'    => $this->user->id_lever,
@@ -270,14 +259,16 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         ];
 
         $body = [
-            'files[]'       => new PostFile('files[0]', $content, 'yborder_actions.txt'),
+            'files[]'       => new PostFile('files[0]',  $history . PHP_EOL . date('Y-m-d H:i:s') . ' ' . $content, 'yborder_actions.txt'),
             'emails'        => [
-                'benjamin+lever@mobiskill.fr'// get email address of the user
+                self::formatCandidate($candidate['id_candidate'])
             ]
         ];
 
         $json = [
         ];
+
+        $this->logSendMessage($id_api_candidate, $content);
 
         return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
@@ -307,28 +298,27 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         // return $state;
     }
 
-    /**
-     * Get candidate state history
-     *
-     * @param  AtsCandidateModel $candidate ID of the job
-     * @return ResultListModel   History list
-     */
     public function getCandidateHistory( $candidate )
     {
-        $stages     = $this->get('stages', ['limit' => 100]);
-        $data       = [];
-        $histories  = [];
+        $histories          = [];
+        $stages             = $this->getStages();
+        $archive_reasons    = $this->getArchiveReasons();
 
-        foreach ($stages['data'] as $stage)
-        {
-            $data[ $stage['id'] ] = $stage['text'];
-        }
-        var_dump($candidate->stageChanges);
         foreach ($candidate->stageChanges as $stage)
         {
             $model = new LeverHistoryModel();
 
-            $stage['status'] = $data[ $stage['toStageId'] ];
+            $stage['status'] = $stages[ $stage['toStageId'] ];
+            $model->exchangeArray( $stage );
+
+            $histories[] = $model;
+        }
+
+        if (isset($candidate->archived) && isset($candidate->archived['reason']))
+        {
+            $model = new LeverHistoryModel();
+
+            $stage['status'] = $archive_reasons[ $candidate->archived['reason'] ];
             $model->exchangeArray( $stage );
 
             $histories[] = $model;
@@ -478,12 +468,12 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function isCandidateHired( $state )
     {
-        // return $state === 'hired';
+        return $state === 'Hired';
     }
 
     public function isCandidateProcessClose( $state )
     {
-        // return $state === 'rejected';
+        return true === in_array($state, ['Underqualified', 'Unresponsive', 'Timing', 'Withdrew', 'Offer declined', 'Position closed']);
     }
 
     public function getCandidates( $offset, $limit, $result_list = null )
@@ -571,6 +561,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
+        $candidate  = $this->getCandidateAtsByAPIID($id_api);
+
         if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath_content   = ROOT_PATH . '/public/' . $picture;
         else
@@ -587,7 +579,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'files[]'       => new PostFile('files[0]', file_get_contents($filepath_content), 'picture.jpg'),
             'emails'        => [
-                'benjamin+lever@mobiskill.fr'// get email address of the user
+                self::formatCandidate($candidate['id_candidate'])
             ]
         ];
 
@@ -610,6 +602,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
+        $candidate  = $this->getCandidateAtsByAPIID($id_api);
         // upload the RESUME
         if (true === file_exists(ROOT_PATH . $pdf_link))
             $filepath_content = ROOT_PATH . $pdf_link;
@@ -630,13 +623,13 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'resumeFile'    => new PostFile('resumeFile', file_get_contents($filepath_content), 'resume.pdf'),
             'emails'        => [
-                'benjamin+lever@mobiskill.fr'// get email address of the user
+                self::formatCandidate($candidate['id_candidate'])
             ]
         ];
 
         $json = [
             'emails'        => [
-                'benjamin+lever@mobiskill.fr'// get email address of the user
+                self::formatCandidate($candidate['id_candidate'])
             ]
         ];
 
@@ -662,7 +655,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function addCandidateQualification( $model )
     {
-        $data = $model->getQualification();
+        $candidate  = $this->getCandidateAtsByAPIID($model->id);
+        $data       = $model->getQualification();
 
         $query = [
             'perform_as'    => $this->user->id_lever,
@@ -672,7 +666,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'files[]'       => new PostFile('files[0]', $data, 'qualification.txt'),
             'emails'        => [
-                'benjamin+lever@mobiskill.fr'// get email address of the user
+                self::formatCandidate($candidate['id_candidate'])
             ]
         ];
 
@@ -701,9 +695,48 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         // return [$job_id, $state];
     }
+
+    private function getStages()
+    {
+        if (isset($this->stages))
+            return $this->stages;
+
+        $stages     = $this->get('stages', ['limit' => 100]);
+        $data       = [];
+
+        foreach ($stages['data'] as $stage)
+        {
+            $data[ $stage['id'] ] = $stage['text'];
+        }
+
+        $this->stages = $data;
+
+        return $data;
+    }
+
+    private function getArchiveReasons()
+    {
+        if (isset($this->archive_reasons))
+            return $this->archive_reasons;
+
+        $archive_reasons     = $this->get('archive_reasons', ['limit' => 100]);
+        $data       = [];
+
+        foreach ($archive_reasons['data'] as $archive_reason)
+        {
+            $data[ $archive_reason['id'] ] = $archive_reason['text'];
+        }
+
+        $this->archive_reasons = $data;
+
+        return $data;
+    }
+
+    static public function formatCandidate( $id_user )
+    {
+        return 'candidate+lever.' . $id_user . '@mobiskill.fr';
+    }
 }
-
-
 
 class LeverException extends Exception
 {
