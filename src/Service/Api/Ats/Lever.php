@@ -160,11 +160,16 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
+            if (method_exists($e, 'getResponse'))
+                $error = json_decode( $e->getResponse()->getBody()->__toString() );
+            else
+                $error = null;
+
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new LeverException($e_message, $e_code);
+                $e = new LeverException((isset($error->message) ? $error->message : $e_message), $e_code);
             }
 
             throw $e;
@@ -255,14 +260,26 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
-        // $params = [
-        //     'headers'       => ['On-Behalf-Of' => $this->user->id],
-        //     'user_id'       => $this->user->id,
-        //     'body'          => 'YBorder: '. $content,
-        //     'visibility'    => ($share_with_everyone ? 'public' : 'private')
-        // ];
+        // get old content messages
 
-        // return $this->json('candidates/' . $id_api_candidate . '/activity_feed/notes', true, $params);
+        $content = date('Y-m-d H:i:s') . ' ' . $content;
+
+        $query = [
+            'perform_as'    => $this->user->id_lever,
+            'dedupe'        => "true"
+        ];
+
+        $body = [
+            'files[]'       => new PostFile('files[0]', $content, 'yborder_actions.txt'),
+            'emails'        => [
+                'benjamin+lever@mobiskill.fr'// get email address of the user
+            ]
+        ];
+
+        $json = [
+        ];
+
+        return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
     /**
      * Get candidate current state
@@ -306,7 +323,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         {
             $data[ $stage['id'] ] = $stage['text'];
         }
-
+        var_dump($candidate->stageChanges);
         foreach ($candidate->stageChanges as $stage)
         {
             $model = new LeverHistoryModel();
@@ -333,9 +350,9 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function askInTouch( $id_api_candidate )
     {
-        // $content = 'A contact request has been sent.';
+        $content = 'A contact request has been sent.';
 
-        // return $this->sendMessage( $id_api_candidate, $content, true );
+        return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
     /**
@@ -554,116 +571,115 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
-        // if (true === file_exists(ROOT_PATH . '/public/' . $picture))
-        //     $filepath_content   = ROOT_PATH . '/public/' . $picture;
-        // else
-        //     $filepath_url       = 'https://app.yborder.com' . $picture;
+        if (true === file_exists(ROOT_PATH . '/public/' . $picture))
+            $filepath_content   = ROOT_PATH . '/public/' . $picture;
+        else
+            $filepath_content       = 'https://app.yborder.com' . $picture;
 
-        // if (php_sapi_name() === 'cli')
-        //     echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
+        if (php_sapi_name() === 'cli')
+            echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
 
-        // $params = [
-        //     'type'      => 'photo_url',
-        //     'headers'   => ['On-Behalf-Of' => $this->user->id],
-        //     'filename'  => $id_api . '_picture_yborder.jpg'
-        // ];
+        $query = [
+            'perform_as'    => $this->user->id_lever,
+            'dedupe'        => "true"
+        ];
 
-        // if (isset($filepath_content))
-        // {
-        //     $params['content'] = new PostFile('file', file_get_contents($filepath_content));
-        // }
-        // else
-        // {
-        //     $params['url'] = $filepath_url;
-        // }
+        $body = [
+            'files[]'       => new PostFile('files[0]', file_get_contents($filepath_content), 'picture.jpg'),
+            'emails'        => [
+                'benjamin+lever@mobiskill.fr'// get email address of the user
+            ]
+        ];
 
-        // // $params = ['photo_url' => $filepath_url];
+        $json = [
+        ];
 
-        // try
-        // {
-        //     $this->json('candidates/' . $id_api . '/attachments', true, $params);
-        // }
-        // catch (\Exception $e)
-        // {
-        //     // dd($e->getMessage());
-        //     // if error : do nothing. Reason : Same image so do not need to update.
-        //     return false;
-        // }
+        try
+        {
+            $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
+        }
+        catch (\Exception $e)
+        {
+            // dd($e->getMessage());
+            // if error : do nothing. Reason : Same image so do not need to update.
+            return false;
+        }
 
-        // return true;
+        return true;
     }
 
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
-        // // upload the RESUME
-        // if (true === file_exists(ROOT_PATH . $pdf_link))
-        //     $filepath_content = ROOT_PATH . $pdf_link;
-        // else
-        // {
-        //     $pdf_link   = str_replace('public/', '', $pdf_link);
-        //     $filepath_url = 'https://app.yborder.com/' . $pdf_link;
-        // }
+        // upload the RESUME
+        if (true === file_exists(ROOT_PATH . $pdf_link))
+            $filepath_content = ROOT_PATH . $pdf_link;
+        else
+        {
+            $pdf_link           = str_replace('public/', '', $pdf_link);
+            $filepath_content   = 'https://app.yborder.com/' . $pdf_link;
+        }
 
-        // if (php_sapi_name() === 'cli')
-        //     echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
+        if (php_sapi_name() === 'cli')
+            echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
 
-        // $params = [
-        //     'type'      => 'resume',
-        //     'headers'   => ['On-Behalf-Of' => $this->user->id],
-        //     'filename'  => $id_api . '_resume_yborder.pdf'
-        // ];
+        $query = [
+            'perform_as'    => $this->user->id_lever,
+            'dedupe'        => "true"
+        ];
 
-        // if (isset($filepath_content))
-        // {
-        //     $params['content'] = new PostFile('file', file_get_contents($filepath_content));
-        // }
-        // else
-        // {
-        //     $params['url'] = $filepath_url;
-        // }
+        $body = [
+            'resumeFile'    => new PostFile('resumeFile', file_get_contents($filepath_content), 'resume.pdf'),
+            'emails'        => [
+                'benjamin+lever@mobiskill.fr'// get email address of the user
+            ]
+        ];
 
-        // try
-        // {
-        //     $this->json('candidates/' . $id_api . '/attachments', true, $params);
-        // }
-        // catch (\Exception $e)
-        // {
-        //     // if error : do nothing. Reason : Same image so do not need to update.
-        //     return false;
-        // }
+        $json = [
+            'emails'        => [
+                'benjamin+lever@mobiskill.fr'// get email address of the user
+            ]
+        ];
 
-        // return true;
+        return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
 
     public function createCandidate( $model )
     {
-        $params          = $model->toAPI();
+        $params             = $model->toAPI();
+        // update if same email address
+        $query = [
+            'perform_as'    => $this->user->id_lever,
+            'dedupe'        => "true"
+        ];
 
-        // $params['perform_as'] = $this->user->id_lever;
-        // $params['query'] = [
-        //     'perform_as'    => $this->user->id_lever
-        // ];
-        return $this->json('candidates?perform_as=' . $this->user->id_lever, $params);
+        return $this->request('POST', 'candidates', ['query' => $query, 'json' => $params]);
     }
 
     public function updateCandidate( $model )
     {
-        return null;
         return $this->createCandidate($model);
-        $data = $model->toAPI();
-
-        $params = [
-            'headers'   => ['On-Behalf-Of' => $this->user->id],
-        ] + $data;
-
-        return $this->patch('candidates/' . $model->id, $params);
     }
 
     public function addCandidateQualification( $model )
     {
-        // $data = $model->getQualification();
+        $data = $model->getQualification();
 
-        // return $this->sendMessage($model->id, $data, true);
+        $query = [
+            'perform_as'    => $this->user->id_lever,
+            'dedupe'        => "true"
+        ];
+
+        $body = [
+            'files[]'       => new PostFile('files[0]', $data, 'qualification.txt'),
+            'emails'        => [
+                'benjamin+lever@mobiskill.fr'// get email address of the user
+            ]
+        ];
+
+        $json = [
+        ];
+
+        return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
 
     public function getJobId( $id_ats_candidate )
