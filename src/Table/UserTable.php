@@ -218,6 +218,22 @@ class UserTable extends CoreTable{
         }
         return $user;
     }
+
+    public function getUserByEmail($email, $model = True)
+    {
+        $users = $this->getUsersFromEmail($email);
+        if(empty($users))
+        {
+            return NULL;
+        }   
+        $user = $users[0];
+        if(!$model)
+        {
+            return $user;
+        }
+        $user = $this->getUser($user);
+        return $user;
+    }
     /**
      * Gets User from All sources (object)
      * @param  [type] $email [description]
