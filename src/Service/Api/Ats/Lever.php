@@ -259,7 +259,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         ];
 
         $body = [
-            'files[]'       => new PostFile('files[0]',  $history . PHP_EOL . date('Y-m-d H:i:s') . ' ' . $content, 'yborder_actions.txt'),
+            'files[]'       => new PostFile('files[0]',  date('Y-m-d H:i:s') . PHP_EOL . $content . PHP_EOL . PHP_EOL . $history, 'yborder_actions.txt'),
             'emails'        => [
                 self::formatCandidate($candidate['id_candidate'])
             ]
@@ -280,22 +280,23 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getCandidateState( $id_api_candidate )
     {
-        // $ats        = $this->sm->get('AtsTable')->getAts( 'greenhouse' );
-        // $candidate  = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $ats['id_ats'] );
-        // $state      = null;
-        // $job_id     = $this->sm->get('AtsCandidateTable')->getValue($candidate['id_ats_candidate'], 'application_ids_0');
+        $candidate          = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
+        $state              = null;
+        $archive_reason     = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'archived_reason');
+        $stage              = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'stage');
+        $job_id             = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'applications_0');
 
-        // if (null !== $job_id)
-        // {
-        //     $application    = $this->get('applications/' . $job_id, true);
+        if (null !== $archive_reason)
+        {
+            $archive_reasons    = $this->getArchiveReasons();
+            $state              = $archive_reasons[ $archive_reason ];
+        }
+        else if (null !== $job_id)
+        {
+            $state              = $stages[ $job_id ];
+        }
 
-        //     if (null !== $application->current_stage)
-        //     {
-        //         $state = $application->current_stage['name'];
-        //     }
-        // }
-
-        // return $state;
+        return $state;
     }
 
     public function getCandidateHistory( $candidate )
@@ -533,30 +534,59 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function updateCandidateState($id_api, $state)
     {
-        // $action         = 'advance';
-        // $params         = ['headers' => ['On-Behalf-Of' => $this->user->id]]; // @todo over with $this->user->id
+        $query  = [
+            'perform_as'    => $this->user->id_lever
+        ];
 
-        // $candidate      = $this->get('candidates/' . $id_api, true);
-        // $id_application = current($candidate->application_ids);
+        if ($state === 'REJECTED')
+        {
+            $archive_reasons    = $this->getArchiveReasons();
 
-        // if ($state === 'REJECTED')
-        //     $action = 'reject';
-        // else
-        // {
-        //     $application    = $this->get('applications/' . $id_application, true);
+            foreach ($archive_reasons as $id_reason => $reason)
+            {
+                if ('Withdrew' === $reason)
+                {
+                    $body_reason = $id_reason;
+                    break;
+                }
+            }
 
-        //     if (null !== $application->current_stage)
-        //     {
-        //         $from_stage_id  = $application->current_stage['id'];
+            if (!isset($body_reason)) return null;
+            // PUT /candidates/:candidate/archived
 
-        //         if ($application->getState() !== 'active')
-        //             return null;
+            $body   = [
+                'reason'        => $body_reason
+            ];
 
-        //         $params        += ['from_stage_id' => $from_stage_id];
-        //     }
-        // }
+            return $this->request('PUT', 'candidates/' . $id_api . '/archived', ['query' => $query, 'body' => $body]);
+        }
 
-        // return $this->json('applications/' . $id_application . '/' . $action, true, $params);
+        switch ($state)
+        {
+            case 'NEW' :        $new_state = 'New lead';    break;
+            case 'IN_REVIEW' :  $new_state = 'Reached out'; break;
+            default:
+                return null;
+        }
+
+        $stages = $this->getStages();
+
+        foreach ($stages as $id_sage => $stage)
+        {
+            if ($new_state === $stage)
+            {
+                $body_stage = $id_sage;
+                break;
+            }
+        }
+
+        if (!isset($body_stage)) return null;
+
+        $body   = [
+            'stage'        => $body_stage
+        ];
+
+        return $this->request('PUT', 'candidates/' . $id_api . '/stage', ['query' => $query, 'body' => $body]);
     }
 
     public function uploadCandidatePicture( $id_api, $picture )
@@ -678,22 +708,22 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobId( $id_ats_candidate )
     {
-        // $state  = null;
-        // $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
+        $state              = null;
+        $archive_reason     = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'archived_reason');
+        $stage              = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'stage');
+        $job_id             = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'applications_0');
 
-        // if (null !== $job_id)
-        // {
-        //     $application    = $this->get('applications/' . $job_id, true);
+        if (null !== $archive_reason)
+        {
+            $archive_reasons    = $this->getArchiveReasons();
+            $state              = $archive_reasons[ $archive_reason ];
+        }
+        else if (null !== $job_id)
+        {
+            $state              = $stages[ $job_id ];
+        }
 
-        //     if (null !== $application->current_stage)
-        //     {
-        //         $state = $application->current_stage['name'];
-        //         var_dump($application->current_stage);
-        //         // $state = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'secondaryAssignments_status');
-        //     }
-        // }
-
-        // return [$job_id, $state];
+        return [$job_id, $state];
     }
 
     private function getStages()
