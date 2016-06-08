@@ -141,6 +141,21 @@ class MailTable extends CoreTable
         return $data;
     }
 
+    public function getMailByTypeAndEmail( $type, $email )
+    {
+        $where = $this->select(self::TABLE)->where
+                    ->and->equalTo("recipient", (string) $email)
+                    ->and->equalTo("type", (string) $type);
+
+        $request = $this->select([ 'tp' => self::TABLE ])
+                    ->where( $where );
+
+        $result = $this->execute($request);
+        $data = $result->current();
+        if (!$data) return null;
+        return $data;
+    }
+
      public function hasAlreadySend( $type, array $emails )
     {
         $where = $this->select(self::TABLE)->where

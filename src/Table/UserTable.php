@@ -231,7 +231,7 @@ class UserTable extends CoreTable{
         {
             return $user;
         }
-        $user = $this->getUser($user);
+        $user = $this->getUser($user["id_user"]);
         return $user;
     }
     /**
