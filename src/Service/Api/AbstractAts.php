@@ -50,6 +50,30 @@ abstract class AbstractAts extends AbstractAPI
         $this->ats      = $this->sm->get('AtsTable')->getAts( $name );
     }
 
+    protected function logRessource($method, $ressource)
+    {
+        $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
+    }
+
+    protected function logApiCall($method, $ressource, $params, $success = false, $result = null, $id_error = null)
+    {
+        $this->sm->get('AtsApiCallTable')->insertCall([
+            'id_user'   => (int) $this->user->id_user,
+            'id_ats'    => (int) $this->ats['id_ats'],
+            'ressource' => (string) $ressource,
+            'method'    => (string) $method,
+            'params'    => json_encode($params),
+            'success'   => (int) $success,
+            'id_error'  => $id_error,
+            'value'     => json_encode($result)
+        ]);
+    }
+
+    public function getRessource($method, $ressource)
+    {
+        return $this->sm->get('AtsApiRessourceTable')->get( $this->user->id_user, $this->ats['id_ats'], $method, $ressource );
+    }
+
     /**
      * Log message send through the ATS API by YBorder
      *

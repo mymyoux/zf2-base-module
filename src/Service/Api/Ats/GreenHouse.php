@@ -178,14 +178,11 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
                 $params = $_params;
             }
 
-            // if ('identity/oauth/token' === $ressource)
-            // {
-            //     $path = 'https://www.smartrecruiters.com/';
-            // }
-
             $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
+
+            $this->logRessource( $method, $ressource );
         }
         catch (\Exception $e)
         {
@@ -195,12 +192,21 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
                 $e = new GreenHouseException($e_message, $e_code);
+
+                $id_error = $this->sm->get('ErrorTable')->logError($e);
+                $this->sm->get('Log')->error($e->getMessage());
+
+                // log error
+                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
             }
 
             throw $e;
         }
         $data   = $data->json();
         $found  = false;
+
+        // log success
+        $this->logApiCall($method, $ressource, $params, true, $data);
 
         foreach ($this->models as $regex => $modelClass)
         {
@@ -491,6 +497,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'page'     => (int) $offset / (int) $limit + 1
         ];
 
+        $ressource = $this->getRessource('GET', 'jobs');
+
+        if (null !== $ressource)
+        {
+            $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+        }
+
         $result = new ResultListModel();
         $data   = $this->get('jobs', true, $params);
 
@@ -536,6 +549,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'per_page' => (int) $limit,
             'page'     => (int) $offset / (int) $limit + 1
         ];
+
+        $ressource = $this->getRessource('GET', 'candidates');
+
+        if (null !== $ressource)
+        {
+            $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+        }
 
         $result = new ResultListModel();
         $data   = $this->get('candidates', true, $params);

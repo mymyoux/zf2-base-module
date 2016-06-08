@@ -138,6 +138,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
+
+            $this->logRessource( $method, $ressource );
         }
         catch (\Exception $e)
         {
@@ -147,6 +149,12 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
                 $e = new SmartrecruitersException($e_message, $e_code);
+
+                $id_error = $this->sm->get('ErrorTable')->logError($e);
+                $this->sm->get('Log')->error($e->getMessage());
+
+                // log error
+                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
             }
             else
             {
@@ -199,6 +207,9 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
         $data   = $data->json();
         $found  = false;
+
+        // log success
+        $this->logApiCall($method, $ressource, $params, true, $data);
 
         foreach ($this->models as $regex => $modelClass)
         {
@@ -469,6 +480,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             'limit'     => (int) $limit
         ];
 
+        $ressource = $this->getRessource('GET', 'jobs');
+
+        if (null !== $ressource)
+        {
+            $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+        }
+
         $result = new ResultListModel();
         $data   = $this->get('jobs', $params);
 
@@ -526,6 +544,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             'offset'    => (int) $offset,
             'limit'     => (int) $limit
         ];
+
+        $ressource = $this->getRessource('GET', 'candidates');
+
+        if (null !== $ressource)
+        {
+            $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+        }
 
         $result = new ResultListModel();
         $data   = $this->get('candidates', $params);

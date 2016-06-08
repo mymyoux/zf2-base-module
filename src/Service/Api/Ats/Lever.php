@@ -144,6 +144,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
+
+            $this->logRessource( $method, $ressource );
         }
         catch (\Exception $e)
         {
@@ -157,12 +159,21 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
                 $e = new LeverException((isset($error->message) ? $error->message : $e_message), $e_code);
+
+                $id_error = $this->sm->get('ErrorTable')->logError($e);
+                $this->sm->get('Log')->error($e->getMessage());
+
+                // log error
+                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
             }
 
             throw $e;
         }
         $data   = $data->json();
         $found  = false;
+
+        // log success
+        $this->logApiCall($method, $ressource, $params, true, $data);
 
         foreach ($this->models as $regex => $modelClass)
         {
@@ -432,7 +443,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
      */
     public function getJobs( $offset, $limit, $result_list = null )
     {
-        $params = ['limit' => (int) 1];//$limit];
+        $params = ['limit' => (int) $limit, 'commitment' => 'Full-time'];
 
         if (null !== $result_list)
         {
@@ -484,6 +495,13 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         if (null !== $result_list)
         {
             $params['offset'] = $result_list->getOffset();
+        }
+
+        $ressource = $this->getRessource('GET', 'candidates');
+
+        if (null !== $ressource)
+        {
+            $params['updated_at_start'] = strtotime( $ressource->last_fetch_time ) * 1000;
         }
 
         $result = new ResultListModel();
