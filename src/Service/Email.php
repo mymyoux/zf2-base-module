@@ -304,6 +304,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         }
 
         $original_emails = [];
+
         foreach($emails as $key=>$email)
         {
             if(($email instanceof \ArrayObject || is_array($email)) && isset($email["email"]))
