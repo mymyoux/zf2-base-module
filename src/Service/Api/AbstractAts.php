@@ -50,6 +50,13 @@ abstract class AbstractAts extends AbstractAPI
         $this->ats      = $this->sm->get('AtsTable')->getAts( $name );
     }
 
+    /**
+     * Log message send through the ATS API by YBorder
+     *
+     * @param  integer $id_api_candidate ATS ID of the candidate
+     * @param  string $content           Text
+     * @return integer                   Return id of the message
+     */
     protected function logSendMessage( $id_api_candidate, $content )
     {
         $candidate = $this->getCandidateAtsByAPIID( $id_api_candidate );
@@ -59,6 +66,12 @@ abstract class AbstractAts extends AbstractAPI
         return $this->sm->get('AtsMessageSendTable')->insertMessage( $candidate['id_ats_candidate'], $content );
     }
 
+    /**
+     * Get the last message send to a candidate (through the ATS)
+     *
+     * @param  integer $id_api_candidate ATS ID of the candidate
+     * @return string                    Return history formatted for ATS
+     */
     protected function getLogMessageHistory( $id_api_candidate )
     {
         $candidate = $this->getCandidateAtsByAPIID( $id_api_candidate );
@@ -68,7 +81,6 @@ abstract class AbstractAts extends AbstractAPI
 
     protected function getCandidateAtsByAPIID( $id_api_candidate )
     {
-        var_dump($this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] ));
         return $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
     }
 
