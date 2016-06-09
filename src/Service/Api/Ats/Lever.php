@@ -272,7 +272,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'files[]'       => new PostFile('files[0]',  date('Y-m-d H:i:s') . PHP_EOL . $content . PHP_EOL . PHP_EOL . $history, 'yborder_actions.txt'),
             'emails'        => [
-                self::formatCandidate($candidate['id_candidate'])
+                self::formatCandidate($candidate['token'])
             ]
         ];
 
@@ -627,7 +627,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'files[]'       => new PostFile('files[0]', file_get_contents($filepath_content), 'picture.jpg'),
             'emails'        => [
-                self::formatCandidate($candidate['id_candidate'])
+                self::formatCandidate($candidate['token'])
             ]
         ];
 
@@ -671,13 +671,13 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'resumeFile'    => new PostFile('resumeFile', file_get_contents($filepath_content), 'resume.pdf'),
             'emails'        => [
-                self::formatCandidate($candidate['id_candidate'])
+                self::formatCandidate($candidate['token'])
             ]
         ];
 
         $json = [
             'emails'        => [
-                self::formatCandidate($candidate['id_candidate'])
+                self::formatCandidate($candidate['token'])
             ]
         ];
 
@@ -714,7 +714,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $body = [
             'files[]'       => new PostFile('files[0]', $data, 'qualification.txt'),
             'emails'        => [
-                self::formatCandidate($candidate['id_candidate'])
+                self::formatCandidate($candidate['token'])
             ]
         ];
 
