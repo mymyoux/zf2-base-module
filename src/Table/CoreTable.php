@@ -109,6 +109,11 @@ class CoreTable extends \Core\Service\CoreService
         return $resultSet;
     }
 
+    public function getDB()
+    {
+        return $this->db;
+    }
+
     /**
      * @param string|\Zend\Db\TableGateway\TableGateway $name Name of table or TableGateway instance. If not specified default table is used ($this->table())
      * @return \Zend\Db\Sql\Select

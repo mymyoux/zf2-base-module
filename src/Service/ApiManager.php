@@ -72,6 +72,21 @@ class ApiManager extends CoreService
 
         return $api->canLogin();
     }
+
+    public function typeAuthorize($name, $type)
+    {
+        if($name == "manual")
+        {
+            return True;
+        }
+        if(!$this->has($name))
+        {
+            return False;
+        }
+        $api = $this->get($name);
+
+        return in_array($type, $api->typeAuthorize());
+    }
     /**
      * Tests if the api allow mutiple connectors
      * @param $name Api's name
@@ -176,7 +191,7 @@ class ApiManager extends CoreService
         $api = $this->configuration[$name];
         $cls = $api["class"];
         $reflection_class = new \ReflectionClass($cls);
-        $params = array_key_exists("params", $api)?$api["params"] : NULL;
+        $params = array_key_exists("params", $api)?$api["params"] : [];
         $name = mb_strtolower($name);
         $this->apis[$name] = $reflection_class->newInstanceArgs($params);
         $this->apis[$name]->setConfig($api);

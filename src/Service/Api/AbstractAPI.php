@@ -15,6 +15,11 @@ abstract class AbstractAPI implements IAPI
      * @var array Module's config api's part
      */
     protected $config;
+
+    public function typeAuthorize()
+    {
+        return ['company', 'candidate', null, 'cabinet'];
+    }
     /**
      * @inheritDoc
      */
@@ -67,6 +72,7 @@ abstract class AbstractAPI implements IAPI
     public function getUserForDatabase()
     {
         $user = $this->getUser();
+        if (null === $user) return [];
         $keys = $this->getDatabaseColumns();
         $sanitazed_user = array();
         foreach($keys as $key)
@@ -87,4 +93,13 @@ abstract class AbstractAPI implements IAPI
         throw new \Exception("This method need to be overridden");
     }
 
-} 
+    public function isAts()
+    {
+        return false;
+    }
+
+    public function canRegister()
+    {
+        return true;
+    }
+}

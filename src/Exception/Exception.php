@@ -9,7 +9,8 @@
 namespace Core\Exception;
 
 
-class Exception extends \Exception{
+class Exception extends \Exception
+{
 
     public $object;
     public function __construct($message = "", $code = 0, Exception $previous = null, $object = NULL) {

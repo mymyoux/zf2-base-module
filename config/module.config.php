@@ -10,7 +10,7 @@
 return array(
     'router' => array(
         'routes' => array(
-           
+
             'application' => array(
                 'type'    => 'Segment',
                 'options' => array(
@@ -82,8 +82,9 @@ return array(
             'AppConfig'=>'Core\Service\Configuration',
             'API'=>'Core\Service\API',
             'QueueService' => 'Core\Service\Queue',
+            'DetectLanguage' => 'Core\Service\DetectLanguage',
+            'Log'=>'Core\Service\Log',
             'CSV' => 'Core\Service\CSV',
-
         ),
         'services' => array(
 

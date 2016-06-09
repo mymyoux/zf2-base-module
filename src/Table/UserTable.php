@@ -60,7 +60,7 @@ class UserTable extends CoreTable{
         {
             return NULL;
         }
-        $result = $this->table(UserTable::TABLE)->select(array("email"=>$email));  
+        $result = $this->table(UserTable::TABLE)->select(array("email"=>$email));
         $result = $result->current();
         if($result !== False)
         {
@@ -78,7 +78,7 @@ class UserTable extends CoreTable{
         {
             if($apiManager->canLogin($api))
             {
-                 $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>$email));  
+                 $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>$email));
                  $result = $result->current();
                  if($result !== False)
                  {
@@ -100,7 +100,6 @@ class UserTable extends CoreTable{
         $result = $result->current();
         if($result === False)
         {
-
              $apis = $this->getApis($user["id_user"]);
             if(!empty($apis))
             {
@@ -336,7 +335,9 @@ class UserTable extends CoreTable{
             "linkedin"=>array("id_linkedin","headline","first_name","last_name","access_token","email","link"),
             "manual"=>array("email","password"),
             "facebook"=>array("id_facebook","last_name","first_name","link","locale","name","timezone","verified","gender","access_token","email"),
-            "user"=>array("first_name","last_name","type","email","picture")
+            "user"=>array("first_name","last_name","type","email","picture"),
+            "smartrecruiters"=>array("first_name","last_name","role","email","active", 'id_smartrecruiters', 'access_token', 'refresh_token'),
+            "greenhouse"=>array("first_name","last_name","email", 'id_greenhouse', 'access_token', 'harvest_key'),
         );
         //$keys = array("first_name","last_name","email","picture", "access_token");
         $keys = $meta_keys[$key];

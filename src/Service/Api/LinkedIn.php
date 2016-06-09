@@ -21,6 +21,11 @@ class LinkedIn extends HLinkedIn implements IAPI
      */
     protected $config;
 
+    public function typeAuthorize()
+    {
+        return ['company', 'candidate', null, 'cabinet'];
+    }
+
     /**
      * @inheritDoc
      */
@@ -48,6 +53,16 @@ class LinkedIn extends HLinkedIn implements IAPI
     public function setConfig($config)
     {
         $this->config = $config;
+    }
+
+    public function isAts()
+    {
+        return false;
+    }
+
+    public function canRegister()
+    {
+        return true;
     }
 
     /**
