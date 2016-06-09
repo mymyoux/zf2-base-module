@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jeremy.dubois
- * Date: 08/10/2014
- * Time: 21:43
- */
 
 namespace Core\Service\Api\Ats;
 
@@ -18,9 +12,6 @@ use Application\Model\Ats\Greenhouse\JobPositionModel as GreenhouseJobPositionMo
 
 class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 {
-    /**
-     * @var \Twitter\Twitter
-     */
     private $api;
     private $consumer_key;
     private $consumer_secret;
@@ -95,9 +86,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     {
         return (null !== $this->access_token);
     }
-    /**
-     * @inheritDoc
-     */
+
     public function getAccessToken()
     {
         return $this->access_token;
@@ -163,11 +152,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
                     $headers = $_params['json']['headers'];
                     unset($_params['json']['headers']);
                 }
-                // var_dump($_params);
-                // if (isset($_params['json']) && isset($_params['json']['from_stage_id']))
-                // {
-                //     $_params['query'] = ['from_stage_id' => $_params['json']['from_stage_id']];
-                // }
 
                 $params = [
                     'headers'         => $headers + ['Authorization' => $auth]
@@ -281,10 +265,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
                     $user['id_greenhouse'] = 'yb' . generate_token(30);
 
-                    // dd($user);
-
-                    // $user = $this->formatUser( $user );
-
                     $this->user = $user;
 
                     return $user;
@@ -343,12 +323,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         return $this->json('candidates/' . $id_api_candidate . '/activity_feed/notes', true, $params);
     }
-    /**
-     * Get candidate current state
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
+
     public function getCandidateState( $id_api_candidate )
     {
         $ats        = $this->sm->get('AtsTable')->getAts( 'greenhouse' );
@@ -369,12 +344,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $state;
     }
 
-    /**
-     * Get candidate state history
-     *
-     * @param  AtsCandidateModel $candidate ID of the job
-     * @return ResultListModel   History list
-     */
     public function getCandidateHistory( $candidate )
     {
         // dd($candidate->application_ids);
@@ -382,7 +351,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         {
             $histories  = $this->get('applications/' . $application_id, true);
             break;
-            // dd($histories);
         }
 
         $result = new ResultListModel();
@@ -393,12 +361,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
-    /**
-     * Ask in touch candidate by company
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
     public function askInTouch( $id_api_candidate )
     {
         $content = 'A contact request has been sent.';
@@ -406,12 +368,6 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
-    /**
-     * API Public : search companies by name
-     *
-     * @param  [type] $query [description]
-     * @return [type]        [description]
-     */
     public function searchCompany( $query )
     {
         if (empty($query)) return null;
@@ -428,68 +384,24 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
     }
 
-    /**
-     * Get exclude functions for jobs (defined in config)
-     *
-     * @return array String of function ID
-     */
     public function getExcludeFunctions()
     {
         return (isset($this->config['exclude_function']) ? $this->config['exclude_function'] : []);
     }
 
-    /**
-     * Check if a job can be inserted into our DB
-     *
-     * @param    $job class JobModel extends JobCoreModel implements AbstractJobModel
-     * @return boolean      True if the job is valid
-     */
     public function isJobValid( $job )
     {
         $is_valid       = true;
         $text           = $job->getDescription();
-        // $tag_place      = $this->sm->get('PlaceTable')->getPlaceFromShortCountryName($job->location['country']);
-        // $languageCode   = $this->sm->get('DetectLanguage')->simpleDetect($text);
-
-        // if (true === in_array($job->function['id'], $this->getExcludeFunctions()))
-        // {
-        //     $this->sm->get('Log')->warn('Exclude ' . $job->getName() . ' with function ' . $job->function['label']);
-        //     $is_valid = false;
-        // }
-
-        // if ('none' === $text || empty($text))
-        // {
-        //     $this->sm->get('Log')->warn('Qualification empty');
-        //     $is_valid = false;
-        // }
-
-        // if ($job->language['code'] !== 'en' || $languageCode !== 'en')
-        // {
-        //     $this->sm->get('Log')->warn('Exclude language is : ' . $job->language['code'] . ' ' . $languageCode);
-        //     $is_valid = false;
-        // }
 
         return $is_valid;
     }
 
-    /**
-     * Get job details by ID
-     *
-     * @param  string $id ID of the job
-     * @return AtsJobModel     Model of the job
-     */
     public function getJob( $id )
     {
         return $this->get('jobs/' . $id, true);
     }
 
-    /**
-     * Get jobs
-     *
-     * @param  integer $offset Offset
-     * @param  integer $limit  Limit
-     * @return array           Array[totalFound, content[JobModels...]]
-     */
     public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = [
@@ -566,45 +478,20 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
-    /**
-     * Get information of the company (of the current user)
-     *
-     * @return array Data of the company
-     */
     public function getCompanyInformation()
     {
-        // try
-        // {
-        //     return $this->get('configuration/company', []);
-        // }
-        // catch (GreenHouseException $e)
-        // {
-            return null;
-        // }
+        return null;
     }
 
-    /**
-     * Get the URL of the candidate (in the ATS interface)
-     *
-     * @param  string $id ID of the candidate
-     * @return string     URL
-     */
     public function getUrlCandidate( $id )
     {
         return 'https://app.greenhouse.io/people/' . $id;
     }
 
-    /**
-     * Update the state of a candidate
-     *
-     * @param  string $id_api ID of the candidate
-     * @param  string $state  State
-     * @return Array          API result
-     */
     public function updateCandidateState($id_api, $state)
     {
         $action         = 'advance';
-        $params         = ['headers' => ['On-Behalf-Of' => $this->user->id]]; // @todo over with $this->user->id
+        $params         = ['headers' => ['On-Behalf-Of' => $this->user->id]];
 
         $candidate      = $this->get('candidates/' . $id_api, true);
         $id_application = current($candidate->application_ids);
@@ -631,42 +518,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
-        if (true === file_exists(ROOT_PATH . '/public/' . $picture))
-            $filepath_content   = ROOT_PATH . '/public/' . $picture;
-        else
-            $filepath_url       = 'https://app.yborder.com' . $picture;
-
-        if (php_sapi_name() === 'cli')
-            echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
-
-        $params = [
-            'type'      => 'photo_url',
-            'headers'   => ['On-Behalf-Of' => $this->user->id],
-            'filename'  => $id_api . '_picture_yborder.jpg'
-        ];
-
-        if (isset($filepath_content))
-        {
-            $params['content'] = new PostFile('file', file_get_contents($filepath_content));
-        }
-        else
-        {
-            $params['url'] = $filepath_url;
-        }
-
-        // $params = ['photo_url' => $filepath_url];
-
-        try
-        {
-            $this->json('candidates/' . $id_api . '/attachments', true, $params);
-        }
-        catch (\Exception $e)
-        {
-            // dd($e->getMessage());
-            // if error : do nothing. Reason : Same image so do not need to update.
-            return false;
-        }
-
+        // not possible at this time
+        // can't upload in attachments (no image upload)
         return true;
     }
 

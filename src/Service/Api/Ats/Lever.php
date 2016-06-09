@@ -40,9 +40,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $this->client           = new \GuzzleHttp\Client();
 
         $this->models           = [
-            'postings(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Lever\JobModel',
+            'postings(\/[^\/]+){0,1}$'      => '\Application\Model\Ats\Lever\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
-            // 'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\HistoryModel',
         ];
 
         $this->user         = new \stdClass();
@@ -344,12 +343,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
-    /**
-     * Ask in touch candidate by company
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
     public function askInTouch( $id_api_candidate )
     {
         $content = 'A contact request has been sent.';
@@ -357,44 +350,16 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
-    /**
-     * API Public : search companies by name
-     *
-     * @param  [type] $query [description]
-     * @return [type]        [description]
-     */
     public function searchCompany( $query )
     {
-        // if (empty($query)) return null;
-
-        // try
-        // {
-        //     $data = $this->client->get('https://api.greenhouse.io/v1/boards/' . $query . '/embed/jobs');
-
-        //     return $data->json();
-        // }
-        // catch(\Exception $e)
-        // {
-        //     return null;
-        // }
+        return null;
     }
 
-    /**
-     * Get exclude functions for jobs (defined in config)
-     *
-     * @return array String of function ID
-     */
     public function getExcludeFunctions()
     {
         return (isset($this->config['exclude_function']) ? $this->config['exclude_function'] : []);
     }
 
-    /**
-     * Check if a job can be inserted into our DB
-     *
-     * @param    $job class JobModel extends JobCoreModel implements AbstractJobModel
-     * @return boolean      True if the job is valid
-     */
     public function isJobValid( $job )
     {
         $is_valid       = true;
@@ -423,24 +388,11 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $is_valid;
     }
 
-    /**
-     * Get job details by ID
-     *
-     * @param  string $id ID of the job
-     * @return AtsJobModel     Model of the job
-     */
     public function getJob( $id )
     {
         return $this->get('postings/' . $id);
     }
 
-    /**
-     * Get jobs
-     *
-     * @param  integer $offset Offset
-     * @param  integer $limit  Limit
-     * @return array           Array[totalFound, content[JobModels...]]
-     */
     public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = ['limit' => (int) $limit, 'commitment' => 'Full-time'];
@@ -515,41 +467,16 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $result;
     }
 
-    /**
-     * Get information of the company (of the current user)
-     *
-     * @return array Data of the company
-     */
     public function getCompanyInformation()
     {
-        // try
-        // {
-        //     return $this->get('configuration/company', []);
-        // }
-        // catch (GreenHouseException $e)
-        // {
-            // return null;
-        // }
+        return null;
     }
 
-    /**
-     * Get the URL of the candidate (in the ATS interface)
-     *
-     * @param  string $id ID of the candidate
-     * @return string     URL
-     */
     public function getUrlCandidate( $id )
     {
         return 'https://hire.sandbox.lever.co/candidates/' . $id;
     }
 
-    /**
-     * Update the state of a candidate
-     *
-     * @param  string $id_api ID of the candidate
-     * @param  string $state  State
-     * @return Array          API result
-     */
     public function updateCandidateState($id_api, $state)
     {
         $query  = [
@@ -640,7 +567,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
-            // dd($e->getMessage());
             // if error : do nothing. Reason : Same image so do not need to update.
             return false;
         }
@@ -780,9 +706,9 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $data;
     }
 
-    static public function formatCandidate( $id_user )
+    static public function formatCandidate( $data )
     {
-        return 'candidate+' . $id_user . '@mobiskill.fr';
+        return 'candidate+' . $data . '@mobiskill.fr';
     }
 }
 

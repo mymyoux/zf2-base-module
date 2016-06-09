@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jeremy.dubois
- * Date: 08/10/2014
- * Time: 21:43
- */
 
 namespace Core\Service\Api\Ats;
 
@@ -17,9 +11,6 @@ use GuzzleHttp\Post\PostFile;
 
 class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterface
 {
-    /**
-     * @var \Twitter\Twitter
-     */
     private $api;
     private $consumer_key;
     private $consumer_secret;
@@ -64,7 +55,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function getLoginUrl($data)
     {
-        // mob.local/company/user/login/smartrecruiters
         $scopes         = $this->config['scopes'];
         $redirect_uri   = $this->config['redirect_uri'];
         $url            = 'https://www.smartrecruiters.com/identity/oauth/allow?client_id=' . $this->consumer_key . '&redirect_uri=' . rawurlencode($redirect_uri) . '&scope=' . rawurlencode(implode(' ', $scopes));
@@ -77,9 +67,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     {
         return (null !== $this->access_token);
     }
-    /**
-     * @inheritDoc
-     */
+
     public function getAccessToken()
     {
         return $this->access_token;
@@ -162,7 +150,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 throw $e;
             }
 
-            // dd($e->getMessage());
             if (401 === $e->getCode() && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
             {
                 $this->has_refresh = true;
@@ -185,8 +172,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                         $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
 
                         $this->setAccessToken( $json['access_token'], $json['refresh_token'], false );
-
-                        // $this->has_refresh = false;
 
                         return $this->request( $method, $ressource, $_params );
                     }
@@ -334,13 +319,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return array("id","name", "email", "first_name", "last_name", "access_token", 'refresh_token', "role", "active");
     }
 
-    /**
-     * Send message into SM Home
-     *
-     * @param  string  $content             content of the message.
-     * @param  boolean $share_with_everyone true if everyone can see the message.
-     * @return array
-     */
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
         $params = [
@@ -352,12 +330,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         return $this->json('messages/shares', $params);
     }
-    /**
-     * Get candidate current state
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
+
     public function getCandidateState( $id_api_candidate )
     {
         $histories  = $this->get('candidates/' . $id_api_candidate . '/status/history', ['limit' => 1]);
@@ -367,12 +340,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $state;
     }
 
-    /**
-     * Get candidate state history
-     *
-     * @param  AtsCandidateModel $candidate ID of the job
-     * @return ResultListModel   History list
-     */
     public function getCandidateHistory( $candidate )
     {
         $histories  = $this->get('candidates/' . $candidate->id . '/status/history', ['limit' => 100]);
@@ -385,12 +352,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $result;
     }
 
-    /**
-     * Ask in touch candidate by company
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
     public function askInTouch( $id_api_candidate )
     {
         $content = 'A contact request has been sent to ' . $this->tagCandidate( $id_api_candidate );
@@ -398,12 +359,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
-    /**
-     * API Public : search companies by name
-     *
-     * @param  [type] $query [description]
-     * @return [type]        [description]
-     */
     public function searchCompany( $query )
     {
         $data = $this->get('companyNames', ['q' => $query]);
@@ -411,22 +366,11 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $data['results'];
     }
 
-    /**
-     * Get exclude functions for jobs (defined in config)
-     *
-     * @return array String of function ID
-     */
     public function getExcludeFunctions()
     {
         return (isset($this->config['exclude_function']) ? $this->config['exclude_function'] : []);
     }
 
-    /**
-     * Check if a job can be inserted into our DB
-     *
-     * @param    $job class JobModel extends JobCoreModel implements AbstractJobModel
-     * @return boolean      True if the job is valid
-     */
     public function isJobValid( $job )
     {
         $is_valid       = true;
@@ -455,24 +399,11 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $is_valid;
     }
 
-    /**
-     * Get job details by ID
-     *
-     * @param  string $id ID of the job
-     * @return AtsJobModel     Model of the job
-     */
     public function getJob( $id )
     {
         return $this->get('jobs/' . $id);
     }
 
-    /**
-     * Get jobs
-     *
-     * @param  integer $offset Offset
-     * @param  integer $limit  Limit
-     * @return array           Array[totalFound, content[JobModels...]]
-     */
     public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = [
@@ -561,11 +492,6 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $result;
     }
 
-    /**
-     * Get information of the company (of the current user)
-     *
-     * @return array Data of the company
-     */
     public function getCompanyInformation()
     {
         try
@@ -578,24 +504,11 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
     }
 
-    /**
-     * Get the URL of the candidate (in the ATS interface)
-     *
-     * @param  string $id ID of the candidate
-     * @return string     URL
-     */
     public function getUrlCandidate( $id )
     {
         return 'https://www.smartrecruiters.com/app/people/' . $id . '/messages';
     }
 
-    /**
-     * Update the state of a candidate
-     *
-     * @param  string $id_api ID of the candidate
-     * @param  string $state  State
-     * @return Array          API result
-     */
     public function updateCandidateState($id_api, $state)
     {
         return $this->put('candidates/' . $id_api . '/status', ['status' => $state]);
