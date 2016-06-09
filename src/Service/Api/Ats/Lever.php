@@ -782,7 +782,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     static public function formatCandidate( $id_user )
     {
-        return 'candidate+lever.' . $id_user . '@mobiskill.fr';
+        return 'candidate+' . $id_user . '@mobiskill.fr';
     }
 }
 
