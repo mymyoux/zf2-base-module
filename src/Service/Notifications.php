@@ -52,7 +52,10 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         if(isset($user))
         {
             $message.= "*".$user->first_name." ".$user->last_name."*";
-            $message.= " of ".$user->getCompany()->name."\n";
+            if($user->isCompanyEmployee())
+            {
+                $message.= " of ".$user->getCompany()->name."\n";
+            }
         }else
         {
             $message.= "id_user: ".$token["id_user"];
