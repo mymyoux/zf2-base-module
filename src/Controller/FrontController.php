@@ -80,7 +80,6 @@ class FrontController extends CoreController
         $this->session = $this->sm->get("session");
 
 
-
         $this->session->setServiceLocator($this->sm);
         parent::init($event);
 
@@ -127,9 +126,9 @@ class FrontController extends CoreController
                     /*dd($roles);
                     foreach($roles as $role)
                     {
-                        
+
                     }*/
-                    
+
                 }
             }
         }
@@ -210,4 +209,4 @@ class FrontController extends CoreController
         }
     }
 
-} 
+}

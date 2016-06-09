@@ -10,6 +10,7 @@ namespace Core\Service\Api;
 
 
 interface IAPI {
+    public function typeAuthorize();
     /**
      * Specifies if the api be used to log in
      * @return bool
@@ -46,4 +47,8 @@ interface IAPI {
      * @return array
      */
     public function getUserForDatabase();
-} 
+
+    public function isAts();
+
+    public function canRegister();
+}

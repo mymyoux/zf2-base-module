@@ -38,7 +38,11 @@ class APIIdentity extends Identity
         {
             return NULL;
         }
-        return isset($user["email"])?$user["email"]:NULL;
+        if (is_array($user))
+            return isset($user["email"])?$user["email"]:NULL;
+        else
+            return isset($user->email)?$user->email:NULL;
+
     }
     public function getUser($type = NULL)
     {
@@ -173,4 +177,4 @@ class APIIdentity extends Identity
         return array("id", "email","first_name","last_name","access_token");
 
     }
-} 
+}
