@@ -18,6 +18,10 @@ abstract class AbstractAts extends AbstractAPI
 		return [];
 	}
 
+    /**
+     * Set the ats user from table (user_network_ATSNAME)
+     * @param array $ats_user user
+     */
     public function setUser( $ats_user )
     {
         if (!$this->user)
@@ -50,11 +54,29 @@ abstract class AbstractAts extends AbstractAPI
         $this->ats      = $this->sm->get('AtsTable')->getAts( $name );
     }
 
+    /**
+     * Log ressource usage (ie: /candidates, /jobs ...)
+     *
+     * @param  string $method    HTTP method (ie: POST, GET, PUT ...)
+     * @param  string $ressource Ressource name (ie: /candidates, /jobs ...)
+     * @return void
+     */
     protected function logRessource($method, $ressource)
     {
         $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
     }
 
+    /**
+     * Log API call for ATS
+     *
+     * @param  string   $method       HTTP method (ie: POST, GET, PUT ...)
+     * @param  string   $ressource    Ressource name (ie: /candidates, /jobs ...)
+     * @param  array    $params       Params used for the call
+     * @param  boolean  $success      True if the call succeded
+     * @param  array    $result       Raw result
+     * @param  integer  $id_error     ID of the error
+     * @return void
+     */
     protected function logApiCall($method, $ressource, $params, $success = false, $result = null, $id_error = null)
     {
         $this->sm->get('AtsApiCallTable')->insertCall([
@@ -69,6 +91,13 @@ abstract class AbstractAts extends AbstractAPI
         ]);
     }
 
+    /**
+     * Get ressource data
+     *
+     * @param  string $method    HTTP method (ie: POST, GET, PUT ...)
+     * @param  string $ressource Ressource name (ie: /candidates, /jobs ...)
+     * @return array  Ressource data
+     */
     public function getRessource($method, $ressource)
     {
         return $this->sm->get('AtsApiRessourceTable')->get( $this->user->id_user, $this->ats['id_ats'], $method, $ressource );
@@ -103,14 +132,15 @@ abstract class AbstractAts extends AbstractAPI
         return $this->sm->get('AtsMessageSendTable')->getHistoryContent( $candidate['id_ats_candidate'] );
     }
 
+    /**
+     * Get candidate information
+     *
+     * @param  integer $id_api_candidate    ATS ID of the candidate
+     * @return array                        Data of the candidate
+     */
     protected function getCandidateAtsByAPIID( $id_api_candidate )
     {
         return $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
-    }
-
-    protected function getCandidateByAPIID( $id_api_candidate )
-    {
-        return $this->sm->get('AtsCandidateTable')->getCoreCandidateByAPIID( $id_api_candidate, $this->ats['id_ats'] );
     }
 
     /**
