@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jeremy.dubois
- * Date: 08/10/2014
- * Time: 21:43
- */
 
 namespace Core\Service\Api\Ats;
 
@@ -19,9 +13,6 @@ use Application\Model\Ats\Lever\HistoryModel as LeverHistoryModel;
 
 class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 {
-    /**
-     * @var \Twitter\Twitter
-     */
     private $api;
     private $consumer_key;
     private $consumer_secret;
@@ -73,9 +64,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     {
         return (null !== $this->access_token);
     }
-    /**
-     * @inheritDoc
-     */
+
     public function getAccessToken()
     {
         return $this->access_token;
@@ -282,12 +271,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
-    /**
-     * Get candidate current state
-     *
-     * @param  string $id_api_candidate [description]
-     * @return array                    [description]
-     */
+
     public function getCandidateState( $id_api_candidate )
     {
         $candidate          = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
@@ -364,26 +348,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     {
         $is_valid       = true;
         $text           = $job->getDescription();
-        // $tag_place      = $this->sm->get('PlaceTable')->getPlaceFromShortCountryName($job->location['country']);
-        // $languageCode   = $this->sm->get('DetectLanguage')->simpleDetect($text);
-
-        // if (true === in_array($job->function['id'], $this->getExcludeFunctions()))
-        // {
-        //     $this->sm->get('Log')->warn('Exclude ' . $job->getName() . ' with function ' . $job->function['label']);
-        //     $is_valid = false;
-        // }
-
-        // if ('none' === $text || empty($text))
-        // {
-        //     $this->sm->get('Log')->warn('Qualification empty');
-        //     $is_valid = false;
-        // }
-
-        // if ($job->language['code'] !== 'en' || $languageCode !== 'en')
-        // {
-        //     $this->sm->get('Log')->warn('Exclude language is : ' . $job->language['code'] . ' ' . $languageCode);
-        //     $is_valid = false;
-        // }
 
         return $is_valid;
     }
