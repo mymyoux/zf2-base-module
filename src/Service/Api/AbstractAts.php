@@ -63,6 +63,10 @@ abstract class AbstractAts extends AbstractAPI
      */
     protected function logRessource($method, $ressource)
     {
+        if(!isset($this->user))
+        {
+            return;
+        }
         $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
     }
 
@@ -79,6 +83,10 @@ abstract class AbstractAts extends AbstractAPI
      */
     protected function logApiCall($method, $ressource, $params, $success = false, $result = null, $id_error = null)
     {
+        if(!isset($this->user))
+        {
+            return;
+        }
         $this->sm->get('AtsApiCallTable')->insertCall([
             'id_user'   => (int) $this->user->id_user,
             'id_ats'    => (int) $this->ats['id_ats'],
