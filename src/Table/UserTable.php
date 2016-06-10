@@ -16,7 +16,23 @@ class UserTable extends CoreTable{
     const TABLE_API = "user_api";
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
+    const TABLE_SOURCE = "user_source";
 
+    public function setSource($user, $source)
+    {
+        $this->table(UserTable::TABLE_SOURCE)->delete(array("id_user"=>$user->id));
+        $this->table(UserTable::TABLE_SOURCE)->insert(array("id_user"=>$user->id,"source"=>$source));
+    }
+    public function getSource($user)
+    {
+        $result =  $this->table(UserTable::TABLE_SOURCE)->select(array("id_user"=>$user->id));
+        $result = $result->current();
+        if($result === False)
+        {
+            return NULL;
+        }
+        return $result["source"];
+    }
     public function createAPI($user, $apirequest)
     { //test
 

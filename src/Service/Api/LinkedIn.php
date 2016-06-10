@@ -72,6 +72,12 @@ class LinkedIn extends HLinkedIn implements IAPI
     {
         try {
             $data = $this->request('/v1/people/~:(id,firstName,lastName,headline,email-address,public-profile-url)');
+
+            // $data = $this->request('/v1/people/~:(id,firstName,lastName,headline,email-address,public-profile-url,positions,picture-urls::(original),summary,specialties)');
+            // echo "<pre>";
+            // print_r($data);
+            // echo "</pre>";
+            // exit();
             if(array_key_exists("emailAddress", $data))
             {
                 $data["email"] = $data["emailAddress"];

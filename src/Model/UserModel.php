@@ -35,6 +35,7 @@ class UserModel extends CoreModel
     public $last_connection;
     public $num_connection;
     public $email;
+    public $source;
     public function __construct()
     {
         $this->roles = array();
