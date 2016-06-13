@@ -415,7 +415,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         if (null !== $ressource)
         {
-            $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            if (null === $result_list)
+                $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updatedAfter'))
+                    $params['updatedAfter'] = $result_list->getParam('updatedAfter');
+            }
         }
 
         $result = new ResultListModel();
@@ -423,6 +429,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         $result->setContent($data['content']);
         $result->setTotalFound($data['totalFound']);
+        $result->setParams($params);
 
         return $result;
     }
@@ -480,7 +487,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         if (null !== $ressource)
         {
-            $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            if (null === $result_list)
+                $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updatedAfter'))
+                    $params['updatedAfter'] = $result_list->getParam('updatedAfter');
+            }
         }
 
         $result = new ResultListModel();
@@ -488,6 +501,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
         $result->setContent($data['content']);
         $result->setTotalFound($data['totalFound']);
+        $result->setParams($params);
 
         return $result;
     }
