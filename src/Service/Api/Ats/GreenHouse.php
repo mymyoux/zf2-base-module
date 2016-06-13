@@ -409,7 +409,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $ressource)
         {
-            $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            if (null === $result_list)
+                $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updated_after'))
+                    $params['updated_after'] = $result_list->getParam('updated_after');
+            }
         }
 
         $result = new ResultListModel();
@@ -417,6 +423,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
+        $result->setParams( $params );
 
         return $result;
     }
