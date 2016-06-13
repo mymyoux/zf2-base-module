@@ -66,8 +66,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $ats_user && false === empty($ats_user['id_greenhouse']))
         {
-            $this->user = new \stdClass();
-            $this->user->id = (int) $ats_user['id_greenhouse'];
+            $this->setUser($ats_user);
         }
     }
 
