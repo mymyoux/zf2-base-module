@@ -24,12 +24,8 @@ abstract class AbstractAts extends AbstractAPI
      */
     public function setUser( $ats_user )
     {
-        if (!$this->user)
-        {
-            $this->user         = new \stdClass();
-            $this->user->id     = null;
-        }
-        $this->user = (object) $ats_user;
+        if ($ats_user)
+            $this->user = (object) $ats_user;
     }
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
