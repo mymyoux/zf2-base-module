@@ -11,7 +11,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 abstract class AbstractAts extends AbstractAPI
 {
-    protected $user = null;
+    protected $ats_user = null;
 
 	public function typeAuthorize()
 	{
@@ -25,7 +25,7 @@ abstract class AbstractAts extends AbstractAPI
     public function setUser( $ats_user )
     {
         if ($ats_user)
-            $this->user = (object) $ats_user;
+            $this->ats_user = (object) $ats_user;
     }
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
@@ -59,11 +59,11 @@ abstract class AbstractAts extends AbstractAPI
      */
     protected function logRessource($method, $ressource)
     {
-        if(!isset($this->user))
+        if(!isset($this->ats_user))
         {
             return;
         }
-        $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
+        $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->ats_user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
     }
 
     /**
@@ -79,12 +79,12 @@ abstract class AbstractAts extends AbstractAPI
      */
     protected function logApiCall($method, $ressource, $params, $success = false, $result = null, $id_error = null)
     {
-        if(!isset($this->user))
+        if(!isset($this->ats_user))
         {
             return;
         }
         $this->sm->get('AtsApiCallTable')->insertCall([
-            'id_user'   => (int) $this->user->id_user,
+            'id_user'   => (int) $this->ats_user->id_user,
             'id_ats'    => (int) $this->ats['id_ats'],
             'ressource' => (string) $ressource,
             'method'    => (string) $method,
@@ -104,7 +104,7 @@ abstract class AbstractAts extends AbstractAPI
      */
     public function getRessource($method, $ressource)
     {
-        return $this->sm->get('AtsApiRessourceTable')->get( $this->user->id_user, $this->ats['id_ats'], $method, $ressource );
+        return $this->sm->get('AtsApiRessourceTable')->get( $this->ats_user->id_user, $this->ats['id_ats'], $method, $ressource );
     }
 
     /**

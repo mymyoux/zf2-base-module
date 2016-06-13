@@ -34,9 +34,6 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             'postings(\/[^\/]+){0,1}$'      => '\Application\Model\Ats\Lever\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
         ];
-
-        $this->user         = new \stdClass();
-        $this->user->id     = null;
     }
 
     public function getEmailFieldReplyTo()
@@ -253,7 +250,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $history = $this->getLogMessageHistory( $id_api_candidate );
 
         $query = [
-            'perform_as'    => $this->user->id_lever,
+            'perform_as'    => $this->ats_user->id_lever,
             'dedupe'        => "true"
         ];
 
@@ -444,7 +441,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     public function updateCandidateState($id_api, $state)
     {
         $query  = [
-            'perform_as'    => $this->user->id_lever
+            'perform_as'    => $this->ats_user->id_lever
         ];
 
         if ($state === 'REJECTED')
@@ -511,7 +508,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
 
         $query = [
-            'perform_as'    => $this->user->id_lever,
+            'perform_as'    => $this->ats_user->id_lever,
             'dedupe'        => "true"
         ];
 
@@ -554,7 +551,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
             echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
 
         $query = [
-            'perform_as'    => $this->user->id_lever,
+            'perform_as'    => $this->ats_user->id_lever,
             'dedupe'        => "true"
         ];
 
@@ -579,7 +576,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $params             = $model->toAPI();
         // update if same email address
         $query = [
-            'perform_as'    => $this->user->id_lever,
+            'perform_as'    => $this->ats_user->id_lever,
             'dedupe'        => "true"
         ];
 
@@ -597,7 +594,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         $data       = $model->getQualification();
 
         $query = [
-            'perform_as'    => $this->user->id_lever,
+            'perform_as'    => $this->ats_user->id_lever,
             'dedupe'        => "true"
         ];
 
