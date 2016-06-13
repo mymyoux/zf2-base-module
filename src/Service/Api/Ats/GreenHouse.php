@@ -115,8 +115,10 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function request( $method, $ressource, $_params, $is_harvest = false )
     {
-        // 500 ms sleep
-        usleep(500000);
+        // https://developers.greenhouse.io/harvest.html#throttling
+        // API requests are limited to 50 calls per 10 seconds
+        // 200 ms sleep
+        usleep(200000);
 
         if (true === $is_harvest)
         {
