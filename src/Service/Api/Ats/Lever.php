@@ -368,6 +368,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result->setContent($data['data']);
         $result->setTotalFound(count($data['data']));
+        $result->setParams($params);
+
         if ($data['hasNext'])
             $result->setOffset($data['next']);
 
@@ -422,6 +424,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result->setContent($data['data']);
         $result->setTotalFound(count($data['data']));
+        $result->setParams($params);
+
         if ($data['hasNext'])
             $result->setOffset($data['next']);
 
