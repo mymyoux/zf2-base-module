@@ -21,6 +21,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     private $refresh_token;
 
     private $has_refresh = false;
+    private $user;
 
     public function __construct($consumer_key, $consumer_secret)
     {
@@ -313,8 +314,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
         $params = [
-            'headers'       => ['On-Behalf-Of' => $this->ats_user->id],
-            'user_id'       => $this->ats_user->id,
+            'headers'       => ['On-Behalf-Of' => $this->ats_user->id_greenhouse],
+            'user_id'       => $this->ats_user->id_greenhouse,
             'body'          => 'YBorder: '. $content,
             'visibility'    => ($share_with_everyone ? 'public' : 'private')
         ];
@@ -502,8 +503,10 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function updateCandidateState($id_api, $state)
     {
+        if ($state === 'LEAD') return null;
+
         $action         = 'advance';
-        $params         = ['headers' => ['On-Behalf-Of' => $this->ats_user->id]];
+        $params         = ['headers' => ['On-Behalf-Of' => $this->ats_user->id_greenhouse]];
 
         $candidate      = $this->get('candidates/' . $id_api, true);
         $id_application = current($candidate->application_ids);
@@ -551,7 +554,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $params = [
             'type'      => 'resume',
-            'headers'   => ['On-Behalf-Of' => $this->ats_user->id],
+            'headers'   => ['On-Behalf-Of' => $this->ats_user->id_greenhouse],
             'filename'  => $id_api . '_resume_yborder.pdf'
         ];
 
@@ -593,7 +596,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $data = $model->toAPI();
 
         $params = [
-            'headers'   => ['On-Behalf-Of' => $this->ats_user->id],
+            'headers'   => ['On-Behalf-Of' => $this->ats_user->id_greenhouse],
         ] + $data;
 
         return $this->patch('candidates/' . $model->id, true, $params);
