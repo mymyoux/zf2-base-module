@@ -115,8 +115,10 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function request( $method, $ressource, $_params, $is_harvest = false )
     {
-        // 500 ms sleep
-        usleep(500000);
+        // https://developers.greenhouse.io/harvest.html#throttling
+        // API requests are limited to 50 calls per 10 seconds
+        // 200 ms sleep
+        usleep(200000);
 
         if (true === $is_harvest)
         {
@@ -409,7 +411,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $ressource)
         {
-            $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            if (null === $result_list)
+                $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updated_after'))
+                    $params['updated_after'] = $result_list->getParam('updated_after');
+            }
         }
 
         $result = new ResultListModel();
@@ -417,6 +425,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
+        $result->setParams( $params );
 
         return $result;
     }
@@ -462,7 +471,13 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $ressource)
         {
-            $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            if (null === $result_list)
+                $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updated_after'))
+                    $params['updated_after'] = $result_list->getParam('updated_after');
+            }
         }
 
         $result = new ResultListModel();
