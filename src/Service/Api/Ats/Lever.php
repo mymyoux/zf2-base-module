@@ -360,7 +360,14 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $result_list)
         {
-            $params['offset'] = $result_list->getOffset();
+            if (null !== $result_list->getOffset())
+            {
+                $params['offset'] = $result_list->getOffset();
+            }
+            else
+            {
+                return new ResultListModel();
+            }
         }
 
         $result = new ResultListModel();
@@ -409,7 +416,14 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         if (null !== $result_list)
         {
-            $params['offset'] = $result_list->getOffset();
+            if (null !== $result_list->getOffset())
+            {
+                $params['offset'] = $result_list->getOffset();
+            }
+            else
+            {
+                return new ResultListModel();
+            }
         }
 
         $ressource = $this->getRessource('GET', 'candidates');
