@@ -8,6 +8,7 @@ class ResultListModel extends CoreModel
 	public $count 	= 0;
 	public $content = [];
 	public $offset 	= null;
+	public $params 	= [];
 
 	public function setTotalFound( $count )
 	{
@@ -41,5 +42,15 @@ class ResultListModel extends CoreModel
 	public function getOffset()
 	{
 		return $this->offset;
+	}
+
+	public function setParams( $params )
+	{
+		$this->params = $params;
+	}
+
+	public function getParam( $name )
+	{
+		return (isset($this->params[ $name ]) ? $this->params[ $name ] : null);
 	}
 }
