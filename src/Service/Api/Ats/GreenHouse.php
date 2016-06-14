@@ -485,6 +485,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
+        $result->setParams($params);
 
         return $result;
     }
