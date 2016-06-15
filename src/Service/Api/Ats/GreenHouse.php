@@ -178,7 +178,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new GreenHouseException(isset($error->message) ? $error->message : $e_message), $e_code);
+                $e = new GreenHouseException((isset($error->message) ? $error->message : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
                 $this->sm->get('Log')->error($e->getMessage());
