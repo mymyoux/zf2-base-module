@@ -321,7 +321,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'headers'       => ['On-Behalf-Of' => $this->ats_user->id_greenhouse],
             'user_id'       => $this->ats_user->id_greenhouse,
             'body'          => 'YBorder: '. $content,
-            'visibility'    => ($share_with_everyone ? 'public' : 'private')
+            'visibility'    => 'private' // always private ($share_with_everyone ? 'public' : 'private')
         ];
 
         return $this->json('candidates/' . $id_api_candidate . '/activity_feed/notes', true, $params);
