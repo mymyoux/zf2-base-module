@@ -135,7 +135,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
             {
-                if (method_exists($e, 'getResponse'))
+                if ($e instanceof \GuzzleHttp\Exception\ClientException)
                     $error = json_decode( $e->getResponse()->getBody()->__toString() );
                 else
                     $error = null;

@@ -169,12 +169,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
+            if ($e instanceof \GuzzleHttp\Exception\ClientException)
+                $error = json_decode( $e->getResponse()->getBody()->__toString() );
+            else
+                $error = null;
             // Client error response [url] https://api.smartrecruiters.com/configuration/company [status code] 401 [reason phrase] Unauthorized
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new GreenHouseException($e_message, $e_code);
+                $e = new GreenHouseException(isset($error->message) ? $error->message : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
                 $this->sm->get('Log')->error($e->getMessage());
