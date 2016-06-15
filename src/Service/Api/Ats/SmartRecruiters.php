@@ -135,8 +135,13 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
             {
+                if (method_exists($e, 'getResponse'))
+                    $error = json_decode( $e->getResponse()->getBody()->__toString() );
+                else
+                    $error = null;
+
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new SmartrecruitersException($e_message, $e_code);
+                $e = new SmartrecruitersException((isset($error->message) ? $error->message : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
                 $this->sm->get('Log')->error($e->getMessage());
@@ -324,9 +329,29 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         $params = [
             'content'   => 'YBorder: '. $content,
             'shareWith' => [
-                'everyone'  => $share_with_everyone
+                'everyone'  => false // always false in order to not spam users $share_with_everyone
             ]
         ];
+
+        $candidate = $this->getCandidateAtsByAPIID( $id_api_candidate );
+
+        if (null === $candidate) return null;
+
+        list($id_job, $state) = $this->getJobId( $candidate['id_ats_candidate'] );
+
+        if (null !== $id_job)
+        {
+            $data = $this->get('jobs/' . $id_job . '/hiring-team');
+
+            if ($data['totalFound'] > 0)
+            {
+                $ids = array_map(function($team){
+                    return $team['id'];
+                }, $data['content']);
+
+                $params['shareWith']['users'] = $ids;
+            }
+        }
 
         return $this->json('messages/shares', $params);
     }
