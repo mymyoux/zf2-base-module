@@ -134,7 +134,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         catch (\Exception $e)
         {
-            if (method_exists($e, 'getResponse'))
+            if ($e instanceof \GuzzleHttp\Exception\ClientException)
                 $error = json_decode( $e->getResponse()->getBody()->__toString() );
             else
                 $error = null;
