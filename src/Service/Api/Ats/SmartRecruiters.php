@@ -459,6 +459,12 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         return $result;
     }
 
+    public function getJobsPost( $offset, $limit, $result_list = null )
+    {
+        // no jobs post
+        return new ResultListModel();
+    }
+
     public function getJobPositions( $job )
     {
         $data   = $this->get('jobs/' . $job->id . '/positions');

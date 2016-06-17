@@ -354,6 +354,12 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         return $this->get('postings/' . $id);
     }
 
+    public function getJobsPost( $offset, $limit, $result_list = null )
+    {
+        // no jobs post
+        return new ResultListModel();
+    }
+
     public function getJobs( $offset, $limit, $result_list = null )
     {
         $params = ['limit' => (int) $limit, 'commitment' => 'Full-time'];
