@@ -194,6 +194,15 @@ abstract class AbstractAts extends AbstractAPI
      */
     abstract public function getJobs( $offset, $limit, $result_list = null );
 
+    /**
+     * Get jobs post
+     *
+     * @param  integer $offset Offset
+     * @param  integer $limit  Limit
+     * @return array           Array[totalFound, content[JobModels...]]
+     */
+    abstract public function getJobsPost( $offset, $limit, $result_list = null );
+
 	/**
      * Check if a job can be inserted into our DB
      *

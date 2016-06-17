@@ -31,8 +31,9 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $this->models           = [
             'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Greenhouse\JobModel',
+            'job_posts$'     => '\Application\Model\Ats\Greenhouse\JobModel',
             'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Greenhouse\CandidateModel',
-            'applications(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Greenhouse\HistoryModel',
+            'applications(\/[^\/]+){0,1}$'  => '\Application\Model\Ats\Greenhouse\HistoryModel',
         ];
     }
 
@@ -402,7 +403,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJob( $id )
     {
-        return $this->get('jobs/' . $id, true);
+        $job        = $this->get('jobs/' . $id, true);
+        $job_post   = $this->get('jobs/' . $id . '/job_post', true);
+
+        if (isset($job_post['content']))
+            $job->content = $job_post['content'];
+
+        if (isset($job_post['location']))
+            $job->location = $job_post['location']['name'];
+
+        return $job;
     }
 
     public function getJobs( $offset, $limit, $result_list = null )
@@ -427,6 +437,36 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
         $result = new ResultListModel();
         $data   = $this->get('jobs', true, $params);
+
+        $result->setContent($data);
+        $result->setTotalFound(count($data));
+        $result->setParams( $params );
+
+        return $result;
+    }
+
+    public function getJobsPost( $offset, $limit, $result_list = null )
+    {
+        $params = [
+            'per_page' => (int) $limit,
+            'page'     => (int) $offset / (int) $limit + 1
+        ];
+
+        $ressource = $this->getRessource('GET', 'job_posts');
+
+        if (null !== $ressource)
+        {
+            if (null === $result_list)
+                $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            else
+            {
+                if (null !== $result_list->getParam('updated_after'))
+                    $params['updated_after'] = $result_list->getParam('updated_after');
+            }
+        }
+
+        $result = new ResultListModel();
+        $data   = $this->get('job_posts', true, $params);
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
