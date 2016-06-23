@@ -404,13 +404,21 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function getJob( $id )
     {
         $job        = $this->get('jobs/' . $id, true);
-        $job_post   = $this->get('jobs/' . $id . '/job_post', true);
 
-        if (isset($job_post['content']))
-            $job->content = $job_post['content'];
+        try
+        {
+            $job_post   = $this->get('jobs/' . $id . '/job_post', true);
 
-        if (isset($job_post['location']))
-            $job->location = $job_post['location']['name'];
+            if (isset($job_post['content']))
+                $job->content = $job_post['content'];
+
+            if (isset($job_post['location']))
+                $job->location = $job_post['location']['name'];
+        }
+        catch (GreenHouseException $e)
+        {
+            // do nothing, just no job post
+        }
 
         return $job;
     }
