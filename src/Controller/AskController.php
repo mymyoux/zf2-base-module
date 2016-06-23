@@ -29,7 +29,7 @@ class AskController extends FrontController
      * @ghost\Table(method="getAll")
      * @return JsonModel
      */
-    public function getAPIGET() 
+    public function getAPIGET()
     {
     }
      /**
@@ -37,20 +37,25 @@ class AskController extends FrontController
      * @ghost\Table(method="getAllTypes")
      * @return JsonModel
      */
-    public function gettypesAPIGET() 
+    public function gettypesAPIGET()
     {
     }
-    
+
     /**
      * /ask/add [POST]
      * @ghost\Param(name="type", required=true)
      * @ghost\Param(name="value", required=false)
      * @ghost\Param(name="id_external_ask", required=false)
-     * @ghost\Table(method="askAPI")
      * @return JsonModel
      */
-    public function addAPIPOST() 
+    public function addAPIPOST()
     {
+        $request            = $this->params('request');
+        $identity_user      = $request->user;
+
+        $this->sm->get('Notifications')->ask($request->params->type->value, $request->params->value->value, $request->params->id_external_ask->value);
+
+        return $this->sm->get('AskTable')->askAPI($identity_user, $request);
     }
     /**
      * /ask/answer [POST]
@@ -60,7 +65,7 @@ class AskController extends FrontController
      * @ghost\Table(method="answerAPI")
      * @return JsonModel
      */
-    public function answerAPIPOST() 
+    public function answerAPIPOST()
     {
     }
 }
