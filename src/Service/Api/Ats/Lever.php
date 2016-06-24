@@ -234,7 +234,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getUser()
     {
-        return $this->user;
+        return $this->ats_user;
     }
     protected function getDatabaseColumns()
     {
@@ -649,7 +649,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         else if (null !== $job_id)
         {
-            $state              = $stages[ $job_id ];
+            $state              = $stage[ $job_id ];
         }
 
         return [$job_id, $state];
