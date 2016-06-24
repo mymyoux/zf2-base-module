@@ -8,7 +8,7 @@
 
 namespace Core\Controller;
 use Core\Annotations as ghost;
-use Admin\Table\CrawlTable;
+use Application\Table\CrawlTable;
 use Zend\View\Model\JsonModel;
 use ZipArchive;
 use RecursiveIteratorIterator;
