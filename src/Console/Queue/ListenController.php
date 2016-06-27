@@ -95,6 +95,11 @@ class ListenController extends \Core\Console\CoreController
             }
             catch (\Exception $e)
             {
+                if ($e instanceof \Zend\Mvc\Exception\DomainException)
+                {
+                    throw $e;
+                }
+
                 $this->getLogger()->error("ERROR! " . $e->getMessage());
                 $this->sm->get('ErrorTable')->logError( $e );
 
