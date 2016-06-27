@@ -36,7 +36,14 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     }
     public function sendErrorSlack($info)
     {
-        
+
+    }
+    public function ask($type, $value, $id_external)
+    {
+        $icon = ':question:';
+        $text = "$icon\t ASK *$type* " . (isset($id_external) ? "($id_external)" : '') . ": \n$value";
+
+        return $this->sendNotification("ask", $text."\n");
     }
     public function noAsk($type)
     {
