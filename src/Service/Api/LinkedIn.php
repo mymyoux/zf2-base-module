@@ -86,6 +86,10 @@ class LinkedIn extends HLinkedIn implements IAPI
             if(isset($data["publicProfileUrl"]) && !empty($data["publicProfileUrl"]))
             {
                 $data["link"] = $data["publicProfileUrl"];
+                if(!ends_with($data["link"], "/en"))
+                {
+                    $data["link"] .= "/en";
+                }
                 unset($data["publicProfileUrl"]);
             }else
             {
