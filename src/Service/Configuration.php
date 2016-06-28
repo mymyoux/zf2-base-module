@@ -139,4 +139,14 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
         $configuration = $this->getConfiguration();
         return $this->_env == "prod";
     }
+
+    /**
+     * Check if current env is Really alpha
+     * @return boolean [description]
+     */
+    public function isAlpha()
+    {
+        $configuration = $this->getConfiguration();
+        return $this->_env == "alpha";
+    }
 }

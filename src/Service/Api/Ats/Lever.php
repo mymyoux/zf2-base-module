@@ -36,6 +36,13 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         ];
     }
 
+    public function setRessourceJobs( $have_data )
+    {
+        $this->logRessource( 'GET', 'postings', $have_data );
+
+        return true;
+    }
+
     public function getEmailFieldReplyTo()
     {
         return null;
@@ -362,7 +369,14 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobs( $offset, $limit, $result_list = null )
     {
-        $params = ['limit' => (int) $limit, 'commitment' => 'Full-time'];
+        $api_method     = 'GET';
+        $api_ressource  = 'postings';
+        $params         = [
+            'limit'         => (int) $limit,
+            'commitment'    => 'Full-time'
+        ];
+
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $result_list)
         {
@@ -375,9 +389,17 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
                 return new ResultListModel();
             }
         }
+        else
+        {
+            if (null !== $ressource)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+            }
+        }
 
         $result = new ResultListModel();
-        $data   = $this->get('postings', $params);
+        $data   = $this->get($api_ressource, $params);
 
         $result->setContent($data['data']);
         $result->setTotalFound(count($data['data']));
@@ -385,6 +407,11 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         if ($data['hasNext'])
             $result->setOffset($data['next']);
+
+        // if (count($data['data']) > 0)
+        //     $this->logRessource( $api_method, $api_ressource, true );
+        // else
+        //     $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
@@ -418,7 +445,13 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getCandidates( $offset, $limit, $result_list = null )
     {
-        $params = ['limit' => (int) $limit];
+        $api_method     = 'GET';
+        $api_ressource  = 'candidates';
+        $params         = [
+            'limit' => (int) $limit
+        ];
+
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $result_list)
         {
@@ -431,16 +464,25 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
                 return new ResultListModel();
             }
         }
-
-        $ressource = $this->getRessource('GET', 'candidates');
+        else
+        {
+            if (null !== $ressource)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+            }
+        }
 
         if (null !== $ressource)
         {
+            if (null === $result_list && !$ressource->can_fetch)
+                return new ResultListModel();
+
             $params['updated_at_start'] = strtotime( $ressource->last_fetch_time ) * 1000;
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('candidates', $params);
+        $data   = $this->get($api_ressource, $params);
 
         $result->setContent($data['data']);
         $result->setTotalFound(count($data['data']));
@@ -448,6 +490,11 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
         if ($data['hasNext'])
             $result->setOffset($data['next']);
+
+        if (count($data['data']) > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
@@ -649,6 +696,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         else if (null !== $job_id)
         {
+            var_dump($stage);
             $state              = $stage[ $job_id ];
         }
 
