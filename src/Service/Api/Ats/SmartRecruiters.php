@@ -431,17 +431,24 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function getJobs( $offset, $limit, $result_list = null )
     {
-        $params = [
+        $api_method     = 'GET';
+        $api_ressource  = 'jobs';
+        $params         = [
             'offset'    => (int) $offset,
             'limit'     => (int) $limit
         ];
 
-        $ressource = $this->getRessource('GET', 'jobs');
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $ressource)
         {
             if (null === $result_list)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+
                 $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            }
             else
             {
                 if (null !== $result_list->getParam('updatedAfter'))
@@ -450,11 +457,17 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('jobs', $params);
+        $data   = $this->get($api_ressource, $params);
 
         $result->setContent($data['content']);
         $result->setTotalFound($data['totalFound']);
         $result->setParams($params);
+
+        if ($data['totalFound'] > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
+
 
         return $result;
     }
@@ -509,17 +522,24 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
     public function getCandidates( $offset, $limit, $result_list = null )
     {
-        $params = [
+        $api_method     = 'GET';
+        $api_ressource  = 'candidates';
+        $params         = [
             'offset'    => (int) $offset,
             'limit'     => (int) $limit
         ];
 
-        $ressource = $this->getRessource('GET', 'candidates');
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $ressource)
         {
             if (null === $result_list)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+
                 $params['updatedAfter'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            }
             else
             {
                 if (null !== $result_list->getParam('updatedAfter'))
@@ -528,11 +548,16 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('candidates', $params);
+        $data   = $this->get($api_ressource, $params);
 
         $result->setContent($data['content']);
         $result->setTotalFound($data['totalFound']);
         $result->setParams($params);
+
+        if ($data['totalFound'] > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
