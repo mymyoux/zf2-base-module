@@ -570,7 +570,7 @@ function split_version($name)
     $index = -1;
     $version = "";
     $letter = NULL;
-    while(True)
+    while(True && $index >= -mb_strlen($name))
     {
         $letter = mb_substr($name, $index, 1);
         if(is_numeric($letter) || in_array($letter, [".",","]))
