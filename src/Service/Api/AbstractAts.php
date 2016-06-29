@@ -40,6 +40,11 @@ abstract class AbstractAts extends AbstractAPI
         return $this->sm;
     }
 
+    public function setRessourceJobs( $have_data )
+    {
+        return false;
+    }
+
     public function init()
     {
         $class          = get_class($this);
@@ -57,13 +62,13 @@ abstract class AbstractAts extends AbstractAPI
      * @param  string $ressource Ressource name (ie: /candidates, /jobs ...)
      * @return void
      */
-    protected function logRessource($method, $ressource)
+    protected function logRessource($method, $ressource, $have_data = null)
     {
         if(!isset($this->ats_user))
         {
             return;
         }
-        $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->ats_user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'));
+        $this->sm->get('AtsApiRessourceTable')->upsertRessource( $this->ats_user->id_user, $this->ats['id_ats'], $method, $ressource, date('Y-m-d H:i:s'), $have_data);
     }
 
     /**

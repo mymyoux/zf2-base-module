@@ -425,17 +425,25 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobs( $offset, $limit, $result_list = null )
     {
+        $api_method     = 'GET';
+        $api_ressource  = 'jobs';
+
         $params = [
             'per_page' => (int) $limit,
             'page'     => (int) $offset / (int) $limit + 1
         ];
 
-        $ressource = $this->getRessource('GET', 'jobs');
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $ressource)
         {
             if (null === $result_list)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+
                 $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            }
             else
             {
                 if (null !== $result_list->getParam('updated_after'))
@@ -444,28 +452,41 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('jobs', true, $params);
+        $data   = $this->get($api_ressource, true, $params);
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
         $result->setParams( $params );
+
+        if (count($data) > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
 
     public function getJobsPost( $offset, $limit, $result_list = null )
     {
+        $api_method     = 'GET';
+        $api_ressource  = 'job_posts';
+
         $params = [
             'per_page' => (int) $limit,
             'page'     => (int) $offset / (int) $limit + 1
         ];
 
-        $ressource = $this->getRessource('GET', 'job_posts');
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $ressource)
         {
             if (null === $result_list)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+
                 $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            }
             else
             {
                 if (null !== $result_list->getParam('updated_after'))
@@ -474,11 +495,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('job_posts', true, $params);
+        $data   = $this->get($api_ressource, true, $params);
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
         $result->setParams( $params );
+
+        if (count($data) > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
@@ -515,17 +541,24 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getCandidates( $offset, $limit, $result_list = null )
     {
-        $params = [
+        $api_method     = 'GET';
+        $api_ressource  = 'candidates';
+        $params         = [
             'per_page' => (int) $limit,
             'page'     => (int) $offset / (int) $limit + 1
         ];
 
-        $ressource = $this->getRessource('GET', 'candidates');
+        $ressource = $this->getRessource($api_method, $api_ressource);
 
         if (null !== $ressource)
         {
             if (null === $result_list)
+            {
+                if (!$ressource->can_fetch)
+                    return new ResultListModel();
+
                 $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
+            }
             else
             {
                 if (null !== $result_list->getParam('updated_after'))
@@ -534,11 +567,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         }
 
         $result = new ResultListModel();
-        $data   = $this->get('candidates', true, $params);
+        $data   = $this->get($api_ressource, true, $params);
 
         $result->setContent($data);
         $result->setTotalFound(count($data));
         $result->setParams($params);
+
+        if (count($data) > 0)
+            $this->logRessource( $api_method, $api_ressource, true );
+        else
+            $this->logRessource( $api_method, $api_ressource, false );
 
         return $result;
     }
