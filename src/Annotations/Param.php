@@ -158,6 +158,14 @@ class Param extends CoreAnnotation
                         //cast $data for the paramObject
                         $data[$k] = $d = False;
                     }
+                    if($d == 1)
+                    {
+                         $data[$k] = $d = True;
+                    }
+                    if($d == 0)
+                    {
+                        $data[$k] = $d = False;
+                    }
                     if(!is_bool($d))
                     {
                         throw new ApiException($this->name . " should be boolean", 10);
@@ -173,7 +181,7 @@ class Param extends CoreAnnotation
                 }
                 else
                 if (preg_match('/^' . $this->requirements . '$/', $d) === 0)
-                    throw new ApiException($this->name . " requirements syntax error : " . $this->requirements, 10);
+                    throw new ApiException($this->name . " requirements syntax error : " . $this->requirements." ".is_string($value)?": ".$value:"", 10);
             }
             return  (false === $this->array) ? $data[0]:$value;
         }
