@@ -110,9 +110,10 @@ class ReplayController extends \Core\Console\CoreController
                 }
                 $modules = $this->sm->get("ApplicationConfig")["modules"];
                 $modules = array_reverse($modules);
+                $classname = ucfirst(camel($result["queue"], '-', '\\'));
                 foreach($modules as $module)
                 {
-                    $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . ucfirst($result["queue"]);
+                    $object_name = '\\'.ucfirst($module).'\Queue\Listener\\' . $classname;
                     if (false === class_exists($object_name))
                     {
                         continue;
