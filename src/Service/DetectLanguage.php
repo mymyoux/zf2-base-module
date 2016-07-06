@@ -45,14 +45,14 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
     {
         if($this->sm->get("AppConfig")->isLocal())
         {
-            dd("ok");
+            // return [$this->_getDefaultLang($text)];
         }
         if(mb_strlen($text) == 0)
         {
             return [$this->_getDefaultLang($text)];
         }
         $this->getDetectLanguageTable()->addCall($this->key, mb_strlen($text));
-        $detections = DetectLanguageLibrary::detect( $text ); 
+        $detections = DetectLanguageLibrary::detect( $text );
         foreach($detections as $key=>$detect)
         {
             $detections[$key]->len =  mb_strlen($text);
@@ -84,7 +84,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         $size_batch = $remaining_calls>0?$remaining_bytes/$remaining_calls:0;
         if($size_batch<= 0 )
         {
-            
+
             return [$this->_getDefaultLang($text)];
         }
 
@@ -105,7 +105,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
                     $text = mb_substr($text, 0, $position);
                 }
             }
-            
+
             return $this->__getDetection($text);
         }
 
@@ -144,9 +144,9 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
                 }
             }
 
-           
+
             //TODO increase the size part by part and save the total calls
-            $languages = $this->__getDetection( $cutText ); 
+            $languages = $this->__getDetection( $cutText );
             if(!empty($languages))
             {
                 $lang = $languages[0];
@@ -174,13 +174,13 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
     {
         if (true === empty($text)) return null;
 
-        return $this->_detect( $text, $smart ); 
+        return $this->_detect( $text, $smart );
     }
     public function detectOne($text, $smart = True)
     {
         if (true === empty($text)) return null;
 
-        $langs = $this->_detect( $text, $smart ); 
+        $langs = $this->_detect( $text, $smart );
         if(!empty($langs))
         {
             return $langs[0];
