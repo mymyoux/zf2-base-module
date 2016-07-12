@@ -79,9 +79,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $this->sm->get('Route')->setServiceLocator($this->sm);
         $type = (null !== $module ? ucfirst($module) : ucfirst($this->sm->get('Route')->getType()));
         $controller = ucfirst($controller);
-        $namespace = '\\'.$type.'\Controller\\'.$controller.'Controller';
-
-
 
         $request = array(
             'action' => $action,
@@ -137,14 +134,16 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $method = $request["method"];
         }
-       
+
 
 
         $request['action'] = camel($request['action']);
 
-       $modules = $module === NULL?$this->sm->get("ApplicationConfig")["modules"]:[$module];
-       $modules =  array_reverse($modules);
-       $controllerFound = False;
+        $modules = $module === NULL?$this->sm->get("ApplicationConfig")["modules"]:[$module];
+        $modules =  array_reverse($modules);
+        $controllerFound = False;
+
+        // check with ucfirst
         foreach($modules as $module)
         {
             $object_name = '\\'.ucfirst($module).'\Controller\\' . $controller."Controller";
@@ -159,6 +158,26 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $type = $module;
             break;
         }
+
+        // check
+        if (false === class_exists($object_name))
+        {
+            foreach($modules as $module)
+            {
+                $object_name = '\\'.ucfirst($module).'\Controller\\' . strtoupper($controller)."Controller";
+                if (false === class_exists($object_name) || !method_exists('\\'.$module.'\Controller\\'.strtoupper($controller).'Controller', $request['action'].'API'.$method))
+                {
+                    if(false !== class_exists($object_name))
+                    {
+                        $controllerFound = True;
+                    }
+                    continue;
+                }
+                $type = $module;
+                break;
+            }
+        }
+
         if (false === class_exists($object_name))
         {
             if($controllerFound)
