@@ -85,6 +85,7 @@ return array(
             'DetectLanguage' => 'Core\Service\DetectLanguage',
             'Log'=>'Core\Service\Log',
             'CSV' => 'Core\Service\CSV',
+            'ABTesting' => 'Core\Service\ABTesting',
         ),
         'services' => array(
 
@@ -113,6 +114,7 @@ return array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
             'Core\Controller\Ask' => 'Core\Controller\AskController',
+            'Core\Controller\AB' => 'Core\Controller\ABController',
             'Core\Controller\Error' => 'Core\Controller\ErrorController',
             'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
             'Core\Console\Queue\Replay' => 'Core\Console\Queue\ReplayController',
