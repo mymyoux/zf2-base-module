@@ -20,6 +20,7 @@ use Core\Table\AskTable;
 use Core\Table\DetectLanguageTable;
 use Core\Table\MailTable;
 use Core\Table\RoleTable;
+use Core\Table\ABTable;
 use Core\Table\TokenTable;
 use Zend\Console\Adapter\AdapterInterface as Console;
 use Zend\Db\ResultSet\ResultSet;
@@ -123,6 +124,10 @@ class Module
                 'AskTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new AskTable(new TableGateway(AskTable::TABLE,$dbAdapter, NULL, NULL));
+                },
+                'ABTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new ABTable(new TableGateway(ABTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'MailTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');

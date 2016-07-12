@@ -39,6 +39,7 @@ class ParamClass
 {
     public function toArray(...$args)
     {
+        $all = empty($args);
         $keys = [];
         foreach($args as $key=>$value)
         {
@@ -53,7 +54,7 @@ class ParamClass
         $data = [];
         foreach($this as $key=>$value)
         {
-            if(in_array($key, $keys))
+            if($all || in_array($key, $keys))
             {
                 $data[$key] = $value->value;
             }
