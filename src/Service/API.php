@@ -275,7 +275,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                    $reflectedMethod = new \ReflectionMethod($table, $table_method);
                    $annotationsTable = $annotationReader->getMethodAnnotations($reflectedMethod);
                    if(!empty($annotationsTable))
-                    $annotations = array_merge($annotationsTable, $annotations);
+                    $annotations = array_merge($annotations, $annotationsTable);
                 }
             }
         }
@@ -296,11 +296,14 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             }
 
             $parse = $annotation->parse($request);
-
             if(isset($parse))
             {
                 $keys[] = $annotation->key();
-                $apiRequest->add($annotation->key(), $parse);
+                if(!$apiRequest->exists($annotation->key(), $parse))
+                {
+                    $parse = $annotation->validate($parse);
+                    $apiRequest->add($annotation->key(), $parse);
+                }
             }else
             {
                 dd($annotation);

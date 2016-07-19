@@ -40,10 +40,4 @@ class Response extends CoreAnnotation
 
         return $object;
     }
-
-    protected function validate( $value )
-    {
-       // nohting to validate
-    }
-
 }

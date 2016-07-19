@@ -78,6 +78,23 @@ class Request implements ServiceLocatorAwareInterface
             $this->$key = $value;
         }
     }
+    public function exists($key, CoreObject $value)
+    {
+        if(in_array("Core\Annotations\IMetaObject", class_implements($value)))
+        {
+            $metakey = $value->getAPIKey();
+            if(!isset($this->$metakey))
+            {
+                $metainstance = $value->getAPIObject();
+                $this->$metakey = $metainstance;
+            }
+            return isset($this->$metakey->$key);
+        }else
+        {
+            return isset($this->$key);
+        }
+        return false;
+    }
     public function isValid($apiRequest)
     {
         $this->errors = [];
