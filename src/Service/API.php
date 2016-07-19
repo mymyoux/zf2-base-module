@@ -275,7 +275,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                    $reflectedMethod = new \ReflectionMethod($table, $table_method);
                    $annotationsTable = $annotationReader->getMethodAnnotations($reflectedMethod);
                    if(!empty($annotationsTable))
-                    $annotations = array_merge($annotationsTable, $annotationsTable);
+                    $annotations = array_merge($annotationsTable, $annotations);
                 }
             }
         }
