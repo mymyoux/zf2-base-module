@@ -64,12 +64,12 @@ class Doc extends CoreAnnotation
     {
         $object = parent::_parse($value, $request);
 
-        $this->validate( $object );
+//        $this->validate( $object );
 
         return $object;
     }
 
-    protected function validate( $object )
+    public function validate( $object )
     {
         try
         {
@@ -79,6 +79,7 @@ class Doc extends CoreAnnotation
         {
             throw new ApiException($object->name . " doesn't exist in the ServiceLocator", 10);
         }
+        return $object;
     }
    public function getTable()
     {

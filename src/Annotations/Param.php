@@ -111,7 +111,7 @@ class Param extends CoreAnnotation
     {
         $object = parent::_parse($value, $request);
         //get casted value
-        $object->value = $this->validate( $object->value );
+//        $object->value = $this->validate( $object->value );
         $this->_key = $object->name;
         return $object;
     }
@@ -124,8 +124,9 @@ class Param extends CoreAnnotation
         return true;
     }
 
-    protected function validate( $value )
+    public function validate( $object )
     {
+        $value = $object->value;
         // check if param if required
         if (true === $this->required && null === $value)
             throw new ApiException($this->name . " is required", 10);
@@ -183,10 +184,11 @@ class Param extends CoreAnnotation
                 }
                 else
                 if (preg_match('/^' . $this->requirements . '$/', $d) === 0)
-                    throw new ApiException($this->name . " requirements syntax error : " . $this->requirements." ".is_string($value)?": ".$value:"", 10);
+                    throw new ApiException($this->name . " requirements syntax error : " . $this->requirements, 10);
             }
-            return  (false === $this->array) ? $data[0]:$value;
+            $object->value = (false === $this->array) ? $data[0]:$value;
+            return $object;//return  (false === $this->array) ? $data[0]:$value;
         }
-        return $value;
+        return $object;
     }
 }

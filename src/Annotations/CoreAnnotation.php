@@ -68,5 +68,9 @@ class CoreAnnotation
 
         return $object;
     }
+    public function validate($object)
+    {
+        return $object;
+    }
 }
 
