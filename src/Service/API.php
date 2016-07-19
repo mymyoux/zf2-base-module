@@ -265,6 +265,10 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                   $annotation->setServiceLocator( $this->sm );
                 //$annotation->
                 $table =  $annotation->getTable();
+                if(!isset($table) && isset($apiRequest->class_table))
+                {
+                    $table = $apiRequest->class_table->getTable();
+                }
                 $table_method   = $annotation->method;
                 if(isset($table) && isset($table_method) && method_exists($table, $table_method))
                 {
