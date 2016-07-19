@@ -4,7 +4,7 @@ use Core\Exception\Exception;
 use Core\Exception\ApiException;
 use Zend\Db\Sql\AbstractSql;
 
-class TableObject extends CoreObject
+class DocObject extends CoreObject
 {
     /**
      * @var string
@@ -14,10 +14,6 @@ class TableObject extends CoreObject
      * @var string
      */
     public $method;
-      /**
-     * @var string
-     */
-    public $useDoc = True;
 
     public function hasData()
     {
@@ -36,12 +32,12 @@ class TableObject extends CoreObject
 /**
  *
  * @Annotation
- * @Target({"METHOD", "CLASS"})
+ * @Target({"METHOD"})
  */
-class Table extends CoreAnnotation
+class Doc extends CoreAnnotation
 {
-    protected $_key = "table";
-    protected $_object = "TableObject";
+    protected $_key = "doc";
+    protected $_object = "DocObject";
     /**
      * @var string
      */
@@ -51,11 +47,6 @@ class Table extends CoreAnnotation
      * @var string
      */
     public $method;
-
-    /**
-     * @var string
-     */
-    public $useDoc = True;
 
     /**
      * @param $value
@@ -83,7 +74,7 @@ class Table extends CoreAnnotation
             throw new ApiException($object->name . " doesn't exist in the ServiceLocator", 10);
         }
     }
-     public function getTable()
+   public function getTable()
     {
         if($this->sm->has($this->name . 'Table'))
         {

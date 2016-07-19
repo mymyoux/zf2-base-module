@@ -11,6 +11,8 @@ namespace Core\Service;
 
 use Core\Service\Api\Request;
 use Core\Annotations\Paginate;
+use Core\Annotations\Doc;
+use Core\Annotations\Table;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
@@ -40,6 +42,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Response.php');
         AnnotationRegistry::registerFile($folder.'Order.php');
         AnnotationRegistry::registerFile($folder.'Back.php');
+        AnnotationRegistry::registerFile($folder.'Doc.php');
     }
 
     /**
@@ -239,7 +242,39 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $apiRequest->setUser($context->hasUser()?$context->getUser():$this->sm->get("Identity")->getUser());
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..
+        //
+        
+
+
+        //TODO:checkp our usertable
+            
         $keys = array();
+        foreach($annotations as $annotation)
+        {
+            //search for table
+            if($annotation instanceof Doc || $annotation instanceof Table)
+            {
+                if($annotation instanceof Table && !$annotation->useDoc)
+                {
+                    continue;
+                }
+                if(!isset($annotation->method))
+                {
+                    continue;
+                }
+                  $annotation->setServiceLocator( $this->sm );
+                //$annotation->
+                $table =  $annotation->getTable();
+                $table_method   = $annotation->method;
+                if(method_exists($table, $table_method))
+                {
+                   $reflectedMethod = new \ReflectionMethod($table, $table_method);
+                   $annotationsTable = $annotationReader->getMethodAnnotations($reflectedMethod);
+                   if(!empty($annotationsTable))
+                    $annotations = array_merge($annotationsTable, $annotationsTable);
+                }
+            }
+        }
         foreach($annotations as $annotation)
         {
             $annotation->setServiceLocator( $this->sm );
@@ -275,6 +310,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $request['request'] = $apiRequest;
         $request['action_suffix'] = 'API';
+        //dd($apiRequest->class_table);
+        //check table annotations
 
         if(!$apiRequest->isValid($apiRequest))
         {
