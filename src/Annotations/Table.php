@@ -14,6 +14,10 @@ class TableObject extends CoreObject
      * @var string
      */
     public $method;
+      /**
+     * @var string
+     */
+    public $useDoc = True;
 
     public function hasData()
     {
@@ -49,6 +53,11 @@ class Table extends CoreAnnotation
     public $method;
 
     /**
+     * @var string
+     */
+    public $useDoc = True;
+
+    /**
      * @param $value
      * @param $request
      * @return mixed
@@ -73,6 +82,14 @@ class Table extends CoreAnnotation
         {
             throw new ApiException($object->name . " doesn't exist in the ServiceLocator", 10);
         }
+    }
+     public function getTable()
+    {
+        if($this->sm->has($this->name . 'Table'))
+        {
+            return $this->sm->get($this->name . 'Table');
+        }else
+        return $this->sm->get($this->name);
     }
 
 }
