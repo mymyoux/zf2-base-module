@@ -26,11 +26,17 @@ class TableObject extends CoreObject
 
     public function getTable()
     {
-        if($this->sm->has($this->name . 'Table'))
+       if($this->sm->has($this->name . 'Table'))
         {
             return $this->sm->get($this->name . 'Table');
         }else
-        return $this->sm->get($this->name);
+        {
+            if($this->sm->has($this->name))
+            {
+               return $this->sm->get($this->name);
+            }
+           return NULL;
+        }
     }
 }
 /**
@@ -89,7 +95,13 @@ class Table extends CoreAnnotation
         {
             return $this->sm->get($this->name . 'Table');
         }else
-        return $this->sm->get($this->name);
+        {
+            if($this->sm->has($this->name))
+            {
+               return $this->sm->get($this->name);
+            }
+           return NULL;
+        }
     }
 
 }

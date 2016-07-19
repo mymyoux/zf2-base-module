@@ -26,7 +26,13 @@ class DocObject extends CoreObject
         {
             return $this->sm->get($this->name . 'Table');
         }else
-        return $this->sm->get($this->name);
+        {
+            if($this->sm->has($this->name))
+            {
+               return $this->sm->get($this->name);
+            }
+           return NULL;
+        }
     }
 }
 /**
@@ -80,7 +86,13 @@ class Doc extends CoreAnnotation
         {
             return $this->sm->get($this->name . 'Table');
         }else
-        return $this->sm->get($this->name);
+        {
+            if($this->sm->has($this->name))
+            {
+               return $this->sm->get($this->name);
+            }
+           return NULL;
+        }
     }
 
 }

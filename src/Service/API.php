@@ -266,7 +266,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 //$annotation->
                 $table =  $annotation->getTable();
                 $table_method   = $annotation->method;
-                if(method_exists($table, $table_method))
+                if(isset($table) && isset($table_method) && method_exists($table, $table_method))
                 {
                    $reflectedMethod = new \ReflectionMethod($table, $table_method);
                    $annotationsTable = $annotationReader->getMethodAnnotations($reflectedMethod);
