@@ -25,7 +25,11 @@ abstract class AbstractAts extends AbstractAPI
     public function setUser( $ats_user )
     {
         if ($ats_user)
+        {
             $this->ats_user = (object) $ats_user;
+
+            $this->ats_company = $this->sm->get('AtsCompanyTable')->getByUserID( $this->ats_user->id_user );
+        }
     }
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
@@ -38,6 +42,13 @@ abstract class AbstractAts extends AbstractAPI
     public function getServiceLocator()
     {
         return $this->sm;
+    }
+
+    public function getAtsJobs()
+    {
+        if (!isset($this->ats_company)) return [];
+
+        return $this->sm->get('AtsJobTable')->getAllByCompany( $this->ats_company->id_ats_company );
     }
 
     public function setRessourceJobs( $have_data )
