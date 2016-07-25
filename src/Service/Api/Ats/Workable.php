@@ -31,8 +31,8 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         $this->client           = new \GuzzleHttp\Client();
 
         $this->models           = [
-            'jobs(\/[^\/]+){0,1}$'      => '\Application\Model\Ats\Workable\JobModel',
-            // 'candidates(\/[^\/]+){0,1}$'    => '\Application\Model\Ats\Lever\CandidateModel',
+            'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Workable\JobModel',
+            'candidates$'    => '\Application\Model\Ats\Workable\CandidateModel',
         ];
     }
 
@@ -186,6 +186,9 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
             $sm         = $this->sm;
             $is_content = false;
 
+            $tmp_ressource = explode('/', $ressource);
+            $ressource = end($tmp_ressource);
+
             if (isset($data[$ressource]) && is_array($data[$ressource]))
             {
                 $is_content = true;
@@ -304,6 +307,20 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getCandidateHistory( $candidate )
     {
+        $result = new ResultListModel();
+
+        $stage = new \Application\Model\Ats\Workable\HistoryModel();
+
+        $stage->status = $candidate->stage;
+        $stage->last_activity_at = $candidate->updated_at;
+
+        $result->setContent([ $stage ]);
+        $result->setTotalFound(1);
+
+        return $result;
+
+        dd($candidate->toArray());
+        // return $result;
         // $histories          = [];
         // $stages             = $this->getStages();
         // $archive_reasons    = $this->getArchiveReasons();
@@ -459,45 +476,76 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
     public function getCandidates( $offset, $limit, $result_list = null )
     {
         $api_method     = 'GET';
-        $api_ressource  = 'jobs/candidates';
 
         $params         = [
-            'offset'    => (int) $offset,
             'limit'     => (int) $limit
         ];
 
-        $ressource = $this->getRessource($api_method, $api_ressource);
-
         $jobs_shortcode = $this->getAtsJobs();
+        $candidates     = [];
+        $offsets        = [];
+        foreach ($jobs_shortcode as $key =>$job_shortcode)
+        {
+            $shortcode = $this->sm->get('AtsJobTable')->getValue( $job_shortcode['id_ats_job'], 'shortcode' );
+            $api_ressource  = 'jobs/' . $shortcode . '/candidates';
 
-        dd($jobs_shortcode);
-        // if (null !== $ressource)
-        // {
-        //     if (null === $result_list)
-        //     {
-        //         if (!$ressource->can_fetch)
-        //             return new ResultListModel();
+            $ressource = $this->getRessource($api_method, $api_ressource);
 
-        //         $params['updated_after'] = date('Y-m-d\TH:i:s.000\Z', strtotime( $ressource->last_fetch_time ));
-        //     }
-        //     else
-        //     {
-        //         if (null !== $result_list->getParam('updated_after'))
-        //             $params['updated_after'] = $result_list->getParam('updated_after');
-        //     }
-        // }
+            if (null !== $result_list)
+            {
+                if (null !== $result_list->getOffset())
+                {
+                    $offsets_data = $result_list->getOffset();
 
+                    if (isset($offsets_data[ $key ]))
+                        $params['since_id'] = $offsets_data[ $key ];
+                    else
+                        continue;
+                }
+                else
+                {
+                    continue;//return new ResultListModel();
+                }
+            }
+            else
+            {
+                if (null !== $ressource)
+                {
+                    if (!$ressource->can_fetch)
+                        continue;//return new ResultListModel();
+                }
+            }
+
+            if (null !== $ressource)
+            {
+                if (null === $result_list && !$ressource->can_fetch)
+                    continue;//return new ResultListModel();
+
+                $params['updated_at_start'] = strtotime( $ressource->last_fetch_time );
+            }
+
+            $data   = $this->get($api_ressource, $params);
+
+            $candidates = array_merge($candidates, $data['candidates']);
+
+            if (count($data['candidates']) > 0)
+                $this->logRessource( $api_method, $api_ressource, true );
+            else
+                $this->logRessource( $api_method, $api_ressource, false );
+
+            if (isset($data['paging']) && isset($data['paging']['next']))
+            {
+                $query = parse_url($data['paging']['next'], \PHP_URL_QUERY);
+                parse_str($query, $params_query);
+                $offsets[$key] = $params_query['since_id'];
+            }
+        }
         $result = new ResultListModel();
-        $data   = $this->get($api_ressource, $params);
 
-        $result->setContent($data['jobs']);
-        $result->setTotalFound(count($data['jobs']));
+        $result->setContent($candidates);
+        $result->setTotalFound(count($candidates));
         $result->setParams($params);
-
-        if (count($data['jobs']) > 0)
-            $this->logRessource( $api_method, $api_ressource, true );
-        else
-            $this->logRessource( $api_method, $api_ressource, false );
+        $result->setOffset($offsets);
 
         return $result;
     }
@@ -647,7 +695,9 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function createCandidate( $model )
     {
-        // $params             = $model->toAPI();
+        $params             = $model->toAPI();
+
+        dd($params);
         // // update if same email address
         // $query = [
         //     'perform_as'    => $this->ats_user->id_lever,
