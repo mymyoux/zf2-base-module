@@ -86,6 +86,7 @@ return array(
             'Log'=>'Core\Service\Log',
             'CSV' => 'Core\Service\CSV',
             'ABTesting' => 'Core\Service\ABTesting',
+            'Module' => 'Core\Service\Module',
         ),
         'services' => array(
 
@@ -119,6 +120,8 @@ return array(
             'Core\Console\Queue\Listen' => 'Core\Console\Queue\ListenController',
             'Core\Console\Queue\Replay' => 'Core\Console\Queue\ReplayController',
             'Core\Console\Queue\Test' => 'Core\Console\Queue\TestController',
+            'Core\Console\Cli\Manage' => 'Core\Console\Cli\ManageController',
+            'Core\Console\Core\Crontab' => 'Core\Console\Core\CrontabController',
           /*  'Application\Controller\CoreController' => 'Application\Controller\CoreController',
             'Application\Controller\FrontController' => 'Application\Controller\FrontController'*/
         ),
@@ -161,10 +164,21 @@ return array(
     'apis' => array(
         "linkedIn" => array("class"=>'\Core\Service\Api\LinkedIn')
     ),
-    // Placeholder for console routes
+        // Placeholder for console routes
     'console' => array(
         'router' => array(
             'routes' => array(
+                'catchall-route' => array(
+                'type'     => 'catchall',
+                'options' => array(
+                    'route'    => '',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'Core\Console\Core',
+                        'controller'    => 'crontab',
+                        'action'        => 'generik'
+                    )
+                )
+            )
             ),
         ),
     ),

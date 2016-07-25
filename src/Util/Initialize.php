@@ -612,3 +612,27 @@ function delete_directory($path) {
 
     return rmdir($path);
 }
+
+function smart_merge($array1, $array2)
+{
+    /** @var Config $value */
+    foreach ($array2 as $key => $value) {
+        if(is_int($key))
+        {
+            $array1[] = $value;
+        }else
+        {
+            if(!isset($array1[$key]))
+            {
+                $array1[$key] = $value;
+            }else
+            {
+                if(is_array($value))
+                {
+                    $array1[$key] = smart_merge($array1[$key], $value);
+                }
+            }
+        }
+    }
+    return $array1;
+}
