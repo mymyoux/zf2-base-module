@@ -20,7 +20,7 @@ use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use Zend\View\Variables;
 use Zend\View\Model\ConsoleModel;
-use Zend\Loader\AutoloaderFactory;
+
 
 /**
  * Class API
@@ -146,19 +146,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $modules = $module === NULL?$this->sm->get("ApplicationConfig")["modules"]:[$module];
         if(isset($module) && !in_array(ucfirst($module), $this->sm->get("ApplicationConfig")["modules"]))
         {
-            //not in array
-             $path = join_paths(ROOT_PATH,'/module/',ucfirst($module),"Module.php");
-             if(!file_exists($path))
-             {
-                 throw new \Exception('bad_module:'.$module,2);
-             }
-             include_once $path;
-             $manager = $this->sm->get("ModuleManager");
-             $module_name = ucfirst($module)."\\Module";
-             $module_to_load = new $module_name();
-             $module_to_load->init($manager);
-              AutoloaderFactory::factory($module_to_load->getAutoloaderConfig());
-              //TODO: add config/services ? 
+            $this->sm->get("Module")->lightLoad($module);
+              //TODO: mediumLoad ? (full without routes?)
               
         }
         $modules =  array_reverse($modules);
