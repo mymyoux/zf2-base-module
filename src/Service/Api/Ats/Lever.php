@@ -105,7 +105,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         usleep(500000);
 
         // The username is your Lever API token and the password should be blank
-        $path   = 'https://api.sandbox.lever.co/v1/';
+        $path   = 'https://api.' . $this->config['url'] . '/v' . $this->config['api_version'] . '/';
         $auth   = 'Basic ' . base64_encode($this->access_token . ':');
 
         try
@@ -506,7 +506,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getUrlCandidate( $id )
     {
-        return 'https://hire.sandbox.lever.co/candidates/' . $id;
+        return 'https://' . $this->config['url'] . '/candidates/' . $id;
     }
 
     public function updateCandidateState($id_api, $state)
@@ -696,8 +696,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         else if (null !== $job_id)
         {
-            var_dump($stage);
-            $state              = $stage[ $job_id ];
+            $stages    = $this->getStages();
+            $state     = $stages[ $stage ];
         }
 
         return [$job_id, $state];
