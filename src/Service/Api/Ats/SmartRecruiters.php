@@ -589,7 +589,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath = ROOT_PATH . '/public/' . $picture;
         else
-            $filepath = 'https://app.yborder.com' . $picture;
+            $filepath = 'http://app.yborder.com' . $picture;
 
         if (php_sapi_name() === 'cli')
             echo 'filepath : ' . $filepath . PHP_EOL;
@@ -620,7 +620,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         else
         {
             $pdf_link   = str_replace('public/', '', $pdf_link);
-            $filepath = 'https://app.yborder.com/' . $pdf_link;
+            $filepath = 'http://app.yborder.com/' . $pdf_link;
         }
 
         if (php_sapi_name() === 'cli')

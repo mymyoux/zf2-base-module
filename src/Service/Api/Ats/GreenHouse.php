@@ -637,7 +637,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         else
         {
             $pdf_link   = str_replace('public/', '', $pdf_link);
-            $filepath_url = 'https://app.yborder.com/' . $pdf_link;
+            $filepath_url = 'http://app.yborder.com/' . $pdf_link;
         }
 
         if (php_sapi_name() === 'cli')
