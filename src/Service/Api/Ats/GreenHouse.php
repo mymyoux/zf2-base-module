@@ -632,8 +632,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath_content = ROOT_PATH . $pdf_link;
+        if (true === file_exists(ROOT_PATH . '/' . $pdf_link))
+            $filepath_content = ROOT_PATH . '/' . $pdf_link;
         else
         {
             $pdf_link   = str_replace('public/', '', $pdf_link);
