@@ -615,8 +615,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath = ROOT_PATH . $pdf_link;
+        if (true === file_exists(ROOT_PATH . '/' . $pdf_link))
+            $filepath = ROOT_PATH . '/' . $pdf_link;
         else
         {
             $pdf_link   = str_replace('public/', '', $pdf_link);

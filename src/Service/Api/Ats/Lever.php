@@ -610,8 +610,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     {
         $candidate  = $this->getCandidateAtsByAPIID($id_api);
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath_content = ROOT_PATH . $pdf_link;
+        if (true === file_exists(ROOT_PATH . '/' . $pdf_link))
+            $filepath_content = ROOT_PATH . '/' . $pdf_link;
         else
         {
             $pdf_link           = str_replace('public/', '', $pdf_link);
