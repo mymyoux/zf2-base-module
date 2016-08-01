@@ -119,8 +119,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     {
         // https://developers.greenhouse.io/harvest.html#throttling
         // API requests are limited to 40 calls per 10 seconds
-        // 300 ms sleep
-        usleep(300000);
+        // 500 ms sleep
+        usleep(500000);
 
         if (true === $is_harvest)
         {
@@ -182,7 +182,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
                 $e = new GreenHouseException((isset($error->message) ? $error->message : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
-                $this->sm->get('Log')->error($e->getMessage());
+                $this->sm->get('Log')->error((isset($error->message) ? $error->message : $e_message));
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
@@ -632,16 +632,11 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath_content = ROOT_PATH . $pdf_link;
-        else
-        {
-            $pdf_link   = str_replace('public/', '', $pdf_link);
-            $filepath_url = 'http://app.yborder.com/' . $pdf_link;
-        }
+        $pdf_link   = str_replace('public/', '', $pdf_link);
+        $filepath_url = 'http://app.yborder.com/' . $pdf_link;
 
         if (php_sapi_name() === 'cli')
-            echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
+            echo 'filepath : ' . $filepath_url . PHP_EOL;
 
         $params = [
             'type'      => 'resume',
@@ -649,14 +644,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'filename'  => $id_api . '_resume_yborder.pdf'
         ];
 
-        if (isset($filepath_content))
-        {
-            $params['content'] = new PostFile('file', file_get_contents($filepath_content));
-        }
-        else
-        {
-            $params['url'] = $filepath_url;
-        }
+        $params['url'] = $filepath_url;
 
         try
         {
