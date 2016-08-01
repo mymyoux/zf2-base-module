@@ -108,4 +108,12 @@ class BeanstalkdLogTable extends CoreTable
 
         $this->table(self::TABLE)->update($data, ['id' => (int) $id]);
     }
+    public function setBeanstalkdID( $id, $id_beanstalkd )
+    {
+        $data   = [
+            'id_beanstalkd'         => (int) $id_beanstalkd
+        ];
+
+        $this->table(self::TABLE)->update($data, ['id' => (int) $id]);
+    }
 }
