@@ -52,6 +52,7 @@ class ManageController extends \Core\Console\CoreController
        {
           $this->getLogger()->fatal("You must specify a name");
        }
+       $name = camel($name);
        $data = explode("/", $name);
        if(count($data) != 2)
        {

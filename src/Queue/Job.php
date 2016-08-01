@@ -87,8 +87,11 @@ class Job implements ServiceLocatorAwareInterface {
 
             return true;
         }
-
-        return $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
+        
+        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
+        $this->sm->get('BeanstalkdLogTable')->setBeanstalkdID($id, $id_beanstalkd);
+        dd($this->beanstalkd->stats());
+        return $id_beanstalkd;
     }
 
     private function sendAlert()
