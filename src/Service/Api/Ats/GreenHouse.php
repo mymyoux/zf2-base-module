@@ -179,9 +179,15 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new GreenHouseException((isset($error->message) ? $error->message : $e_message), $e_code);
+                $error_message = (isset($error->message) ? $error->message : $e_message);
 
-                $id_error = $this->sm->get('ErrorTable')->logError($e);
+                $e = new GreenHouseException($error_message, $e_code);
+
+                if ($error_message === 'Resource not found')
+                    $id_error = null;
+                else
+                    $id_error = $this->sm->get('ErrorTable')->logError($e);
+
                 $this->sm->get('Log')->error((isset($error->message) ? $error->message : $e_message));
 
                 // log error
