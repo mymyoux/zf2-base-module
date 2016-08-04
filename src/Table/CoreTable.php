@@ -273,6 +273,29 @@ class CoreTable extends \Core\Service\CoreService
 
         return false;
     }
+    public function cut($data, $keys)
+    {
+        return array_map(function($item) use($keys)
+            {
+                foreach($item as $key=>$value)
+                {
+                    $subkeys = explode("_", $key);
+                    if(in_array($subkeys[0], $keys))
+                    {
+                        if(isset($value))
+                        {
+                            if(!isset($item[$subkeys[0]]))
+                            {
+                                $item[$subkeys[0]] = [];
+                            }
+                            $item[$subkeys[0]][implode("_", array_splice($subkeys, 1))] = $value;
+                        }
+                        unset($item[$key]);
+                    }
+                }
+                return $item;
+            }, is_array($data)?$data:$data->toArray());
+    }
 
     public function getList($where = NULL, $page=0, $count=10)
     {
