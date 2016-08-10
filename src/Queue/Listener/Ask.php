@@ -33,7 +33,11 @@ class Ask extends ListenerAbstract implements ListenerInterface
         {
             return;
         }
-
+        if($ask["answer"] === "reject")
+        {
+            //ignore this ask
+            return;
+        }
         $name = $ask["type"];
         $modules = $this->sm->get("ApplicationConfig")["modules"];
         $modules = array_reverse($modules);

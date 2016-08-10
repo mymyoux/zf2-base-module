@@ -476,6 +476,8 @@ class CrontabController extends \Core\Console\CoreController
             $this->getLogger()->critical($file.":".$e->getLine() );
             $this->getLogger()->critical($e->getMessage() );
             $this->getErrorTable()->logError($e);
+
+            echo $e->getTraceAsString();
         }
 
         $this->terminated();
