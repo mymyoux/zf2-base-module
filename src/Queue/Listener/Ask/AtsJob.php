@@ -7,6 +7,8 @@ use Core\Queue\ListenerInterface;
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
 
+use Application\Service\JobConfig;
+
 class AtsJob extends ListenerAbstract implements ListenerInterface
 {
     /**
@@ -17,24 +19,27 @@ class AtsJob extends ListenerAbstract implements ListenerInterface
     }
     public function checkJob( $data )
     {
-        return true; 
+        return true;
     }
     public function executeJob( $data )
     {
-        $ats_job = $this->getAtsJobTable()->getJobValueByIdAtsJob($data["id_external_ask"]);
+        $admin      = $this->sm->get('UserTable')->getConsoleUser( 'admin' );
+        $ats_job    = $this->getAtsJobTable()->getJobValueByIdAtsJob($data["id_external_ask"]);
+
         if(!$data["answer"]["valid"])
         {
             //refused
 
-            $this->api->jobConvert->post()->insert([
-                "title"=>$ats_job["title"],
-                "description"=>$ats_job["content"],
-                "type"=>"ask",
-                "algo"=>"v1",
-                "id_position"=>NULL,
-                "is_valid"=>1,
-                "is_title_auto_valid"=>$data["answer"]["explicit"]
+            $this->api->jobConvert->user($admin)->post()->insert([
+                "title"                 => $ats_job["title"],
+                "description"           => $ats_job["content"],
+                "type"                  => "ask",
+                "algo"                  => "v1",
+                "id_position"           => null,
+                "is_valid"              => 1,
+                "is_title_auto_valid"   => $data["answer"]["explicit"]
             ]);
+
             if(isset($ats_job["id_job"]))
             {
                 dd("ok");
@@ -45,73 +50,29 @@ class AtsJob extends ListenerAbstract implements ListenerInterface
             dd("refused");
         }else
         {
-            $ats_company = $this->getAtsCompanyTable()->getByIDAtsCompany($ats_job["id_ats_company"]);
-            $id_company = $ats_company["id_company"];
+            $ats            = $this->sm->get('AtsTable')->getById( $ats_job['id_ats'] );
+            $ats_company    = $this->getAtsCompanyTable()->getByIDAtsCompany($ats_job["id_ats_company"]);
+            $id_company     = $ats_company["id_company"];
+            $company        = $this->sm->get('CompanyTable')->getCompanyByID( $id_company );
 
+            $this->sm->get('CompanyTable')->getInformations( $company );
 
-            //TODO: handle création/modification + réfléchir pour les tags
-            if(!isset($ats_job["id_job"]))
-            {
-                $convert_job = $this->sm->get('JobService')->convert( $ats_job["title"], $ats_job["content"]);
+            // set new position
+            $config                 = new JobConfig();
+            $config->id_position    = $data->id_external_answer;
 
+            $this->sm->get('AtsService')->upsertAlertJob( $ats_job['id_ats_job'], $ats, $company, $config );
 
-                if (true === $convert_job['success'])
-                {
-                    $employees      = $this->sm->get('CompanyTable')->getEmployees( $id_company );
+            $this->api->jobConvert->user($admin)->post()->insert([
+                "title"                 => $ats_job["title"],
+                "description"           => $ats_job["content"],
+                "type"                  => "ask",
+                "algo"                  => "v1",
+                "id_position"           => $data->id_external_answer,
+                "is_valid"              => 1,
+                "is_title_auto_valid"   => $data["answer"]["explicit"]
+            ]);
 
-                    foreach ($employees as $employee)
-                    {
-                        $user_employee  = $this->sm->get('UserTable')->getUser( $employee['id_user'] );
-
-                        if (null === $user_employee) continue;
-
-                        $tags = ['position' => [$convert_job['position']['id_position']]];
-
-                        if (null !== $location)
-                            $tags['location'] = $location;
-
-                        $this->sm->get('Log')->normal('Employee (' . $user_employee->id . ')');
-                        $result         = $YBorder->marketplace->module('company')->user($user_employee)->data(NULL, "GET", [
-                            'search'    => implode(' ', $convert_job['tags']),
-                            'tags'      => $tags
-                        ]);
-
-                        $data           = $result->value;
-                        $api_data       = $result->api_data->paginate->jsonSerialize();
-
-                        if (!empty($api_data['token']))
-                        {
-                            $params = [
-                                'name'          => $details->getName(),
-                                'description'   => $details->getDescription(),
-                                'has_alert'     => $details->hasAlert(),
-                                'is_public'     => $details->isPublic(),
-                                'token'         => $api_data['token']
-                            ];
-
-                            if (null !== $id_job)
-                                $params['id_job'] = $id_job;
-
-                            $this->sm->get('Log')->warn('create job');
-
-                            $yborder_job    = $YBorder->job->module('company')->user($user_employee)->{ $action }(null, 'POST', $params);
-                            if (true === isset($yborder_job->value))
-                                $id_job = $yborder_job->value->id_job;
-
-                            if ($action === 'save')
-                                $action = 'edit';
-
-                            $text = $company->name . ' (' . $company->id_company . ') ' . $user->first_name . ' ' . $user->last_name . ' (' . $user->id . ') -- new job *' . $details->getName() . '* created';
-
-                            $this->sm->get('Notifications')->ats( $text, 'job' );
-                        }
-                    }
-                }
-            }else
-            {
-                //do nothing for now
-            }
-            //accepted
             dd("accepted");
         }
     }
