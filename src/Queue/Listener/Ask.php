@@ -41,7 +41,7 @@ class Ask extends ListenerAbstract implements ListenerInterface
         $name = $ask["type"];
         $modules = $this->sm->get("ApplicationConfig")["modules"];
         $modules = array_reverse($modules);
-        $classname = ucfirst(camel($name));
+        $classname = ucfirst(camel(camel($name,"_")));
         foreach($modules as $module)
         {
             $object_name = '\\'.ucfirst($module).'\Queue\Listener\Ask\\' . $classname;
