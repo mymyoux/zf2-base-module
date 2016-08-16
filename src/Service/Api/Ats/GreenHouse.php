@@ -639,7 +639,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     {
         // upload the RESUME
         $pdf_link   = str_replace('public/', '', $pdf_link);
-        $filepath_url = 'http://app.yborder.com/' . $pdf_link;
+        $filepath_url = 'http://ats.yborder.com/' . $pdf_link;
 
         if (php_sapi_name() === 'cli')
             echo 'filepath : ' . $filepath_url . PHP_EOL;
