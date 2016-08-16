@@ -573,7 +573,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath_content   = ROOT_PATH . '/public/' . $picture;
         else
-            $filepath_content       = 'http://app.yborder.com' . $picture;
+            $filepath_content       = 'http://ats.yborder.com' . $picture;
 
         if (php_sapi_name() === 'cli')
             echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
@@ -615,7 +615,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         else
         {
             $pdf_link           = str_replace('public/', '', $pdf_link);
-            $filepath_content   = 'http://app.yborder.com/' . $pdf_link;
+            $filepath_content   = 'http://ats.yborder.com/' . $pdf_link;
         }
 
         if (php_sapi_name() === 'cli')
