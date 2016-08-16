@@ -229,6 +229,11 @@ class MultipleIdentity extends CoreService implements IIdentity
     }
     public function setUser($user)
     {
+        /*if(!isset($user))
+        {
+            throw new \Exception("user null");
+            return;
+        }*/
         $this->user = $user;
         $this->session->id_user = $this->user->getRealID();
         $this->sm->get("TokenTable")->generateUserToken();
