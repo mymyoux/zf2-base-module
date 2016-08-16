@@ -11,6 +11,7 @@ namespace Core\Table;
 
 use Core\Model\UserModel;
 use Zend\Db\Sql\Expression;
+use Core\Annotations as ghost;
 
 /**
  * Class AskTable
@@ -78,7 +79,11 @@ class AskTable extends CoreTable
                 $value[$key] = $v;
             }
         }
-        $this->table(AskTable::TABLE)->update($answer, array("id_ask"=>$id_ask));
+        if(isset($value["answer"]) && !is_string($value["answer"]))
+        {
+            $value["answer"] = json_encode($value["answer"]);
+        }
+        $this->table(AskTable::TABLE)->update($value, array("id_ask"=>$id_ask));
    }
    public function answerAPI($user, $apirequest)
    {
@@ -94,6 +99,10 @@ class AskTable extends CoreTable
             }
         }
         $value["id_user"] = $user->getRealID();
+        if(isset($value["answer"]) && !is_string($value["answer"]))
+        {
+            $value["answer"] = json_encode($value["answer"]);
+        }
         $this->table(AskTable::TABLE)->update($value, array("id_ask"=>$apirequest->params->id_ask->value));
 
         $job = $this->sm->get('QueueService')->createJob('ask', array("id_ask"=>$apirequest->params->id_ask->value));
@@ -110,6 +119,14 @@ class AskTable extends CoreTable
                 return $item["type"];
             }, $result->toArray());
    }
+     /**
+     * @ghost\Param(name="id_ask", required=true,requirements="\d+")
+     * @return JsonModel
+     */
+   public function getAskByIDAPI($user, $apirequest)
+   {
+        return $this->getAskByID($apirequest->params->id_ask->value);
+   }
    public function getAskByID($id_ask)
    {
         $request =  $this->select(array("ask"=>AskTable::TABLE))
@@ -117,7 +134,15 @@ class AskTable extends CoreTable
         ->where(array("id_ask"=>$id_ask));
         $result = $this->execute($request);
         $result = $result->current();
-        return $result === False?NULL:$result;
+        if($result === False)
+        {
+            return NULL;
+        }
+        if(isset($result["answer"]))
+        {
+            $result["answer"] = json_decode($result["answer"], True);
+        }
+        return $result;
    }
    public function getAll($user, $apirequest)
    {
@@ -158,6 +183,10 @@ class AskTable extends CoreTable
                         unset($item["customdata"]);
                     }
                     $item["req"] = str_replace(":id",$item["id_external_ask"],$item["request"]);
+                }
+                if(isset($item["answer"]))
+                {
+                    $item["answer"] = json_decode($item["answer"], True);
                 }
                 unset($item["request"]);
                 unset($item["array"]);
