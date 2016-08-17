@@ -521,13 +521,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $result = new ResultListModel();
         $data   = [];
 
-        foreach ($job->openings as $opening)
+        if (true === is_array($job->openings))
         {
-            $model = new GreenhouseJobPositionModel();
+            foreach ($job->openings as $opening)
+            {
+                $model = new GreenhouseJobPositionModel();
 
-            $model->exchangeArray( $opening );
+                $model->exchangeArray( $opening );
 
-            $data[] = $model;
+                $data[] = $model;
+            }
         }
 
         $result->setContent($data);
