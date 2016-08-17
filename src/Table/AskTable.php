@@ -22,6 +22,7 @@ class AskTable extends CoreTable
 
     const TABLE = "ask";
     const TABLE_TYPE = "ask_type";
+    const TABLE_REQUEST = "ask_type_request";
    
    public function ask($data)
    {    
@@ -68,6 +69,7 @@ class AskTable extends CoreTable
         }
         return $this->ask($value);
    }
+
    public function answer($id_ask, $answer)
    {
         $keys = array("answer", "id_external_answer", "id_user");
@@ -127,6 +129,28 @@ class AskTable extends CoreTable
    {
         return $this->getAskByID($apirequest->params->id_ask->value);
    }
+    /**
+     * @ghost\Param(name="id_external", required=true,requirements="\d+")
+     * @ghost\Param(name="type", required=true)
+     * @return JsonModel
+     */
+   public function getAskByExternalID($user, $apirequest)
+   {
+        $request =  $this->select(array("ask"=>AskTable::TABLE))
+        ->join(array("type"=>AskTable::TABLE_TYPE), "type.id_ask_type = ask.id_ask_type", array("type"))
+        ->where(array("type.type"=>$apirequest->params->type->value, "ask.id_external_ask"=>$apirequest->params->id_external->value));
+        $result = $this->execute($request);
+        $result = $result->current();
+        if($result === False)
+        {
+            return NULL;
+        }
+        if(isset($result["answer"]))
+        {
+            $result["answer"] = json_decode($result["answer"], True);
+        }
+        return $result;
+   }
    public function getAskByID($id_ask)
    {
         $request =  $this->select(array("ask"=>AskTable::TABLE))
@@ -147,7 +171,7 @@ class AskTable extends CoreTable
    public function getAll($user, $apirequest)
    {
         $request = $this->select(array("ask"=>AskTable::TABLE))
-        ->join(array("type"=>AskTable::TABLE_TYPE), "type.id_ask_type = ask.id_ask_type", array("type","request","array"));
+        ->join(array("type"=>AskTable::TABLE_TYPE), "type.id_ask_type = ask.id_ask_type", array("type"));
         $where = NULL;
         if($apirequest->params->non_answered->value === True)
         {
@@ -174,15 +198,19 @@ class AskTable extends CoreTable
 
         return array_map(function($item)
             {
-                if(isset($item["id_external_ask"]) && isset($item["request"]))
+                if(isset($item["id_external_ask"]))
                 {
-                    $result = $this->execute(str_replace(":id",$item["id_external_ask"],$item["request"]));
-                    $item["customdata"] = $item["array"] == 1 ? $result->toArray():$result->current();
-                    if(empty($item["customdata"]) || $item["customdata"] === False)
+                    $requests = $this->table(AskTable::TABLE_REQUEST)->select(["id_ask_type"=>$item["id_ask_type"]]);
+                    $requests = $requests->toArray();
+                    foreach($requests as $request)
                     {
-                        unset($item["customdata"]);
+                        $result = $this->execute(str_replace(":id",$item["id_external_ask"],$request["request"]));
+                        $item[$request["name"]] = $request["array"] == 1 ? $result->toArray():$result->current();
+                        if(empty($item[$request["name"]]) || $item[$request["name"]] === False)
+                        {
+                            unset($item[$request["name"]]);
+                        }
                     }
-                    $item["req"] = str_replace(":id",$item["id_external_ask"],$item["request"]);
                 }
                 if(isset($item["answer"]))
                 {
