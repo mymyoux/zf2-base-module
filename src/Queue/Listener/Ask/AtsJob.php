@@ -42,12 +42,8 @@ class AtsJob extends ListenerAbstract implements ListenerInterface
 
             if(isset($ats_job["id_job"]))
             {
-                dd("ok");
-                /*$jobs = $this->getSearchJobTable()->getByJobIDAndUser($ats_job["id_job"], NULL);
-                dd($jobs);*/
-                $this->api->jobController->module("company")->post()->deleteforce(["id_job"=>$ats_job["id_job"]]);
+                $this->api->job->module("company")->user($admin)->post()->deleteforce(["id_job"=>$ats_job["id_job"]]);
             }
-            dd("refused");
         }else
         {
             $ats            = $this->sm->get('AtsTable')->getById( $ats_job['id_ats'] );
@@ -72,8 +68,6 @@ class AtsJob extends ListenerAbstract implements ListenerInterface
                 "is_valid"              => 1,
                 "is_title_auto_valid"   => $data["answer"]["explicit"]
             ]);
-
-            dd("accepted");
         }
     }
     protected function getNotifications()
