@@ -521,13 +521,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $result = new ResultListModel();
         $data   = [];
 
-        foreach ($job->openings as $opening)
+        if (true === is_array($job->openings))
         {
-            $model = new GreenhouseJobPositionModel();
+            foreach ($job->openings as $opening)
+            {
+                $model = new GreenhouseJobPositionModel();
 
-            $model->exchangeArray( $opening );
+                $model->exchangeArray( $opening );
 
-            $data[] = $model;
+                $data[] = $model;
+            }
         }
 
         $result->setContent($data);
@@ -696,17 +699,21 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobId( $id_ats_candidate )
     {
-        $state  = null;
-        $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
+        $state          = null;
+        $job_id         = null;
+        $application_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
 
-        if (null !== $job_id)
+        if (null !== $application_id)
         {
-            $application    = $this->get('applications/' . $job_id, true);
+            $application    = $this->get('applications/' . $application_id, true);
 
             if (null !== $application->current_stage)
             {
-                $state = $application->current_stage['name'];
+                $state  = $application->current_stage['name'];
             }
+
+            if (is_array($application->jobs) && count($application->jobs) > 0)
+                $job_id = $application->jobs[0]['id'];
         }
 
         return [$job_id, $state];
