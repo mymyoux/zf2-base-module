@@ -51,8 +51,6 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
      */
     public function execute(\Zend\Db\Sql\PreparableSqlInterface $query, $parameters = NULL)
     {
-
-
         $statement = $this->getSql()->prepareStatementForSqlObject($query);
         return $statement->execute($parameters);
     }

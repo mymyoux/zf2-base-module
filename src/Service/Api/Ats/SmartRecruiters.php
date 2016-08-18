@@ -589,7 +589,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath = ROOT_PATH . '/public/' . $picture;
         else
-            $filepath = 'https://app.yborder.com' . $picture;
+            $filepath = 'http://ats.yborder.com' . $picture;
 
         if (php_sapi_name() === 'cli')
             echo 'filepath : ' . $filepath . PHP_EOL;
@@ -615,12 +615,12 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath = ROOT_PATH . $pdf_link;
+        if (true === file_exists(ROOT_PATH . '/' . $pdf_link))
+            $filepath = ROOT_PATH . '/' . $pdf_link;
         else
         {
             $pdf_link   = str_replace('public/', '', $pdf_link);
-            $filepath = 'https://app.yborder.com/' . $pdf_link;
+            $filepath = 'http://ats.yborder.com/' . $pdf_link;
         }
 
         if (php_sapi_name() === 'cli')

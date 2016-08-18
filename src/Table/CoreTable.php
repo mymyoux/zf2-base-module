@@ -178,7 +178,25 @@ class CoreTable extends \Core\Service\CoreService
         }
         return $this->sql->delete($name);
     }
-    public function execute($request)
+    protected function preparePlaceholders($param)
+    {
+        if(!is_array($param))
+        {
+            return "?";
+        }
+        $count = sizeof($param);
+        if(!$count)
+        {
+            return "";
+        }
+        $string = "?";
+        for($i=1; $i<$count; $i++)
+        {
+            $string.=",?";
+        }   
+        return $string;
+    }
+    public function execute($request, $parameters = NULL)
     {
         if(is_string($request))
         {
@@ -190,7 +208,25 @@ class CoreTable extends \Core\Service\CoreService
 
         try
         {
-            $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+            //string + parameters
+            if(isset($parameters))
+            {
+                /*
+                $formatted = [];
+                foreach($parameters as $param)
+                {
+                    if(!is_array($param))
+                    {
+                        $formatted[] = $param;
+                        continue;
+                    }
+
+                }*/
+                $results = $this->db->query($strRequest, $parameters);
+            }else
+            {
+                $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+            }
         }
         catch (\Exception $e)
         {
@@ -272,6 +308,29 @@ class CoreTable extends \Core\Service\CoreService
         $this->_log('connect failed');
 
         return false;
+    }
+    public function cut($data, $keys)
+    {
+        return array_map(function($item) use($keys)
+            {
+                foreach($item as $key=>$value)
+                {
+                    $subkeys = explode("_", $key);
+                    if(in_array($subkeys[0], $keys))
+                    {
+                        if(isset($value))
+                        {
+                            if(!isset($item[$subkeys[0]]))
+                            {
+                                $item[$subkeys[0]] = [];
+                            }
+                            $item[$subkeys[0]][implode("_", array_splice($subkeys, 1))] = $value;
+                        }
+                        unset($item[$key]);
+                    }
+                }
+                return $item;
+            }, is_array($data)?$data:$data->toArray());
     }
 
     public function getList($where = NULL, $page=0, $count=10)
