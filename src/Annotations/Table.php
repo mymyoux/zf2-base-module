@@ -15,7 +15,7 @@ class TableObject extends CoreObject
      */
     public $method;
       /**
-     * @var string
+     * @var boolean
      */
     public $useDoc = True;
 
@@ -59,7 +59,7 @@ class Table extends CoreAnnotation
     public $method;
 
     /**
-     * @var string
+     * @var boolean
      */
     public $useDoc = True;
 

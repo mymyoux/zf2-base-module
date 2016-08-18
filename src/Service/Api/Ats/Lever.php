@@ -105,7 +105,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         usleep(500000);
 
         // The username is your Lever API token and the password should be blank
-        $path   = 'https://api.sandbox.lever.co/v1/';
+        $path   = 'https://api.' . $this->config['url'] . '/v' . $this->config['api_version'] . '/';
         $auth   = 'Basic ' . base64_encode($this->access_token . ':');
 
         try
@@ -506,7 +506,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getUrlCandidate( $id )
     {
-        return 'https://hire.sandbox.lever.co/candidates/' . $id;
+        return 'https://' . $this->config['url'] . '/candidates/' . $id;
     }
 
     public function updateCandidateState($id_api, $state)
@@ -573,7 +573,7 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         if (true === file_exists(ROOT_PATH . '/public/' . $picture))
             $filepath_content   = ROOT_PATH . '/public/' . $picture;
         else
-            $filepath_content       = 'https://app.yborder.com' . $picture;
+            $filepath_content       = 'http://ats.yborder.com' . $picture;
 
         if (php_sapi_name() === 'cli')
             echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
@@ -610,12 +610,12 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
     {
         $candidate  = $this->getCandidateAtsByAPIID($id_api);
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath_content = ROOT_PATH . $pdf_link;
+        if (true === file_exists(ROOT_PATH . '/' . $pdf_link))
+            $filepath_content = ROOT_PATH . '/' . $pdf_link;
         else
         {
             $pdf_link           = str_replace('public/', '', $pdf_link);
-            $filepath_content   = 'https://app.yborder.com/' . $pdf_link;
+            $filepath_content   = 'http://ats.yborder.com/' . $pdf_link;
         }
 
         if (php_sapi_name() === 'cli')
@@ -696,8 +696,8 @@ class Lever extends AbstractAts implements ServiceLocatorAwareInterface
         }
         else if (null !== $job_id)
         {
-            var_dump($stage);
-            $state              = $stage[ $job_id ];
+            $stages    = $this->getStages();
+            $state     = $stages[ $stage ];
         }
 
         return [$job_id, $state];

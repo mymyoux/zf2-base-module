@@ -119,8 +119,8 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     {
         // https://developers.greenhouse.io/harvest.html#throttling
         // API requests are limited to 40 calls per 10 seconds
-        // 300 ms sleep
-        usleep(300000);
+        // 500 ms sleep
+        usleep(500000);
 
         if (true === $is_harvest)
         {
@@ -179,10 +179,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new GreenHouseException((isset($error->message) ? $error->message : $e_message), $e_code);
+                $error_message = (isset($error->message) ? $error->message : $e_message);
 
-                $id_error = $this->sm->get('ErrorTable')->logError($e);
-                $this->sm->get('Log')->error($e->getMessage());
+                $e = new GreenHouseException($error_message, $e_code);
+
+                if ($error_message === 'Resource not found')
+                    $id_error = null;
+                else
+                    $id_error = $this->sm->get('ErrorTable')->logError($e);
+
+                $this->sm->get('Log')->error((isset($error->message) ? $error->message : $e_message));
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
@@ -515,13 +521,16 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
         $result = new ResultListModel();
         $data   = [];
 
-        foreach ($job->openings as $opening)
+        if (true === is_array($job->openings))
         {
-            $model = new GreenhouseJobPositionModel();
+            foreach ($job->openings as $opening)
+            {
+                $model = new GreenhouseJobPositionModel();
 
-            $model->exchangeArray( $opening );
+                $model->exchangeArray( $opening );
 
-            $data[] = $model;
+                $data[] = $model;
+            }
         }
 
         $result->setContent($data);
@@ -632,16 +641,11 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
         // upload the RESUME
-        if (true === file_exists(ROOT_PATH . $pdf_link))
-            $filepath_content = ROOT_PATH . $pdf_link;
-        else
-        {
-            $pdf_link   = str_replace('public/', '', $pdf_link);
-            $filepath_url = 'https://app.yborder.com/' . $pdf_link;
-        }
+        $pdf_link   = str_replace('public/', '', $pdf_link);
+        $filepath_url = 'http://ats.yborder.com/' . $pdf_link;
 
         if (php_sapi_name() === 'cli')
-            echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
+            echo 'filepath : ' . $filepath_url . PHP_EOL;
 
         $params = [
             'type'      => 'resume',
@@ -649,14 +653,7 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
             'filename'  => $id_api . '_resume_yborder.pdf'
         ];
 
-        if (isset($filepath_content))
-        {
-            $params['content'] = new PostFile('file', file_get_contents($filepath_content));
-        }
-        else
-        {
-            $params['url'] = $filepath_url;
-        }
+        $params['url'] = $filepath_url;
 
         try
         {
@@ -702,17 +699,21 @@ class GreenHouse extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobId( $id_ats_candidate )
     {
-        $state  = null;
-        $job_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
+        $state          = null;
+        $job_id         = null;
+        $application_id = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'application_ids_0');
 
-        if (null !== $job_id)
+        if (null !== $application_id)
         {
-            $application    = $this->get('applications/' . $job_id, true);
+            $application    = $this->get('applications/' . $application_id, true);
 
             if (null !== $application->current_stage)
             {
-                $state = $application->current_stage['name'];
+                $state  = $application->current_stage['name'];
             }
+
+            if (is_array($application->jobs) && count($application->jobs) > 0)
+                $job_id = $application->jobs[0]['id'];
         }
 
         return [$job_id, $state];

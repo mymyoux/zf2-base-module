@@ -97,6 +97,11 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $this->logMetric('critical', 1);
         $this->log($message, self::LOG_CRITICAL);
     }
+    public function fatal($message)
+    {
+        $this->critical($message);
+        exit();
+    }
 
     public function normal( $message )
     {
