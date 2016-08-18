@@ -9,6 +9,7 @@ use Core\Model\Ats\Api\ResultListModel;
 use GuzzleHttp\Post\PostFile;
 // use Application\Model\Ats\Lever\JobPositionModel as LeverJobPositionModel;
 // use Application\Model\Ats\Lever\HistoryModel as LeverHistoryModel;
+use Application\Model\Ats\Workable\CandidateModel as WorkableCandidateModel;
 
 
 class Workable extends AbstractAts implements ServiceLocatorAwareInterface
@@ -153,10 +154,10 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new WorkableException((isset($error->message) ? $error->message : $e_message), $e_code);
+                $e = new WorkableException((isset($error->error) ? $error->error : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
-                $this->sm->get('Log')->error($e->getMessage());
+                $this->sm->get('Log')->error((isset($error->error) ? $error->error : $e_message));
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
@@ -166,7 +167,7 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         }
         $data   = $data->json();
 
-        var_dump($data);
+        // var_dump($data);
         $found  = false;
 
         // log success
@@ -215,6 +216,8 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
                 $model->setServiceLocator( $sm );
                 if (isset($data[$ressource]))
                     $model->exchangeArray($data[$ressource]);
+                elseif ($ressource === 'candidates' && isset($data['candidate']))
+                    $model->exchangeArray($data['candidate']);
                 else
                     $model->exchangeArray($data);
 
@@ -258,12 +261,22 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function sendMessage( $id_api_candidate, $content, $share_with_everyone = false)
     {
-        // $candidate  = $this->getCandidateAtsByAPIID($id_api_candidate);
+        $candidate  = $this->getCandidateAtsByAPIID($id_api_candidate);
 
-        // if (null === $candidate) return null;
+        if (null === $candidate) return null;
         // // get old content messages
         // $history = $this->getLogMessageHistory( $id_api_candidate );
 
+        // get email
+        $email = $this->sm->get('AtsCandidateTable')->getValue($candidate['id_ats_candidate'], 'outbound_mailbox');
+        if (empty($email))
+        {
+            var_dump('email blank ' . $candidate['id_ats_candidate'] );
+            return null;
+        }
+        var_dump($content, $email);
+
+        $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $email);
         // $query = [
         //     'perform_as'    => $this->ats_user->id_lever,
         //     'dedupe'        => "true"
@@ -526,6 +539,17 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
             $data   = $this->get($api_ressource, $params);
 
+            foreach ($data['candidates'] as &$candidate)
+            {
+                $full_candidate = $this->get('jobs/' . $shortcode . '/candidates/' . $candidate->id, []);
+                $full_model     = new WorkableCandidateModel();
+
+                $full_model->exchangeArray($full_candidate['candidate']);
+                $full_model->setServiceLocator( $this->sm );
+
+                $candidate = $full_model;
+            }
+
             $candidates = array_merge($candidates, $data['candidates']);
 
             if (count($data['candidates']) > 0)
@@ -697,42 +721,29 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
     {
         $params             = $model->toAPI();
 
-        dd($params);
         // // update if same email address
-        // $query = [
-        //     'perform_as'    => $this->ats_user->id_lever,
-        //     'dedupe'        => "true"
-        // ];
+        $query = [
+            // 'perform_as'    => $this->ats_user->id_lever,
+            // 'dedupe'        => "true"
+        ];
 
-        // return $this->request('POST', 'candidates', ['query' => $query, 'json' => $params]);
+        // var_dump($params);
+        $shortcode = $model->getYBJobID();
+        // var_dump($shortcode);
+        if (null !== $shortcode)
+            return $this->request('POST', 'jobs/' . $shortcode . '/candidates', ['query' => $query, 'json' => ['sourced' => true, 'candidate' => $params]]);
+
+        return null;
     }
 
     public function updateCandidate( $model )
     {
-        // return $this->createCandidate($model);
+        return $model;//return $this->createCandidate($model);
     }
 
     public function addCandidateQualification( $model )
     {
-        // $candidate  = $this->getCandidateAtsByAPIID($model->id);
-        // $data       = $model->getQualification();
-
-        // $query = [
-        //     'perform_as'    => $this->ats_user->id_lever,
-        //     'dedupe'        => "true"
-        // ];
-
-        // $body = [
-        //     'files[]'       => new PostFile('files[0]', $data, 'qualification.txt'),
-        //     'emails'        => [
-        //         self::formatCandidate($candidate['token'])
-        //     ]
-        // ];
-
-        // $json = [
-        // ];
-
-        // return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
+        // do nothing here
     }
 
     public function getJobId( $id_ats_candidate )
