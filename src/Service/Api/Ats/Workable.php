@@ -264,8 +264,6 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         $candidate  = $this->getCandidateAtsByAPIID($id_api_candidate);
 
         if (null === $candidate) return null;
-        // // get old content messages
-        // $history = $this->getLogMessageHistory( $id_api_candidate );
 
         // get email
         $email = $this->sm->get('AtsCandidateTable')->getValue($candidate['id_ats_candidate'], 'outbound_mailbox');
@@ -277,24 +275,6 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         var_dump($content, $email);
 
         $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $email);
-        // $query = [
-        //     'perform_as'    => $this->ats_user->id_lever,
-        //     'dedupe'        => "true"
-        // ];
-
-        // $body = [
-        //     'files[]'       => new PostFile('files[0]',  date('Y-m-d H:i:s') . PHP_EOL . $content . PHP_EOL . PHP_EOL . $history, 'yborder_actions.txt'),
-        //     'emails'        => [
-        //         self::formatCandidate($candidate['token'])
-        //     ]
-        // ];
-
-        // $json = [
-        // ];
-
-        // $this->logSendMessage($id_api_candidate, $content);
-
-        // return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
     }
 
     public function getCandidateState( $id_api_candidate )
@@ -368,9 +348,9 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function askInTouch( $id_api_candidate )
     {
-        // $content = 'A contact request has been sent.';
+        $content = 'A contact request has been sent.';
 
-        // return $this->sendMessage( $id_api_candidate, $content, true );
+        return $this->sendMessage( $id_api_candidate, $content, true );
     }
 
     public function searchCompany( $query )
@@ -719,17 +699,10 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function createCandidate( $model )
     {
-        $params             = $model->toAPI();
+        $params     = $model->toAPI();
+        $query      = [];
+        $shortcode  = $model->getYBJobID();
 
-        // // update if same email address
-        $query = [
-            // 'perform_as'    => $this->ats_user->id_lever,
-            // 'dedupe'        => "true"
-        ];
-
-        // var_dump($params);
-        $shortcode = $model->getYBJobID();
-        // var_dump($shortcode);
         if (null !== $shortcode)
             return $this->request('POST', 'jobs/' . $shortcode . '/candidates', ['query' => $query, 'json' => ['sourced' => true, 'candidate' => $params]]);
 
@@ -738,7 +711,9 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function updateCandidate( $model )
     {
-        return $model;//return $this->createCandidate($model);
+        // normal, no update
+        // for now ?
+        return $model;
     }
 
     public function addCandidateQualification( $model )
@@ -767,46 +742,6 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         // return [$job_id, $state];
     }
 
-    private function getStages()
-    {
-        // if (isset($this->stages))
-        //     return $this->stages;
-
-        // $stages     = $this->get('stages', ['limit' => 100]);
-        // $data       = [];
-
-        // foreach ($stages['data'] as $stage)
-        // {
-        //     $data[ $stage['id'] ] = $stage['text'];
-        // }
-
-        // $this->stages = $data;
-
-        // return $data;
-    }
-
-    private function getArchiveReasons()
-    {
-        // if (isset($this->archive_reasons))
-        //     return $this->archive_reasons;
-
-        // $archive_reasons     = $this->get('archive_reasons', ['limit' => 100]);
-        // $data       = [];
-
-        // foreach ($archive_reasons['data'] as $archive_reason)
-        // {
-        //     $data[ $archive_reason['id'] ] = $archive_reason['text'];
-        // }
-
-        // $this->archive_reasons = $data;
-
-        // return $data;
-    }
-
-    static public function formatCandidate( $data )
-    {
-        // return 'candidate+' . $data . '@mobiskill.fr';
-    }
 }
 
 class WorkableException extends Exception
