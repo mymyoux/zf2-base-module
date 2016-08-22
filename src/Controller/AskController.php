@@ -38,6 +38,12 @@ class AskController extends FrontController
     public function getByIdAPIGET()
     {
     }
+    /**
+    * @ghost\Table(method="getAskByExternalID",useDoc=true)
+    */
+    public function getByExternalIdAPIGET()
+    {
+    }
      /**
      * /ask/gettypes [GET]
      * @ghost\Table(method="getAllTypes")
