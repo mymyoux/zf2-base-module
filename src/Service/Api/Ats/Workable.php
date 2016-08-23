@@ -32,8 +32,8 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         $this->client           = new \GuzzleHttp\Client();
 
         $this->models           = [
-            'jobs(\/[^\/]+){0,1}$'          => '\Application\Model\Ats\Workable\JobModel',
-            'candidates$'    => '\Application\Model\Ats\Workable\CandidateModel',
+            'jobs(\/[^\/]+){0,1}$'  => '\Application\Model\Ats\Workable\JobModel',
+            'candidates$'           => '\Application\Model\Ats\Workable\CandidateModel',
         ];
     }
 
@@ -272,30 +272,19 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
             var_dump('email blank ' . $candidate['id_ats_candidate'] );
             return null;
         }
-        var_dump($content, $email);
 
-        $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $email);
+        // $email = 'YBorder <' . $email . '>';
+        var_dump($content, $email);
+        $sender = 'candidate+' . $candidate['token'] . '@yborder.com';
+        $this->sm->get("Email")->sendRaw(['inbox', 'message', 'new'], $content, $email, $sender);
     }
 
     public function getCandidateState( $id_api_candidate )
     {
-        // $candidate          = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
-        // $state              = null;
-        // $archive_reason     = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'archived_reason');
-        // $stage              = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'stage');
-        // $job_id             = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'applications_0');
+        $candidate              = $this->sm->get('AtsCandidateTable')->getByAPIID( $id_api_candidate, $this->ats['id_ats'] );
+        list($id_job, $state)   = $this->getJobId( $candidate['id_ats_candidate'] );
 
-        // if (null !== $archive_reason)
-        // {
-        //     $archive_reasons    = $this->getArchiveReasons();
-        //     $state              = $archive_reasons[ $archive_reason ];
-        // }
-        // else if (null !== $job_id)
-        // {
-        //     $state              = $stages[ $job_id ];
-        // }
-
-        // return $state;
+        return $state;
     }
 
     public function getCandidateHistory( $candidate )
@@ -311,39 +300,6 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
         $result->setTotalFound(1);
 
         return $result;
-
-        dd($candidate->toArray());
-        // return $result;
-        // $histories          = [];
-        // $stages             = $this->getStages();
-        // $archive_reasons    = $this->getArchiveReasons();
-
-        // foreach ($candidate->stageChanges as $stage)
-        // {
-        //     $model = new LeverHistoryModel();
-
-        //     $stage['status'] = $stages[ $stage['toStageId'] ];
-        //     $model->exchangeArray( $stage );
-
-        //     $histories[] = $model;
-        // }
-
-        // if (isset($candidate->archived) && isset($candidate->archived['reason']))
-        // {
-        //     $model = new LeverHistoryModel();
-
-        //     $stage['status'] = $archive_reasons[ $candidate->archived['reason'] ];
-        //     $model->exchangeArray( $stage );
-
-        //     $histories[] = $model;
-        // }
-
-        // $result = new ResultListModel();
-
-        // $result->setContent($histories);
-        // $result->setTotalFound(count($histories));
-
-        // return $result;
     }
 
     public function askInTouch( $id_api_candidate )
@@ -458,12 +414,12 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function isCandidateHired( $state )
     {
-        // return $state === 'Hired';
+        return $state === 'Hired';
     }
 
     public function isCandidateProcessClose( $state )
     {
-        // return true === in_array($state, ['Underqualified', 'Unresponsive', 'Timing', 'Withdrew', 'Offer declined', 'Position closed']);
+        return true === in_array($state, ['Disqualified']);
     }
 
     public function getCandidates( $offset, $limit, $result_list = null )
@@ -514,7 +470,8 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
                 if (null === $result_list && !$ressource->can_fetch)
                     continue;//return new ResultListModel();
 
-                $params['updated_at_start'] = strtotime( $ressource->last_fetch_time );
+                // $params['updated_after'] = strtotime( $ressource->last_fetch_time );
+                // $params['updated_after'] = strtotime( '-2 hours' );
             }
 
             $data   = $this->get($api_ressource, $params);
@@ -566,6 +523,8 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function updateCandidateState($id_api, $state)
     {
+        // send message, rejected or whatever :)
+
         // $query  = [
         //     'perform_as'    => $this->ats_user->id_lever
         // ];
@@ -623,78 +582,12 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function uploadCandidatePicture( $id_api, $picture )
     {
-        // $candidate  = $this->getCandidateAtsByAPIID($id_api);
-
-        // if (true === file_exists(ROOT_PATH . '/public/' . $picture))
-        //     $filepath_content   = ROOT_PATH . '/public/' . $picture;
-        // else
-        //     $filepath_content       = 'https://app.yborder.com' . $picture;
-
-        // if (php_sapi_name() === 'cli')
-        //     echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
-
-        // $query = [
-        //     'perform_as'    => $this->ats_user->id_lever,
-        //     'dedupe'        => "true"
-        // ];
-
-        // $body = [
-        //     'files[]'       => new PostFile('files[0]', file_get_contents($filepath_content), 'picture.jpg'),
-        //     'emails'        => [
-        //         self::formatCandidate($candidate['token'])
-        //     ]
-        // ];
-
-        // $json = [
-        // ];
-
-        // try
-        // {
-        //     $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
-        // }
-        // catch (\Exception $e)
-        // {
-        //     // if error : do nothing. Reason : Same image so do not need to update.
-        //     return false;
-        // }
-
-        // return true;
+        // do nothing
     }
 
     public function uploadCandidateResume( $id_api, $pdf_link )
     {
-        // $candidate  = $this->getCandidateAtsByAPIID($id_api);
-        // // upload the RESUME
-        // if (true === file_exists(ROOT_PATH . $pdf_link))
-        //     $filepath_content = ROOT_PATH . $pdf_link;
-        // else
-        // {
-        //     $pdf_link           = str_replace('public/', '', $pdf_link);
-        //     $filepath_content   = 'https://app.yborder.com/' . $pdf_link;
-        // }
-
-        // if (php_sapi_name() === 'cli')
-        //     echo 'filepath : ' . (isset($filepath_content) ? $filepath_content : $filepath_url) . PHP_EOL;
-
-        // $query = [
-        //     'perform_as'    => $this->ats_user->id_lever,
-        //     'dedupe'        => "true"
-        // ];
-
-        // $body = [
-        //     'resumeFile'    => new PostFile('resumeFile', file_get_contents($filepath_content), 'resume.pdf'),
-        //     'emails'        => [
-        //         self::formatCandidate($candidate['token'])
-        //     ]
-        // ];
-
-        // $json = [
-        //     'emails'        => [
-        //         self::formatCandidate($candidate['token'])
-        //     ]
-        // ];
-
-        // return $this->request('POST', 'candidates', ['query' => $query, 'json' => $json, 'body' => $body]);
+        // add link via mail ?
     }
 
     public function createCandidate( $model )
@@ -712,7 +605,6 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
     public function updateCandidate( $model )
     {
         // normal, no update
-        // for now ?
         return $model;
     }
 
@@ -723,23 +615,20 @@ class Workable extends AbstractAts implements ServiceLocatorAwareInterface
 
     public function getJobId( $id_ats_candidate )
     {
-        // $state              = null;
-        // $archive_reason     = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'archived_reason');
-        // $stage              = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'stage');
-        // $job_id             = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'applications_0');
+        $state              = null;
+        $shortcode          = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'job_shortcode');
+        $candidate_id       = $this->sm->get('AtsCandidateTable')->getValue($id_ats_candidate, 'id_candidate');
+        $full_candidate     = $this->get('jobs/' . $shortcode . '/candidates/' . $candidate_id, []);
 
-        // if (null !== $archive_reason)
-        // {
-        //     $archive_reasons    = $this->getArchiveReasons();
-        //     $state              = $archive_reasons[ $archive_reason ];
-        // }
-        // else if (null !== $job_id)
-        // {
-        //     var_dump($stage);
-        //     $state              = $stage[ $job_id ];
-        // }
+        if (isset($full_candidate['candidate']) && isset($full_candidate['candidate']['stage']))
+        {
+            $state = $full_candidate['candidate']['stage'];
 
-        // return [$job_id, $state];
+            if (true === $full_candidate['candidate']['disqualified'])
+                $state = 'Disqualified';
+        }
+
+        return [$shortcode, $state];
     }
 
 }
