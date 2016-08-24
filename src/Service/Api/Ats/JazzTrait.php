@@ -139,6 +139,8 @@ Trait JazzTrait
         // var_dump($data);
         $found  = false;
 
+        $ressource = preg_replace('/\/page\/[0-9]+/', '', $ressource);
+
         // log success
         $this->logApiCall($method, $ressource, $params, true, $data);
 
@@ -159,36 +161,31 @@ Trait JazzTrait
             $tmp_ressource = explode('/', $ressource);
             $ressource = end($tmp_ressource);
 
-            if (isset($data[$ressource]) && is_array($data[$ressource]))
+            if (is_array($data))
             {
                 $is_content = true;
-                foreach ($data[$ressource] as $key => $d)
+                foreach ($data as $key => $d)
                     if (!is_numeric($key))
                         $is_content = false;
             }
 
             if (true === $is_content)
             {
-                $data[$ressource] = array_map(function($item) use ($modelClass, $sm){
+                $data = array_map(function($item) use ($modelClass, $sm){
                     $model = new $modelClass();
 
                     $model->setServiceLocator( $sm );
                     $model->exchangeArray($item);
 
                     return $model;
-                }, $data[$ressource]);
+                }, $data);
             }
             else
             {
                 $model = new $modelClass();
 
                 $model->setServiceLocator( $sm );
-                if (isset($data[$ressource]))
-                    $model->exchangeArray($data[$ressource]);
-                elseif ($ressource === 'candidates' && isset($data['candidate']))
-                    $model->exchangeArray($data['candidate']);
-                else
-                    $model->exchangeArray($data);
+                $model->exchangeArray($data);
 
                 $data = $model;
             }
