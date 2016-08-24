@@ -8,9 +8,11 @@
 
 namespace Core\Service\Api;
 use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-abstract class AbstractAts extends AbstractAPI
+abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInterface
 {
+    protected $client;
     protected $ats_user = null;
 
 	public function typeAuthorize()
@@ -32,10 +34,16 @@ abstract class AbstractAts extends AbstractAPI
         }
     }
 
+    public function getUser()
+    {
+        return $this->user;
+    }
+
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
         $this->sm = $serviceLocator;
 
+        $this->client   = new \GuzzleHttp\Client();
         $this->init();
     }
 
