@@ -97,6 +97,7 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
      * @param  string   $ressource    Ressource name (ie: /candidates, /jobs ...)
      * @param  array    $params       Params used for the call
      * @param  boolean  $success      True if the call succeded
+     * @param  boolean  $success      True if the call succeded
      * @param  array    $result       Raw result
      * @param  integer  $id_error     ID of the error
      * @return void
