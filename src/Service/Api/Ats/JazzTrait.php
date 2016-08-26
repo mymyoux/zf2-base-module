@@ -89,13 +89,19 @@ Trait JazzTrait
 
                 $params = $_params;
 
-                if (isset($params['query']))
+                switch ($method)
                 {
-                    $params['query']['apikey'] = $this->access_token;
+                    case 'POST': $key = 'json'; break;
+                    default: $key = 'query'; break;
+                }
+
+                if (isset($params[$key]))
+                {
+                    $params[$key]['apikey'] = $this->access_token;
                 }
                 else
                 {
-                    $params['query'] = [
+                    $params[$key] = [
                         'apikey' => $this->access_token
                     ];
                 }
@@ -136,7 +142,7 @@ Trait JazzTrait
         }
         $data   = $data->json();
 
-        // var_dump($data);
+        var_dump($data);
         $found  = false;
 
         $ressource = preg_replace('/\/page\/[0-9]+/', '', $ressource);
