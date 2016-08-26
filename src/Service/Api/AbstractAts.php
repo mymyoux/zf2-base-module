@@ -94,7 +94,7 @@ abstract class AbstractAts extends AbstractAPI
         }
 
         $this->sm->get('AtsApiCallTable')->insertCall([
-            'id_user'   => (int) $this->ats_user->id_user,
+            'id_user'   => $id_user,
             'id_ats'    => (int) $this->ats['id_ats'],
             'ressource' => (string) $ressource,
             'method'    => (string) $method,
