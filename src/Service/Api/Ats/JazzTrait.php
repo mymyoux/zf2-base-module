@@ -142,7 +142,6 @@ Trait JazzTrait
         }
         $data   = $data->json();
 
-        var_dump($data);
         $found  = false;
 
         $ressource = preg_replace('/\/page\/[0-9]+/', '', $ressource);
