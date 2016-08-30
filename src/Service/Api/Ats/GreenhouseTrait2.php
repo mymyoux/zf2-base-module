@@ -4,7 +4,7 @@ namespace Core\Service\Api\Ats;
 
 use Zend\Http\Request;
 
-trait GreenHouseTrait
+trait GreenhouseTrait
 {
     protected $harvest_key;
 
