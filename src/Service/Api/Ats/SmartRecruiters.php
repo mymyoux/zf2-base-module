@@ -187,11 +187,23 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 }
                 catch (\Exception $ee)
                 {
+                    // invalid access token
+                    if (null !== $this->ats_user)
+                    {
+                        $this->sm->get('UserTable')->updateNetworkByUser( 'smartrecruiters', $this->ats_user->id_user, [
+                            'access_token'  => null,
+                            'refresh_token' => null
+                        ] );
+                    }
                     throw $e;
                 }
             }
             else
             {
+                if (401 === $e->getCode() && true === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
+                {
+                    // invalid access token
+                }
                 throw $e;
             }
         }
