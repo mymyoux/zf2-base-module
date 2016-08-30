@@ -154,6 +154,14 @@ trait SmartRecruitersTrait
                 }
                 catch (\Exception $ee)
                 {
+                    // invalid access token
+                    if (null !== $this->ats_user)
+                    {
+                        $this->sm->get('UserTable')->updateNetworkByUser( 'smartrecruiters', $this->ats_user->id_user, [
+                            'access_token'  => null,
+                            'refresh_token' => null
+                        ] );
+                    }
                     throw $e;
                 }
             }
