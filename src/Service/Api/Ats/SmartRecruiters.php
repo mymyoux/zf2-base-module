@@ -19,6 +19,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
     private $refresh_token;
 
     private $has_refresh = false;
+    protected $user;
 
     public function __construct($consumer_key, $consumer_secret)
     {
@@ -125,6 +126,8 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
 
             $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
+            // throw new Exception("Client error response [url] aaaa [status code] 401 [reason phrase] No access to feature: Customer API", 401);
+
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
 
             $this->logRessource( $method, $ressource );
@@ -155,7 +158,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 throw $e;
             }
 
-            if (401 === $e->getCode() && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
+            if (401 === $e->getCode() && $e->getMessage() !== 'No access to feature: Customer API' && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
             {
                 $this->has_refresh = true;
                 // no authorize, try to refresh
@@ -305,7 +308,7 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
         }
         catch( \Exception $e )
         {
-            return NULL;
+            throw $e;
         }
 
         return NULL;
