@@ -76,7 +76,12 @@ class Job implements ServiceLocatorAwareInterface {
             }
             if (false === class_exists($object_name))
             {
-                throw new \Exception('Class `' . $object_name . '` not exist', 1);
+                $this->sm->get('Module')->lightLoad('Admin');
+                $this->sm->get('Module')->fullLoad('Admin');
+                $object_name = '\\Admin\Queue\Listener\\' . $classname;
+
+                if (false === class_exists($object_name))
+                    throw new \Exception('Class `' . $object_name . '` not exist', 1);
             }
             $listener = new $object_name;
 
