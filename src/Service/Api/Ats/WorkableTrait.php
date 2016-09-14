@@ -116,7 +116,8 @@ Trait WorkableTrait
             if (count($matches) > 0)
             {
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
-                $e = new WorkableException((isset($error->error) ? $error->error : $e_message), $e_code);
+
+                $e = new WorkableException((isset($error->error) && is_string($error->error) ? $error->error : $e_message), $e_code);
 
                 $id_error = $this->sm->get('ErrorTable')->logError($e);
                 $this->sm->get('Log')->error((isset($error->error) ? $error->error : $e_message));
