@@ -48,9 +48,21 @@ class Request implements ServiceLocatorAwareInterface
 
     public $fromFront = False;
 
+    private $api_data = [];
+
     public function isFromFront()
     {
         return $this->fromFront;
+    }
+
+    public function addAPIData($key, $value)
+    {
+        $this->api_data[ $key ] = $value;
+    }
+
+    public function getAPIData()
+    {
+        return $this->api_data;
     }
 
     public function setGivenParams($givenparams)
