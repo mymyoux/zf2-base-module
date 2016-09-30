@@ -148,7 +148,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $this->sm->get("Module")->lightLoad($module);
               //TODO: mediumLoad ? (full without routes?)
-              
+
         }
         $modules =  array_reverse($modules);
         $controllerFound = False;
@@ -255,11 +255,11 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..
         //
-        
+
 
 
         //TODO:checkp our usertable
-            
+
         $keys = array();
         foreach($annotations as $annotation)
         {
@@ -452,6 +452,11 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 $apiRequest->paginate->exchangeResult($result[$result_name]);
             }*/
             $api_data->paginate = $apiRequest->paginate;
+        }
+
+        foreach ($apiRequest->getAPIData() as $key => $value)
+        {
+            $api_data->{ $key } = $value;
         }
         $formatted_result->api_data = $api_data;
         $formatted_result->request  = $this;
