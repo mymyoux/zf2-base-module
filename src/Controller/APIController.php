@@ -115,11 +115,14 @@ class APIController extends FrontController
         }
         catch(\Core\Exception\ApiException $e)
         {
-
             $view->setVariable("error", $e->getMessage());
             $view->setVariable("api_error", $e->getCleanErrorMessage());
             $view->setVariable("api_error_code", $e->getCode());
             $id_exception = $this->getErrorTable()->logError($e);
+
+            if ($e->getCleanErrorMessage() === \Core\Exception\ApiException::ERROR_NOT_ALLOWED)
+                $e->fatal = false;
+            $view->setVariable("fatal", $e->fatal);
             if($this->isLocal())
             {
                 $view->setVariable("api_error_stack", explode("\n", $e->getTraceAsString()));
@@ -182,6 +185,7 @@ class APIController extends FrontController
         {
             //silent
         }
+
         //dd((array)$view->getVariables()["data"]);
         return $view;
     }
