@@ -107,7 +107,7 @@ class MailTable extends CoreTable
       if(isset($apirequest->params->since->value))
        {
         $request = $request->where($request->where->greaterThan("mail.created_time", new Expression("FROM_UNIXTIME(?)", $apirequest->params->since->value)));
-       } 
+       }
        if(isset($apirequest->params->until->value))
        {
         $request = $request->where($request->where->lessThan("mail.created_time", new Expression("FROM_UNIXTIME(?)", $apirequest->params->until->value)));
@@ -139,6 +139,24 @@ class MailTable extends CoreTable
 
         if (!$data) return null;
         return $data;
+    }
+
+    public function mailIs( $id_mandrill, $action, $id_user )
+    {
+        $where = $this->select(self::TABLE_WEBHOOK)->where
+                    ->and->equalTo("id_user", (int) $id_user)
+                    ->and->equalTo("type", (string) $action)
+                    ->and->equalTo("id_mandrill", $id_mandrill);
+
+        $request = $this->select([ 'tp' => self::TABLE ])
+                    ->where( $where );
+
+        $result = $this->execute($request);
+
+        $data = $result->current();
+
+        if (!$data) return false;
+        return true;
     }
 
     public function getMailByTypeAndEmail( $type, $email )
