@@ -65,6 +65,14 @@ class APIController extends FrontController
             $reloaded_count = $params["_reloaded_count"];
             unset($params["_reloaded_count"]);
         }
+        if(isset($params["extension"]))
+        {
+            unset($params["extension"]);
+        }
+        if(isset($params["id_impersonate"]))
+        {
+            unset($params["id_impersonate"]);
+        }
 
         $call_token = NULL;
         if(isset($params["_id"]))
