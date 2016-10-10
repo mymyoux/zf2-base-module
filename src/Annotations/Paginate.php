@@ -398,6 +398,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         return !isset($this->next) && !isset($this->previous);
     }
 }
+/*
 class PaginateOrderConfig
 {
     protected $names;
@@ -421,7 +422,7 @@ class PaginateOrderConfig
     {
         return $this->order;
     }
-}
+}*/
 /**
  *
  * @Annotation
