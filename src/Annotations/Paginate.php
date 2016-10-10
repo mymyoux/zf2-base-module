@@ -3,6 +3,7 @@ namespace Core\Annotations;
 use Core\Exception\Exception;
 use Zend\Db\Sql\AbstractSql;
 use Zend\Db\Sql\Select;
+use Zend\Db\Sql\Expression;
 
 class PaginateObject extends CoreObject implements \JsonSerializable
 {
@@ -62,20 +63,27 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         {
             $this->key = $data["key"];
         }
-        if(!in_array($this->key, $this->allowed))
+        if(!is_array($this->key))
         {
-            throw new \Exception("paginate[key] not allowed");
-            return;
+            $this->key = [$this->key];
+        }
+        foreach($this->key as $key)
+        {
+            if(!in_array($key, $this->allowed))
+            {
+                throw new \Exception("paginate[key] not allowed => ".$key);
+                return;
+            }
         }
 
         //paginate
         if(isset($data["previous"]))
         {
-            $this->previous = strval($data["previous"]);
+            $this->previous = is_array($data["previous"])?array_map(function($item){ return  strval($item);}, $data["previous"]):[strval($data["previous"])];
         }
         if(isset($data["next"]))
         {
-            $this->next = strval($data["next"]);
+            $this->next = is_array($data["next"])?array_map(function($item){ return  strval($item);}, $data["next"]):[strval($data["next"])];
         }
         if(isset($this->previous) && isset($this->next))
         {
@@ -97,34 +105,44 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         //order
         if(isset($data["direction"]))
         {
-            if(!is_numeric($data["direction"]))
+            if(!is_array($data["direction"]))
             {
-                throw new \Exception("order[direction] should be numeric");
+                $data["direction"] = [$data["direction"]];
+            }
+            if(!is_numeric_array($data["direction"]))
+            {
+                throw new \Exception("order[direction] should be a numeric array");
                 return;
             }
-            $this->direction = intval($data["direction"]);
+            $this->direction = array_map(function($item){return intval($item);},$data["direction"]);
         }
 
 
 
     }
-    public function apply($request, $mapping = NULL)
+    public function apply($request, $mapping = NULL, $orderMapping = NULL)
     {
-        $key = $this->key;
+        $keys = $this->key;
         if(isset($mapping))
         {
-            if(is_array($mapping))
+            foreach($keys as $index=>$key)
             {
-                if(isset($mapping[$this->key]))
+                if(is_array($mapping))  
                 {
-                    $key = $mapping[$this->key];
+                    if(isset($mapping[$key]))
+                    {
+                        $key = $mapping[$key];
+                    }else
+                    {
+                        $key = $mapping[0].".".$key;
+                    }
+                }else
+                if(is_string($mapping))
+                {
+                    $key = $mapping.".".$key;
                 }
-            }else
-            if(is_string($mapping))
-            {
-                $key = $mapping.".".$this->key;
+                $keys[$index] = $key;
             }
-
         }
         /*
         if(isset($this->limit))
@@ -147,45 +165,94 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             {
                 $request = $request->limit($this->limit);
             }
+            $use_having = !empty($request->getRawState(Select::GROUP));
             if(isset($this->next))
             {
-                $use_having = !empty($request->getRawState(Select::GROUP));
+                foreach($keys as $index=>$key)
+                {
+                    if($index == 0)
+                    {
+                        if($use_having)
+                        {
+                            $where = $request->having;
+                        }else
+                        {
+                            $where = $request->where;
+                        }
+                     }else
+                     {
+                        $where = $where->or;
+                        $where = $where->nest;
+                     }
+                     $direction = $this->direction[$index];
+                    if($direction>0)
+                    {
+                        $where = $where->greaterThan($key, $this->next[$index]);
+                    }else
+                    {
+                        $where = $where->lessThan($key, $this->next[$index]);
+                    }
+
+                    for($i=0;$i<$index; $i++)
+                    {
+                        $where = $where->and;
+                        $where = $where->equalTo($keys[$i], $this->next[$i]);
+                    }
+                    if($index>0)
+                    {
+                        $where = $where->unnest;
+                    }
+                }
                 if($use_having)
                 {
-                    if($this->direction>0)
-                        $having = $request->having->greaterThan($key, $this->next);
-                    else
-                        $having = $request->having->lessThan($key, $this->next);
-                    $request = $request->having($having);
-
+                    $request = $request->having($where);
                 }else
                 {
-                    if($this->direction>0)
-                        $where = $request->where->greaterThan($key, $this->next);
-                    else
-                        $where = $request->where->lessThan($key, $this->next);
                     $request = $request->where($where);
                 }
             }
             if(isset($this->previous))
             {
+                foreach($keys as $index=>$key)
+                {
+                    if($index == 0)
+                    {
+                        if($use_having)
+                        {
+                            $where = $request->having;
+                        }else
+                        {
+                            $where = $request->where;
+                        }
+                     }else
+                     {
+                        $where = $where->or;
+                        $where = $where->nest;
+                     }
+                     $direction = $this->direction[$index];
+                    if($direction<0)
+                    {
+                        $where = $where->greaterThan($key, $this->previous[$index]);
+                    }else
+                    {
+                        $where = $where->lessThan($key, $this->previous[$index]);
+                    }
 
-                //$request = $request->where($where);
-
-                $use_having = !empty($request->getRawState(Select::GROUP));
+                    for($i=0;$i<$index; $i++)
+                    {
+                        $where = $where->and;
+                        $where = $where->equalTo($keys[$i], $this->previous[$i]);
+                    }
+                    if($index>0)
+                    {
+                        $where = $where->unnest;
+                    }
+                }
                 if($use_having)
                 {
-                    if($this->direction<0)
-                        $having = $request->having->greaterThan($key, $this->previous);
-                    else
-                        $having = $request->having->lessThan($key, $this->previous);
-                    $request = $request->having($having);
+                    $request = $request->having($where);
                 }else
                 {
-                    if($this->direction<0)
-                        $where = $request->where->greaterThan($key, $this->previous);
-                    else
-                        $where = $request->where->lessThan($key, $this->previous);
                     $request = $request->where($where);
                 }
             }
@@ -193,11 +260,58 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         }
         if($this->hasOrder())
         {
-            if(isset($this->direction) && is_numeric($this->direction))
+
+            if(isset($this->direction))
             {
-                $direction = $this->direction>0?'ASC':'DESC';
+                $direction = array_map(function($item)
+                {
+                    return $item>0?'ASC':'DESC';
+                }, $this->direction);
             }
-            $request = $request->order(array($key=>$direction));
+            $orderRequest = [];
+            foreach($keys as $index=>$key)
+            {
+                $orderRequest[$key] = $direction[$index];
+            }
+            /*
+            $new_order = NULL;
+            if(isset($orderMapping) && !empty($orderMapping))
+            {
+                foreach($orderMapping as $orderM)
+                {
+                    if($orderM->match($this->key))
+                    {
+                        $new_order = $orderM;
+                        break;
+                    }
+                }
+                if(isset($new_order))
+                {
+                    $orderRequest[$new_order->getColumn()]=$new_order->getOrder();
+                    $request->addColumns([$this->key=>new Expression("")]);
+                }
+            }*/
+            /*
+            if(isset($orderMapping))
+            {
+                if(is_array($orderMapping))  
+                {
+                    if(isset($mapping[$this->key]))
+                    {
+                        $key = $mapping[$this->key];
+                    }else
+                    {
+                        $key = $mapping[0].".".$this->key;
+                    }
+                }else
+                if(is_string($mapping))
+                {
+                    $key = $mapping.".".$this->key;
+                }
+
+            }*/
+            if(!empty($orderRequest))
+                $request = $request->order($orderRequest);
         }
         return $request;
     }
@@ -207,27 +321,58 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         $this->previous = NULL;
         if($this->hasPagination() && !empty($data))
         {
+            $this->previous = [];
             if(isset($data[0]) && is_array($data[0]))
             {
+                $keys = array_keys($data[0]);
+                foreach($this->key as $key)
+                {
+                    if(in_array($key, $keys))
+                    {
+                        $this->previous[] = $data[0][$key];
+                    }
+                }
+                /*
                 if(isset($data[0][$this->key]))
                 {
                     $this->previous = $data[0][$this->key];
-                }
+                }*/
             }else
-            if(isset($data[0]->{$this->key}))
             {
-                $this->previous = $data[0]->{$this->key};
-            }
-            if(isset($data[sizeof($data) - 1]) && is_array($data[sizeof($data) - 1]))
-            {
-                if (isset($data[sizeof($data) - 1][$this->key]))
+                foreach($this->key as $key)
                 {
-                    $this->next = $data[sizeof($data) - 1][$this->key];
+                    if(isset($data[0]->{$key}))
+                    {
+                        $this->previous[] = $data[0]->{$key};
+                    }
                 }
-            }else
-            if(isset($data[sizeof($data)-1]->{$this->key}))
+                //$this->previous = $data[0]->{$this->key};
+            }
+            if(isset($data[sizeof($data) - 1]))
             {
-                $this->next = $data[sizeof($data)-1]->{$this->key};
+                $this->next = [];
+                $len = sizeof($data)-1;
+                if(is_array($data[$len]))
+                {
+                    $keys = array_keys($data[$len]);
+                    foreach($this->key as $key)
+                    {
+                        if(in_array($key, $keys))
+                        {
+                            $this->next[] = $data[$len][$key];
+                        }
+                    }
+                }else
+                {
+                    foreach($this->key as $key)
+                    {
+                        if(isset($data[$len]->{$key}))
+                        {
+                            $this->next[] = $data[$len]->{$key};
+                        }
+                    }
+                    //$this->next = $data[$len]->{$this->key};
+                }
             }
         }
     }
@@ -251,6 +396,30 @@ class PaginateObject extends CoreObject implements \JsonSerializable
     public function isFirst()
     {
         return !isset($this->next) && !isset($this->previous);
+    }
+}
+class PaginateOrderConfig
+{
+    protected $names;
+    protected $column;
+    protected $order;
+    public function __construct($names, $column, $order)
+    {
+        $this->names = is_array($names)?$names:[$names];
+        $this->column = $column;
+        $this->order = $order == -1?"DESC":($order == 1?'ASC':$order);
+    }
+    public function match($column)
+    {
+        return in_array($column, $this->names);
+    }
+    public function getColumn()
+    {
+        return $this->column;
+    }
+    public function getOrder()
+    {
+        return $this->order;
     }
 }
 /**
@@ -322,3 +491,4 @@ class Paginate extends CoreAnnotation
 
     }
 }
+    
