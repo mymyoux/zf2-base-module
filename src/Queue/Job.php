@@ -33,6 +33,21 @@ class Job implements ServiceLocatorAwareInterface {
         $this->tube         = $tube;
     }
 
+    public function isConnected()
+    {
+        if (!$this->beanstalkd)
+        {
+            $config             = $this->sm->get('AppConfig')->get('beanstalkd');
+
+            $this->ip           = $config['ip'];
+            $this->port         = $config['port'];
+
+            $this->beanstalkd   = new Pheanstalk($this->ip, $this->port);
+        }
+
+        return $this->beanstalkd->getConnection()->isServiceListening();
+    }
+
     /**
      * Sends a job onto the specified queue.
      *
