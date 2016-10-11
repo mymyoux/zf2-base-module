@@ -120,6 +120,13 @@ class APIController extends FrontController
                 $view->setVariable("data", $returnView);
             }
             $view->setVariable("api_data", $result->api_data);
+            if(isset($result->headers))
+            {
+                foreach($result->headers as $key=>$value)
+                {
+                    $this->getResponse()->getHeaders()->addHeaderLine($key, $value);
+                }
+            }
         }
         catch(\Core\Exception\ApiException $e)
         {
@@ -193,7 +200,7 @@ class APIController extends FrontController
         {
             //silent
         }
-
+        //$this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin","*");
         //dd((array)$view->getVariables()["data"]);
         return $view;
     }
