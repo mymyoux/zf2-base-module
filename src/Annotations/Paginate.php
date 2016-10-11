@@ -35,6 +35,8 @@ class PaginateObject extends CoreObject implements \JsonSerializable
      * @var integer
      */
     public $direction;
+    public $exchangedResult;
+    protected $has_been_partially_filtered;
 
     private $_values = array();
 
@@ -120,30 +122,40 @@ class PaginateObject extends CoreObject implements \JsonSerializable
 
 
     }
-    public function apply($request, $mapping = NULL, $orderMapping = NULL)
+    public function apply($request, $mapping = NULL, $only = NULL)
     {
         $keys = $this->key;
-        if(isset($mapping))
+        $orderCustom = [];
+        $used = [];
+        
+        foreach($keys as $index=>$k)
         {
-            foreach($keys as $index=>$key)
+            $used[$index] = !isset($only) || in_array($k, $only);
+            if(isset($mapping) && $used[$index])
             {
                 if(is_array($mapping))  
                 {
-                    if(isset($mapping[$key]))
+                    if(isset($mapping[$k]))
                     {
-                        $key = $mapping[$key];
+                        $key = $mapping[$k];
+                        if($key instanceof PaginateExpression)
+                        {
+                            $orderCustom[$index] = $key->getExpression();
+                            $key = $key->getColumn();
+                        }
                     }else
                     {
-                        $key = $mapping[0].".".$key;
+                        $key = $mapping[0].".".$k;
                     }
                 }else
                 if(is_string($mapping))
                 {
-                    $key = $mapping.".".$key;
+                    $key = $mapping.".".$k;
                 }
                 $keys[$index] = $key;
             }
         }
+
         /*
         if(isset($this->limit))
         {
@@ -168,9 +180,16 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             $use_having = !empty($request->getRawState(Select::GROUP));
             if(isset($this->next))
             {
+                $first = True;
+                $where = NULL;
                 foreach($keys as $index=>$key)
                 {
-                    if($index == 0)
+                    if(!$used[$index])
+                    {
+                        $this->has_been_partially_filtered = True;
+                        break;
+                    }
+                    if($first)
                     {
                         if($use_having)
                         {
@@ -198,24 +217,35 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                         $where = $where->and;
                         $where = $where->equalTo($keys[$i], $this->next[$i]);
                     }
-                    if($index>0)
+                    if(!$first)
                     {
                         $where = $where->unnest;
                     }
+                    $first = False;
                 }
-                if($use_having)
+                if(isset($where))
                 {
-                    $request = $request->having($where);
-                }else
-                {
-                    $request = $request->where($where);
+                    if($use_having)
+                    {
+                        $request = $request->having($where);
+                    }else
+                    {
+                        $request = $request->where($where);
+                    }
                 }
             }
             if(isset($this->previous))
             {
+                $having = NULL;
+                $first = True;
                 foreach($keys as $index=>$key)
                 {
-                    if($index == 0)
+                    if(!$used[$index])
+                    {
+                        $this->has_been_partially_filtered = True;
+                        continue;
+                    }
+                    if($first)
                     {
                         if($use_having)
                         {
@@ -243,17 +273,21 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                         $where = $where->and;
                         $where = $where->equalTo($keys[$i], $this->previous[$i]);
                     }
-                    if($index>0)
+                    if(!$first)
                     {
                         $where = $where->unnest;
                     }
+                    $first = False;
                 }
-                if($use_having)
+                if(isset($having))
                 {
-                    $request = $request->having($where);
-                }else
-                {
-                    $request = $request->where($where);
+                    if($use_having)
+                    {
+                        $request = $request->having($where);
+                    }else
+                    {
+                        $request = $request->where($where);
+                    }
                 }
             }
 
@@ -271,7 +305,18 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             $orderRequest = [];
             foreach($keys as $index=>$key)
             {
-                $orderRequest[$key] = $direction[$index];
+                if(!$used[$index])
+                {
+                    continue;
+                }
+
+                if(isset($orderCustom[$index]))
+                {
+                    $orderRequest[] = new expression($orderCustom[$index]." ".$direction[$index]);
+                }else
+                {
+                    $orderRequest[$key] = $direction[$index];
+                }
             }
             /*
             $new_order = NULL;
@@ -315,8 +360,116 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         }
         return $request;
     }
-    public function exchangeResult($data)
+    public function exchangeResult(&$data, $mapping = NULL)
     {
+        if($this->exchangedResult === True)
+        {
+            return;
+        }
+        $this->exchangedResult = True;
+        if($this->has_been_partially_filtered === True)
+        {
+            $keys = $this->key;
+            foreach($keys as $index=>$k)
+            {
+                if(isset($mapping))
+                {
+                    if(is_array($mapping))  
+                    {
+                        if(isset($mapping[$k]))
+                        {
+                            $key = $mapping[$k];
+                            if($key instanceof PaginateExpression)
+                            {
+                                $orderCustom[$index] = $key->getExpression();
+                                $key = $key->getColumn();
+                            }
+                        }else
+                        {
+                            $key = $mapping[0].".".$k;
+                        }
+                    }else
+                    if(is_string($mapping))
+                    {
+                        $key = $mapping.".".$k;
+                    }
+                    $keys[$index] = $key;
+                }
+            }
+            if(isset($this->next))
+            {
+                $data = array_values(array_filter($data, function($item) use($keys)
+                {
+                    foreach($keys as $index=>$key)
+                    {
+                       
+                        $direction = $this->direction[$index];
+                        if($direction>0)
+                        {
+                            if($item[$key]<=$this->next[$index])
+                            {
+                                continue;
+                            }
+                           // $where = $where->greaterThan($key, $this->next[$index]);
+                        }else
+                        {
+                            if($item[$key]>=$this->next[$index])
+                            {
+                                continue;
+                            }
+                            //$where = $where->lessThan($key, $this->next[$index]);
+                        }
+
+                        for($i=0;$i<$index; $i++)
+                        {
+                            if($item[$keys[$i]]!=$this->next[$i])
+                            {
+                                continue 2;
+                            }
+                            //$where = $where->and;
+                            //$where = $where->equalTo($keys[$i], $this->next[$i]);
+                        }
+                       return true;
+                    }
+                    return false;
+                }));
+            }
+
+            if(isset($this->previous))
+            {
+                $data = array_values(array_filter($data, function($item) use($keys)
+                {
+                    foreach($keys as $index=>$key)
+                    {
+                         $direction = $this->direction[$index];
+                        if($direction<0)
+                        {
+                            if($item[$key]<=$this->previous[$index])
+                            {
+                                continue;
+                            }
+                        }else
+                        {
+                            if($item[$key]>=$this->previous[$index])
+                            {
+                                continue;
+                            }
+                        }
+
+                        for($i=0;$i<$index; $i++)
+                        {
+                            if($item[$keys[$i]]!=$this->previous[$i])
+                            {
+                                continue 2;
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
+                }));
+            }
+        }
+
         $this->next = NULL;
         $this->previous = NULL;
         if($this->hasPagination() && !empty($data))
@@ -423,6 +576,24 @@ class PaginateOrderConfig
         return $this->order;
     }
 }*/
+class PaginateExpression
+{
+    protected $expression;
+    protected $column;
+    public function __construct($column, $expression)
+    {
+        $this->expression = $expression;
+        $this->column = $column;
+    }
+    public function getExpression()
+    {
+        return $this->expression;
+    }
+    public function getColumn()
+    {
+        return $this->column;
+    }
+}
 /**
  *
  * @Annotation
