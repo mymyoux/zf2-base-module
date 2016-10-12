@@ -132,9 +132,6 @@ class APIController extends FrontController
         }
         catch(\Core\Exception\ApiException $e)
         {
-            dd(isset($instance));
-            echo $e->getTraceAsString();
-            exit();
             $view->setVariable("error", $e->getMessage());
             $view->setVariable("api_error", $e->getCleanErrorMessage());
             $view->setVariable("api_error_code", $e->getCode());
