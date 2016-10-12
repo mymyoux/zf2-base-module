@@ -45,6 +45,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Back.php');
         AnnotationRegistry::registerFile($folder.'Doc.php');
         AnnotationRegistry::registerFile($folder.'Header.php');
+        AnnotationRegistry::registerFile($folder.'JSONP.php');
     }
 
     /**
@@ -293,6 +294,18 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             }
         }
         $headers = [];
+        $use_jsonp = false;
+        foreach($annotations as $annotation)
+        {
+            if($annotation->key() == "header")
+            {
+                $headers[] = $annotation;
+            }
+            if($annotation->key() == "jsonp")
+            {
+                $use_jsonp = true;
+            }
+        }
         foreach($annotations as $annotation)
         {
             $annotation->setServiceLocator( $this->sm );
@@ -307,10 +320,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                         $annotation->{$key} = $value;
                     }
                 }
-            }
-            if($annotation->key() == "header")
-            {
-                $headers[] = $annotation;
             }
             $parse = $annotation->parse($request);
             if(isset($parse))
@@ -343,7 +352,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $formatted_result           = new \StdClass();
             $formatted_result->value    = $apiRequest->getError();
             $formatted_result->success  = false;
-
             return $formatted_result;
         }
 
@@ -473,13 +481,20 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $formatted_result->value = $result[$result_name];
         }
-        if($context->isFromFront() && !empty($headers))
+        if($context->isFromFront())
         {
-            $formatted_result->headers = array_reduce($headers,function($previous, $item)
+            if(!empty($headers))
             {
-                $previous[$item->name] = $item->value;
-                return $previous;
-            }, []);
+                $formatted_result->headers = array_reduce($headers,function($previous, $item)
+                {
+                    $previous[$item->name] = $item->value;
+                    return $previous;
+                }, []);
+            }
+            if($use_jsonp)
+            {
+                $formatted_result->use_jsonp = true;
+            }
         }
         return $formatted_result;
     }

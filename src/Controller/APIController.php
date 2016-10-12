@@ -91,7 +91,9 @@ class APIController extends FrontController
         $api_stats = array("id_user_impersonated"=>$impersonated_id_user,"session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp).$timestamp_micro,"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
         try
         {
-            $result = $this->api->$controller->json()->front(true)->$action($id, $method, $params);
+            $instance = $this->api->$controller->json()->front(true);
+            $result = $instance->$action($id, $method, $params);
+           // dd('nop');
             if (!$result->success)
                 throw new \Core\Exception\ApiException($result->value, 1);
 
@@ -130,6 +132,9 @@ class APIController extends FrontController
         }
         catch(\Core\Exception\ApiException $e)
         {
+            dd(isset($instance));
+            echo $e->getTraceAsString();
+            exit();
             $view->setVariable("error", $e->getMessage());
             $view->setVariable("api_error", $e->getCleanErrorMessage());
             $view->setVariable("api_error_code", $e->getCode());
@@ -199,6 +204,16 @@ class APIController extends FrontController
         }catch(\Exception $e)
         {
             //silent
+        }
+        //dd($result);
+        if((isset($result->use_jsonp) && $result->use_jsonp) || $view->getVariable("error") !== NULL)
+        {
+            $callback =  $this->params()->fromQuery("callback");
+            if(isset($callback))
+            {
+                $this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin", "*");
+                $view->setJsonpCallback($callback);
+            }
         }
         //$this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin","*");
         //dd((array)$view->getVariables()["data"]);
