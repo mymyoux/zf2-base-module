@@ -20,7 +20,7 @@ use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use Zend\View\Variables;
 use Zend\View\Model\ConsoleModel;
-
+use Core\Exception\ApiException;
 
 /**
  * Class API
@@ -197,10 +197,10 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             if($controllerFound)
             {
-                throw new \Exception('bad_method:'.$request['action'].'API'.$method, 1);
+                throw new ApiException('bad_method:'.$request['action'].'API'.$method, 1);
             }else
             {
-                throw new \Exception('bad_controller:'.$controller, 1);
+                throw new ApiException('bad_controller:'.$controller, 1);
             }
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
@@ -217,7 +217,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         else
         {
-            throw new \Core\Exception\ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
+            throw new ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
         }
 
         $apiRequest = new Request();
@@ -359,7 +359,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             }else
             {
                 if (true === isset($apiRequest->table) && null !== $apiRequest->table->method)
-                    throw new \Core\Exception\ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
+                    throw new ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
             }
         }
 
