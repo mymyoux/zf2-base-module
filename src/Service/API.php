@@ -44,6 +44,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Order.php');
         AnnotationRegistry::registerFile($folder.'Back.php');
         AnnotationRegistry::registerFile($folder.'Doc.php');
+        AnnotationRegistry::registerFile($folder.'Header.php');
+        AnnotationRegistry::registerFile($folder.'JSONP.php');
     }
 
     /**
@@ -228,6 +230,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $annotations = $annotationReader->getClassAnnotations($reflectedClass);
         $keys = array();
+
         foreach($annotations as $annotation)
         {
             $annotation->setServiceLocator( $this->sm );
@@ -255,7 +258,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..
         //
-
 
 
         //TODO:checkp our usertable
@@ -291,6 +293,19 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 }
             }
         }
+        $headers = [];
+        $use_jsonp = false;
+        foreach($annotations as $annotation)
+        {
+            if($annotation->key() == "header")
+            {
+                $headers[] = $annotation;
+            }
+            if($annotation->key() == "jsonp")
+            {
+                $use_jsonp = true;
+            }
+        }
         foreach($annotations as $annotation)
         {
             $annotation->setServiceLocator( $this->sm );
@@ -306,7 +321,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                     }
                 }
             }
-
             $parse = $annotation->parse($request);
             if(isset($parse))
             {
@@ -321,6 +335,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 dd($annotation);
             }
         }
+
         // free memory
         unset( $annotations );
 
@@ -337,7 +352,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $formatted_result           = new \StdClass();
             $formatted_result->value    = $apiRequest->getError();
             $formatted_result->success  = false;
-
             return $formatted_result;
         }
 
@@ -435,6 +449,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $api_data->count = sizeof($result[$result_name]);
             foreach($apiRequest as $key => &$annotation)
             {
+
                 if(isset($annotation) && true === method_exists($annotation, 'exchangeResult')) //why is there a null value  ?
                     $annotation->exchangeResult($result[$result_name]);
                 else
@@ -465,6 +480,21 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         if(!$context->isJSON() || !$context->isFromFront())
         {
             $formatted_result->value = $result[$result_name];
+        }
+        if($context->isFromFront())
+        {
+            if(!empty($headers))
+            {
+                $formatted_result->headers = array_reduce($headers,function($previous, $item)
+                {
+                    $previous[$item->name] = $item->value;
+                    return $previous;
+                }, []);
+            }
+            if($use_jsonp)
+            {
+                $formatted_result->use_jsonp = true;
+            }
         }
         return $formatted_result;
     }

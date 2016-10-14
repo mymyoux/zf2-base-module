@@ -40,7 +40,7 @@ class CoreObject
     {
 
     }
-    public function exchangeResult($data)
+    public function exchangeResult(&$data)
     {
 
     }
