@@ -91,7 +91,9 @@ class APIController extends FrontController
         $api_stats = array("id_user_impersonated"=>$impersonated_id_user,"session_token"=>$session_token,"controller"=>$controller,"action"=>$action,"params"=>json_encode($params, \JSON_PRETTY_PRINT), "method"=>$method,"id_user"=>$id_user,"date"=>date("Y-m-d H:i:s",$timestamp).$timestamp_micro,"reloaded_count"=>$reloaded_count,"call_token"=>$call_token);
         try
         {
-            $result = $this->api->$controller->json()->front(true)->$action($id, $method, $params);
+            $instance = $this->api->$controller->json()->front(true);
+            $result = $instance->$action($id, $method, $params);
+           // dd('nop');
             if (!$result->success)
                 throw new \Core\Exception\ApiException($result->value, 1);
 
@@ -120,6 +122,13 @@ class APIController extends FrontController
                 $view->setVariable("data", $returnView);
             }
             $view->setVariable("api_data", $result->api_data);
+            if(isset($result->headers))
+            {
+                foreach($result->headers as $key=>$value)
+                {
+                    $this->getResponse()->getHeaders()->addHeaderLine($key, $value);
+                }
+            }
         }
         catch(\Core\Exception\ApiException $e)
         {
@@ -193,7 +202,17 @@ class APIController extends FrontController
         {
             //silent
         }
-
+        //dd($result);
+        if((isset($result->use_jsonp) && $result->use_jsonp) || $view->getVariable("error") !== NULL)
+        {
+            $callback =  $this->params()->fromQuery("callback");
+            if(isset($callback))
+            {
+                $this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin", "*");
+                $view->setJsonpCallback($callback);
+            }
+        }
+        //$this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin","*");
         //dd((array)$view->getVariables()["data"]);
         return $view;
     }
