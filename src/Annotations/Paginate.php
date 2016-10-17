@@ -297,6 +297,14 @@ class PaginateObject extends CoreObject implements \JsonSerializable
 
             if(isset($this->direction))
             {
+                if(!is_array($this->direction))
+                {
+                    $temp = $this->direction;
+                    $this->direction = array_map(function($item) use($temp)
+                    {
+                        return $temp;
+                    }, $this->key);
+                }
                 $direction = array_map(function($item)
                 {
                     return $item>0?'ASC':'DESC';
