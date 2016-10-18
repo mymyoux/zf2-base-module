@@ -46,6 +46,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Doc.php');
         AnnotationRegistry::registerFile($folder.'Header.php');
         AnnotationRegistry::registerFile($folder.'JSONP.php');
+        AnnotationRegistry::registerFile($folder.'User.php');
     }
 
     /**
@@ -295,6 +296,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         $headers = [];
         $use_jsonp = false;
+        $use_user = NULL;
         foreach($annotations as $annotation)
         {
             if($annotation->key() == "header")
@@ -305,11 +307,17 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             {
                 $use_jsonp = true;
             }
+           
         }
         foreach($annotations as $annotation)
         {
+
             $annotation->setServiceLocator( $this->sm );
             $annotation->api = $context;
+             if($annotation->key() == "user")
+            {
+                $use_user = $annotation->getUser();
+            }
             // get parent class annotation value if not set in method
             if (true === isset($apiRequest->{'class_' . $annotation->key() }))
             {
@@ -335,6 +343,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 dd($annotation);
             }
         }
+        
 
         // free memory
         unset( $annotations );
@@ -354,7 +363,11 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $formatted_result->success  = false;
             return $formatted_result;
         }
-
+        if(isset($use_user))
+        {
+            $apiRequest->setUser($use_user);
+            $context->setUser($use_user);
+        }
         $result = null;
         $result_name = (isset($apiRequest->response) ? $apiRequest->response->name : $request['action']);
         // check if table set
@@ -556,6 +569,10 @@ class _Binder
     public function getUser()
     {
         return $this->_user;
+    }
+    public function setUser($value)
+    {
+        $this->_user = $value;
     }
     public function isJSON()
     {

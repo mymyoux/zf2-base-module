@@ -122,15 +122,22 @@ class PaginateObject extends CoreObject implements \JsonSerializable
 
 
     }
-    public function apply($request, $mapping = NULL, $only = NULL)
+    public function apply($request, $mapping = NULL, $only = NULL, $having = NULL)
     {
         $keys = $this->key;
         $orderCustom = [];
         $used = [];
-        
+        $force_having = False;
         foreach($keys as $index=>$k)
         {
             $used[$index] = !isset($only) || in_array($k, $only);
+            if($used[$index] && isset($having))
+            {
+                if(in_array($k, $having))
+                {
+                    $force_having = True;
+                }
+            }
             if(isset($mapping) && $used[$index])
             {
                 if(is_array($mapping))  
@@ -142,6 +149,10 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                         {
                             $orderCustom[$index] = $key->getExpression();
                             $key = $key->getColumn();
+                        }
+                        if(strpos($key, ".") === False)
+                        {
+                            $force_having = True;
                         }
                     }else
                     {
@@ -167,7 +178,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         }
         if(isset($this->id_from))
         {
-            $where = $request->where->greaterThan($id_name, $this->id_from);
+            $ = $request->where->greaterThan($id_name, $this->id_from);
             $request = $request->where($where);
         }
         */
@@ -177,7 +188,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             {
                 $request = $request->limit($this->limit);
             }
-            $use_having = !empty($request->getRawState(Select::GROUP));
+            $use_having = $force_having || !empty($request->getRawState(Select::GROUP));
             if(isset($this->next))
             {
                 $first = True;
