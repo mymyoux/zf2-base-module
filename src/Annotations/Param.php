@@ -61,6 +61,18 @@ class ParamClass
         }
         return $data;
     }
+    public function toArrayClean(...$args)
+    {
+        $result = call_user_func_array([$this, "toArray"],$args);
+        foreach($result as $key=>$value)
+        {
+            if($value === NULL)
+            {
+                unset($result[$key]);
+            }
+        }
+        return $result;
+    }
 
 }
 /**
