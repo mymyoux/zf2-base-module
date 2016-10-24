@@ -46,6 +46,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         {
             return True;
         }
+        return False;
     }
     public function hasOrder()
     {
@@ -53,6 +54,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         {
             return True;
         }
+        return False;
     }
     public function hasData()
     {
