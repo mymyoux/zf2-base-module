@@ -102,7 +102,8 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         }
 
 
-
+        if(!isset($data["direction"]))
+            $data['direction'] = $this->direction;
 
         //order
         if(isset($data["direction"]))
@@ -140,7 +141,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             }
             if(isset($mapping) && $used[$index])
             {
-                if(is_array($mapping))  
+                if(is_array($mapping))
                 {
                     if(isset($mapping[$k]))
                     {
@@ -200,6 +201,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                         $this->has_been_partially_filtered = True;
                         break;
                     }
+
                     if($first)
                     {
                         if($use_having)
@@ -358,7 +360,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             /*
             if(isset($orderMapping))
             {
-                if(is_array($orderMapping))  
+                if(is_array($orderMapping))
                 {
                     if(isset($mapping[$this->key]))
                     {
@@ -393,7 +395,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
             {
                 if(isset($mapping))
                 {
-                    if(is_array($mapping))  
+                    if(is_array($mapping))
                     {
                         if(isset($mapping[$k]))
                         {
@@ -421,7 +423,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                 {
                     foreach($keys as $index=>$key)
                     {
-                       
+
                         $direction = $this->direction[$index];
                         if($direction>0)
                         {
@@ -682,4 +684,4 @@ class Paginate extends CoreAnnotation
 
     }
 }
-    
+
