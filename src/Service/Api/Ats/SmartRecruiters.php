@@ -146,11 +146,19 @@ class SmartRecruiters extends AbstractAts implements ServiceLocatorAwareInterfac
                 list($original_message, $e_url, $e_code, $e_message) = $matches;
                 $e = new SmartrecruitersException((isset($error->message) ? $error->message : $e_message), $e_code);
 
-                $id_error = $this->sm->get('ErrorTable')->logError($e);
-                $this->sm->get('Log')->error($e->getMessage());
+                // do not log refresh token if not refresh yet
+                if (401 === $e->getCode() && $e->getMessage() !== 'No access to feature: Customer API' && false === $this->has_refresh && $path !== 'https://www.smartrecruiters.com/')
+                {
+                    // do not log
+                }
+                else
+                {
+                    $id_error = $this->sm->get('ErrorTable')->logError($e);
+                    $this->sm->get('Log')->error($e->getMessage());
 
-                // log error
-                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+                    // log error
+                    $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+                }
             }
             else
             {
