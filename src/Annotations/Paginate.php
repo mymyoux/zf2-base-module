@@ -87,7 +87,10 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         }
         if(isset($data["next"]))
         {
-            $this->next = is_array($data["next"])?array_map(function($item){ return  strval($item);}, $data["next"]):[strval($data["next"])];
+             $this->next = is_array($data["next"])?array_map(function($item){
+            $item = strval($item);
+          
+            return  strval($item);}, $data["next"]):[strval($data["next"])];
         }
         if(isset($this->previous) && isset($this->next))
         {
@@ -221,16 +224,46 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                      $direction = $this->direction[$index];
                     if($direction>0)
                     {
-                        $where = $where->greaterThan($key, $this->next[$index]);
+                        if(mb_strlen($this->next[$index]))
+                        {
+                            $where = $where->greaterThan($key, $this->next[$index]);
+                        }else
+                        {
+                            $where = $where->nest
+                            ->isNotNull($key)
+                            ->or
+                            ->greaterThan($key, $this->next[$index])
+                            ->unnest;
+                        }
                     }else
                     {
-                        $where = $where->lessThan($key, $this->next[$index]);
+                         if(mb_strlen($this->next[$index]))
+                        {
+                            $where = $where->lessThan($key, $this->next[$index]);
+                        }else
+                        {
+                             $where = $where->nest
+                            ->isNotNull($key)
+                            ->or
+                            ->lessThan($key, $this->next[$index])
+                            ->unnest;
+                        }
                     }
 
                     for($i=0;$i<$index; $i++)
                     {
                         $where = $where->and;
-                        $where = $where->equalTo($keys[$i], $this->next[$i]);
+                        if(mb_strlen($this->next[$i]))
+                        {
+                            $where = $where->equalTo($keys[$i], $this->next[$i]);
+                        }else
+                        {
+                            $where = $where->nest
+                                ->isNull($keys[$i], $this->next[$i])
+                                ->or
+                                ->equalTo($keys[$i], $this->next[$i])
+                                ->unnest;
+                        }
                     }
                     if(!$first)
                     {
@@ -277,16 +310,46 @@ class PaginateObject extends CoreObject implements \JsonSerializable
                      $direction = $this->direction[$index];
                     if($direction<0)
                     {
-                        $where = $where->greaterThan($key, $this->previous[$index]);
+                        if(mb_strlen($this->previous[$index]))
+                        {
+                            $where = $where->greaterThan($key, $this->previous[$index]);
+                        }else
+                        {
+                             $where = $where->nest
+                            ->isNotNull($key)
+                            ->or
+                            ->greaterThan($key, $this->previous[$index])
+                            ->unnest;
+                        }
                     }else
                     {
-                        $where = $where->lessThan($key, $this->previous[$index]);
+                        if(mb_strlen($this->previous[$index]))
+                        {
+                            $where = $where->lessThan($key, $this->previous[$index]);
+                        }else
+                        {
+                               $where = $where->nest
+                            ->isNotNull($key)
+                            ->or
+                            ->lessThan($key, $this->previous[$index])
+                            ->unnest;
+                        }
                     }
 
                     for($i=0;$i<$index; $i++)
                     {
                         $where = $where->and;
-                        $where = $where->equalTo($keys[$i], $this->previous[$i]);
+                        if(mb_strlen($this->previous[$i]))
+                        {
+                            $where = $where->equalTo($keys[$i], $this->previous[$i]);
+                        }else
+                        {
+                            $where = $where->nest
+                                ->isNull($keys[$i], $this->previous[$i])
+                                ->or
+                                ->equalTo($keys[$i], $this->previous[$i])
+                                ->unnest;
+                        }
                     }
                     if(!$first)
                     {
