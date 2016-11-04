@@ -91,6 +91,7 @@ function jj($data)
         $result["environment"] = $env;
 
     $result["data"] = $data;
+    header('Content-Type: application/json');
     echo  json_encode($result);
     exit();
 }
