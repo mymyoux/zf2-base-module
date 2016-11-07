@@ -121,7 +121,7 @@ class Gmap extends AbstractAPI implements ServiceLocatorAwareInterface
     }
 }
 
-class FullContactException extends \Exception
+class GmapException extends \Exception
 {
 
 }
