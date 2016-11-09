@@ -122,6 +122,16 @@ class APIController extends FrontController
                 $view->setVariable("data", $returnView);
             }
             $view->setVariable("api_data", $result->api_data);
+            if(isset($result->use_excel) && $result->use_excel)
+            {
+                    $file_url = $this->sm->get("Excel")->createFromArray($result->value[$result->api_data->key], 'exports/'.$controller);
+                    header('Content-Type: application/octet-stream');
+                    header("Content-Transfer-Encoding: Binary"); 
+                    header("Content-disposition: attachment; filename=\"" . basename($file_url) . "\""); 
+                    header("Location: /".$file_url);
+                    exit();
+                    return;
+            }
             if(isset($result->headers))
             {
                 foreach($result->headers as $key=>$value)
@@ -202,6 +212,7 @@ class APIController extends FrontController
         {
             //silent
         }
+         $this->getResponse()->getHeaders()->addHeaderLine("Access-Control-Allow-Origin", "*");
         //dd($result);
         if((isset($result->use_jsonp) && $result->use_jsonp) || $view->getVariable("error") !== NULL)
         {

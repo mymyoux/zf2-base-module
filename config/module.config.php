@@ -80,6 +80,7 @@ return array(
             'Geolocation'=>'Core\Service\Geolocation',
             'Env'=>'Core\Service\Env',
             'AppConfig'=>'Core\Service\Configuration',
+            'Excel'=>'Core\Service\Excel',
             'API'=>'Core\Service\API',
             'QueueService' => 'Core\Service\Queue',
             'DetectLanguage' => 'Core\Service\DetectLanguage',

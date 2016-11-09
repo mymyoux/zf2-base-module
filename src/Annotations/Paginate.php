@@ -39,7 +39,12 @@ class PaginateObject extends CoreObject implements \JsonSerializable
     protected $has_been_partially_filtered;
 
     private $_values = array();
-
+    public function reset()
+    {
+        $this->limit = 0;
+        $this->next = NULL;
+        $this->previous = NULL;
+    }
     public function hasPagination()
     {
         if(isset($this->key) && (isset($this->limit) || isset($this->since) || isset($this->from)))
