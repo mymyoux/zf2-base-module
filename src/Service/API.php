@@ -47,6 +47,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Header.php');
         AnnotationRegistry::registerFile($folder.'JSONP.php');
         AnnotationRegistry::registerFile($folder.'User.php');
+        AnnotationRegistry::registerFile($folder.'Excel.php');
     }
 
     /**
@@ -355,6 +356,13 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $request['action_suffix'] = 'API';
         //dd($apiRequest->class_table);
         //check table annotations
+        $use_excel = False;
+        if($context->isFromFront() && isset($apiRequest->excel) && $apiRequest->excel->use && isset($apiRequest->paginate) && isset($apiRequest->paginate->limit) && $apiRequest->paginate->limit>0)
+        {
+            //remove paginate
+            $apiRequest->paginate->reset();
+            $use_excel = True;
+        }
 
         if(!$apiRequest->isValid($apiRequest))
         {
@@ -363,6 +371,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $formatted_result->success  = false;
             return $formatted_result;
         }
+
         if(isset($use_user))
         {
             $apiRequest->setUser($use_user);
@@ -489,6 +498,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $formatted_result->api_data = $api_data;
         $formatted_result->request  = $this;
         $formatted_result->success  = true;
+        $formatted_result->use_excel  = $use_excel;
 
         if(!$context->isJSON() || !$context->isFromFront())
         {
