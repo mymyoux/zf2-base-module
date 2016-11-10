@@ -156,8 +156,14 @@ class MultipleIdentity extends CoreService implements IIdentity
     }
     public function logConnection()
     {
-        if(isset($this->user) && !$this->user->isAdmin())
+        if(True || (isset($this->user) && !$this->user->isAdmin()))
         {
+            $params = $this->sm->get("controllerpluginmanager")->get("params");
+            $use_extension = $params->fromQuery("extension", $params->fromPost("extension", False)) == "1";
+            if($use_extension)
+            {
+                return;
+            }
             $delay = 300000;//5minutes
             $timestamp = intval(microtime(True)*1000);
             if($this->user->last_connection+$delay<$timestamp)
