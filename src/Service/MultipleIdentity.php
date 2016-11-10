@@ -156,7 +156,7 @@ class MultipleIdentity extends CoreService implements IIdentity
     }
     public function logConnection()
     {
-        if(True || (isset($this->user) && !$this->user->isAdmin()))
+        if(isset($this->user) && !$this->user->isAdmin())
         {
             $params = $this->sm->get("controllerpluginmanager")->get("params");
             $use_extension = $params->fromQuery("extension", $params->fromPost("extension", False)) == "1";
