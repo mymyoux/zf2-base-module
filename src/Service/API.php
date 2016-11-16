@@ -20,7 +20,7 @@ use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
 use Zend\View\Variables;
 use Zend\View\Model\ConsoleModel;
-
+use Core\Exception\ApiException;
 
 /**
  * Class API
@@ -44,6 +44,10 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         AnnotationRegistry::registerFile($folder.'Order.php');
         AnnotationRegistry::registerFile($folder.'Back.php');
         AnnotationRegistry::registerFile($folder.'Doc.php');
+        AnnotationRegistry::registerFile($folder.'Header.php');
+        AnnotationRegistry::registerFile($folder.'JSONP.php');
+        AnnotationRegistry::registerFile($folder.'User.php');
+        AnnotationRegistry::registerFile($folder.'Excel.php');
     }
 
     /**
@@ -197,10 +201,10 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             if($controllerFound)
             {
-                throw new \Exception('bad_method:'.$request['action'].'API'.$method, 1);
+                throw new ApiException('bad_method:'.$request['action'].'API'.$method, 1);
             }else
             {
-                throw new \Exception('bad_controller:'.$controller, 1);
+                throw new ApiException('bad_controller:'.$controller, 1);
             }
         }
         $namespace = '\\'.$type.'\Controller\\'.$controller;
@@ -217,7 +221,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         }
         else
         {
-            throw new \Core\Exception\ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
+            throw new ApiException('Ressource not exist "' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
         }
 
         $apiRequest = new Request();
@@ -228,6 +232,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
 
         $annotations = $annotationReader->getClassAnnotations($reflectedClass);
         $keys = array();
+
         foreach($annotations as $annotation)
         {
             $annotation->setServiceLocator( $this->sm );
@@ -255,7 +260,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $annotations = $annotationReader->getMethodAnnotations($reflectedMethod);
         //TODO: faire un choix pour params=> soit un property / param soit $requests->params-> ..
         //
-
 
 
         //TODO:checkp our usertable
@@ -291,10 +295,30 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 }
             }
         }
+        $headers = [];
+        $use_jsonp = false;
+        $use_user = NULL;
         foreach($annotations as $annotation)
         {
+            if($annotation->key() == "header")
+            {
+                $headers[] = $annotation;
+            }
+            if($annotation->key() == "jsonp")
+            {
+                $use_jsonp = true;
+            }
+           
+        }
+        foreach($annotations as $annotation)
+        {
+
             $annotation->setServiceLocator( $this->sm );
             $annotation->api = $context;
+             if($annotation->key() == "user")
+            {
+                $use_user = $annotation->getUser();
+            }
             // get parent class annotation value if not set in method
             if (true === isset($apiRequest->{'class_' . $annotation->key() }))
             {
@@ -306,7 +330,6 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                     }
                 }
             }
-
             $parse = $annotation->parse($request);
             if(isset($parse))
             {
@@ -321,6 +344,8 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
                 dd($annotation);
             }
         }
+        
+
         // free memory
         unset( $annotations );
 
@@ -331,16 +356,27 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $request['action_suffix'] = 'API';
         //dd($apiRequest->class_table);
         //check table annotations
+        $use_excel = False;
+        if($context->isFromFront() && isset($apiRequest->excel) && $apiRequest->excel->use && isset($apiRequest->paginate) && isset($apiRequest->paginate->limit) && $apiRequest->paginate->limit>0)
+        {
+            //remove paginate
+            $apiRequest->paginate->reset();
+            $use_excel = True;
+        }
 
         if(!$apiRequest->isValid($apiRequest))
         {
             $formatted_result           = new \StdClass();
             $formatted_result->value    = $apiRequest->getError();
             $formatted_result->success  = false;
-
             return $formatted_result;
         }
 
+        if(isset($use_user))
+        {
+            $apiRequest->setUser($use_user);
+            $context->setUser($use_user);
+        }
         $result = null;
         $result_name = (isset($apiRequest->response) ? $apiRequest->response->name : $request['action']);
         // check if table set
@@ -359,7 +395,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             }else
             {
                 if (true === isset($apiRequest->table) && null !== $apiRequest->table->method)
-                    throw new \Core\Exception\ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
+                    throw new ApiException(get_class($table).'->'.$table_method.' doesn\'t exist for ' . $request['action'] . 'API" with the method : "' . $method . '"', 4);
             }
         }
 
@@ -435,6 +471,7 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
             $api_data->count = sizeof($result[$result_name]);
             foreach($apiRequest as $key => &$annotation)
             {
+
                 if(isset($annotation) && true === method_exists($annotation, 'exchangeResult')) //why is there a null value  ?
                     $annotation->exchangeResult($result[$result_name]);
                 else
@@ -461,10 +498,26 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         $formatted_result->api_data = $api_data;
         $formatted_result->request  = $this;
         $formatted_result->success  = true;
+        $formatted_result->use_excel  = $use_excel;
 
         if(!$context->isJSON() || !$context->isFromFront())
         {
             $formatted_result->value = $result[$result_name];
+        }
+        if($context->isFromFront())
+        {
+            if(!empty($headers))
+            {
+                $formatted_result->headers = array_reduce($headers,function($previous, $item)
+                {
+                    $previous[$item->name] = $item->value;
+                    return $previous;
+                }, []);
+            }
+            if($use_jsonp)
+            {
+                $formatted_result->use_jsonp = true;
+            }
         }
         return $formatted_result;
     }
@@ -526,6 +579,10 @@ class _Binder
     public function getUser()
     {
         return $this->_user;
+    }
+    public function setUser($value)
+    {
+        $this->_user = $value;
     }
     public function isJSON()
     {

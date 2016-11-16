@@ -79,7 +79,7 @@ class UserModel extends CoreModel
     {
         return isset($this->real_user);
     }
-       public function addRole($role)
+    public function addRole($role)
     {
         if(!in_array($role, $this->roles))
         {
@@ -89,6 +89,13 @@ class UserModel extends CoreModel
     }
     public function hasRole($role)
     {
+        if($this->isImpersonated())
+        {
+            if($this->getRealUser()->hasRole($role))
+            {
+                return True;
+            }
+        }
         return in_array($role, $this->roles);
     }
     public function removeRole($role)

@@ -15,12 +15,14 @@ class ApiException extends \Exception{
 	const ERROR_NOT_ALLOWED_FROM_FRONT = "not_allowed_from_front";
 	public static $ERRORS = array(
         ApiException::ERROR_NOT_ALLOWED=>1,
-		ApiException::ERROR_NOT_ALLOWED_FROM_FRONT=>2, 
+		ApiException::ERROR_NOT_ALLOWED_FROM_FRONT=>2,
 	);
     public $object;
     protected $cleanMessage;
-    public function __construct($message = "", $code = 0, Exception $previous = null, $object = NULL) {
+    public $fatal = true;
+    public function __construct($message = "", $code = 0, Exception $previous = null, $object = NULL, $fatal = true) {
 
+        $this->fatal = $fatal;
     	$this->cleanMessage = $message;
         if($code == 0)
         {

@@ -33,9 +33,9 @@ class Insert extends \Zend\Db\Sql\Insert
      */
     public function values($values, $flag = self::VALUES_SET)
     {
-        if(is_array($values))
+        if(is_array($values) && !array_key_exists("created_time",$values))
         {
-            $values["created_time"] = new \Zend\Db\Sql\Expression("NOW()");
+            $values["created_time"] = new \Zend\Db\Sql\Expression("NOW(3)");
         }
         return parent::values($values, $flag);
     }
