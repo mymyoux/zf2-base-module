@@ -16,6 +16,24 @@ function is_url( $text )
     return filter_var( $text, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED) !== false;
 }
 
+function replace4byte($string)
+{
+    return preg_replace_callback('%(?:
+          \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+        | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+        | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+    )%xs', function( $r ){
+        return '{emoji:' . bin2hex($r[0]) . '}';
+    }, $string);
+}
+
+function emojiFront($string)
+{
+    return preg_replace_callback('/\{emoji:([0-9a-f]+)\}/', function( $r ){
+        return pack('H*', $r[1]);
+    }, $string);
+}
+
 /**
  * Display data as var_dump and kill the application
  * @param $data
@@ -91,6 +109,7 @@ function jj($data)
         $result["environment"] = $env;
 
     $result["data"] = $data;
+    header('Content-Type: application/json');
     echo  json_encode($result);
     exit();
 }

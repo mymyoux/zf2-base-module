@@ -240,7 +240,7 @@ class UserTable extends CoreTable{
         if(empty($users))
         {
             return NULL;
-        }   
+        }
         $user = $users[0];
         if(!$model)
         {
@@ -417,6 +417,22 @@ class UserTable extends CoreTable{
         $this->addAPIToUser("manual", $manual_data, $id_user);
         $this->updateUser($data, NULL, $id_user);
     }
+
+    public function updatePassword($id_user, $data)
+    {
+        if(!isset($data))
+        {
+            throw new \Exception("no_data");
+            return;
+        }
+        $manual_data = array();
+        $manual_data["email"] = trim($data["email"]);
+        $manual_data["password"] = $this->getHashedPassword(trim($data["password"]));
+        $manual_data["id_user"] = $id_user;
+
+        $this->table(self::TABLE_MANUAL)->update($manual_data, ['id_user' => (int) $id_user]);
+    }
+
     public function createUserFromAPI($api, $data)
     {
         if(!isset($data))
