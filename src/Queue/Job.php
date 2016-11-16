@@ -48,12 +48,17 @@ class Job implements ServiceLocatorAwareInterface {
         return $this->beanstalkd->getConnection()->isServiceListening();
     }
 
+    public function now()
+    {
+        return $this->send(PheanstalkInterface::DEFAULT_DELAY,  PheanstalkInterface::DEFAULT_PRIORITY, true);
+    }
+
     /**
      * Sends a job onto the specified queue.
      *
      * @return int
      */
-    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY )
+    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
     {
         $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube );
 
@@ -69,7 +74,7 @@ class Job implements ServiceLocatorAwareInterface {
             $this->beanstalkd   = new Pheanstalk($this->ip, $this->port);
         }
 
-        if (!$this->beanstalkd->getConnection()->isServiceListening())
+        if (!$this->beanstalkd->getConnection()->isServiceListening() || true === $now)
         {
             if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
             {
