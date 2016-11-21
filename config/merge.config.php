@@ -1,0 +1,1 @@
+<?php return smart_merge(include('module.config.php'), include('auto.config.php'));
