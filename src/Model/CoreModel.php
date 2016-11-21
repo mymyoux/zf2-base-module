@@ -31,8 +31,11 @@ class CoreModel extends CoreObject
                         $value = floatval($value);
                     if (is_float($value))
                     {
-                        $value = number_format($value, 2, ',', '');
-                        if ($value == '0,00') $value = 0;
+                        if ($key !== 'longitude' && $key != 'latitude')
+                        {
+                            $value = number_format($value, 2, ',', '');
+                            if ($value == '0,00') $value = 0;
+                        }
                     }
                     else
                         $value = (int) $value;
