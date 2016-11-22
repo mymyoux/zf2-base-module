@@ -28,7 +28,7 @@ class ReplayController extends \Core\Console\CoreController
             $this->getLogger()->error('No id given - you must pass it id=xxxx');
             exit();
         }
-
+        $usertable = $this->sm->get("UserTable");
         $ids = explode(",", $id);
         $original_id = $id;
 
@@ -128,6 +128,8 @@ class ReplayController extends \Core\Console\CoreController
 
                 $listener->setServiceLocator( $this->sm );
                 $this->getLogger()->normal("replay job: ".$id);
+
+                $listener->setUser(isset($result["id_user"])?$usertable->getUser($result["id_user"]):NULL);
                 $listener->preexecute(json_decode($result["json"], True));
             }catch(\Exception $e)
             {
