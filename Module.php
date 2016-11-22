@@ -21,6 +21,7 @@ use Core\Table\DetectLanguageTable;
 use Core\Table\MailTable;
 use Core\Table\RoleTable;
 use Core\Table\ABTable;
+use Core\Table\CronTable;
 use Core\Table\TokenTable;
 use Zend\Console\Adapter\AdapterInterface as Console;
 use Zend\Db\ResultSet\ResultSet;
@@ -151,6 +152,10 @@ class Module
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     $resultSetPrototype = new ResultSet();
                     return new RoleTable(new TableGateway("user_role",$dbAdapter, NULL, $resultSetPrototype));
+                },
+                'CronTable' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new CronTable(new TableGateway(CronTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'Zend\Db\Adapter\Adapter'
                 => 'Zend\Db\Adapter\AdapterServiceFactory'
