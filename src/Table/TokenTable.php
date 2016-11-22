@@ -58,7 +58,6 @@ class TokenTable extends CoreTable
     }
     public function useOnetoken($user, $apirequest)
     {
-
         $where = $this->delete()
         ->where
          ->nest
@@ -96,7 +95,7 @@ class TokenTable extends CoreTable
             }
             $this->table(TokenTable::TABLE_ONE_SHOT_HISTORY)->insert(array("id_user"=>$result["id_user"],"token"=>$result["token"],"source"=>$result["source"]));
              $this->endTransaction();
-             $this->getNotifications()->oneToken($result);
+             //$this->getNotifications()->oneToken($result);
             return (int)$result["id_user"];
         }catch(\Exception $e)
         {

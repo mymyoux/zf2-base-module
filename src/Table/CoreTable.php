@@ -346,6 +346,30 @@ class CoreTable extends \Core\Service\CoreService
         $result = $this->execute($select);
         return $result;
     }
+    protected function getModelPath()
+    {
+        $path = str_replace('Table','Model', get_class($this));
+        return $path;
+    }
+    public function toModel($data, $path = NULL)
+    {
+        if(!isset($data))
+        {
+            return NULL;
+        }
+        if(!isset($path))
+        {
+            $path = $this->getModelPath();
+        }
+        if(!isset($path))
+        {
+            throw new \Exception('you need to have set a path');
+            return NULL;
+        }
+        $model = new $path();
+        $model->exchangeArray($data);
+        return $model;
+    }
 
 
 

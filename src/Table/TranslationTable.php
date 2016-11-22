@@ -12,6 +12,7 @@ use Zend\Db\Sql\Expression;
 
 class TranslationTable extends CoreTable
 {
+	const TABLE = "translate";
 	public function getSupportedLocales()
 	{
 		$request = $this->select("translate_locales")->columns(array("locale"));

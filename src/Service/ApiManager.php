@@ -23,6 +23,13 @@ class ApiManager extends CoreService
 
         $this->apis = array();
         $this->configuration = $this->sm->get("AppConfig")->get("apis");
+        foreach($this->configuration as $key=>$value)
+        {
+            if(isset($value["disabled"]) && $value["disabled"] === true)
+            {
+                unset($this->configuration[$key]);
+            }
+        }
         $keys = array_keys($this->configuration);
         foreach($keys as $key)
         {
