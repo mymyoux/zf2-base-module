@@ -13,7 +13,7 @@ class Queue extends \Core\Service\CoreService implements ServiceLocatorAwareInte
 {
     public function createJob( $tube, array $job )
     {
-    	$job = new Job($tube, $job);
+    	$job = new Job($tube, $job, $this->sm->get("Identity")->isLoggued()?$this->sm->get("Identity")->user->id:NULL);
 
         $job->setServiceLocator( $this->sm );
 
