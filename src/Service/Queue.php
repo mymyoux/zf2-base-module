@@ -12,7 +12,7 @@ use Core\Model\UserModel;
  */
 class Queue extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
 {
-    public function createJob( $tube, array $job, $user  = NULL)
+    public function createJob( $tube, array $job, $user  = NULL, $identifier = NULL)
     {
 
     	$id_user = $user;
@@ -40,7 +40,8 @@ class Queue extends \Core\Service\CoreService implements ServiceLocatorAwareInte
     		throw new \Exception('id_user is not correct: '.((string)$id_user));
     	}
     	$job = new Job($tube, $job, $id_user);
-
+    	if(isset($identifier))
+    		$job->setIdentifier($identifier);
         $job->setServiceLocator( $this->sm );
 
     	return $job;

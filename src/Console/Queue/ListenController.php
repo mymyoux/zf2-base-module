@@ -9,6 +9,8 @@ use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
 use Pheanstalk\Job as PheanstalkJob;
 
+use Core\Table\BeanstalkdLogTable;
+
 class ListenController extends \Core\Console\CoreController
 {
     CONST DESCRIPTION   = 'Queue system management';
@@ -82,14 +84,16 @@ class ListenController extends \Core\Console\CoreController
 
                 if (true !== $listener->checkJob( $data ))
                 {
+                    $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_DELETED);
                     $this->getLogger()->error('delete Job (not valid)');
                     $this->queue->delete($job);
                     continue;
                 }
+                $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
                 $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
                 $listener->setUser($user);
                 $listener->preexecute( $data );
-                $this->sm->get('BeanstalkdLogTable')->setSend($log['id'], true);
+                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1);
 
                 $this->queue->delete($job);
                 $this->getLogger()->info('Success (delete the job)');
@@ -105,14 +109,18 @@ class ListenController extends \Core\Console\CoreController
                 $this->sm->get('ErrorTable')->logError( $e );
 
                 $jobsStats = $this->queue->statsJob($job);
+                if ($jobsStats->releases >= $this->tries) {
 
-                if ($jobsStats->releases > $this->tries) {
+                    $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_FAILED );
+                    
                     $this->getLogger()->error("Burrying job!");
                     $this->buryJob($job, $this->queue);
                 } else {
+                    $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_RETRYING, $jobsStats->releases+1 );
                     $this->getLogger()->warn('retrying in 60 seconds!');
                     echo "retrying in 60 seconds!" . PHP_EOL;
-                    $this->queue->release($job, PheanstalkInterface::DEFAULT_PRIORITY, 60);
+                    $priority = isset($log["priority"])?(int)$log["priority"]:PheanstalkInterface::DEFAULT_PRIORITY;
+                    $this->queue->release($job, $priority, 60);
                 }
 
             }

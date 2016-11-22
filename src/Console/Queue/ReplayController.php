@@ -4,6 +4,7 @@ namespace Core\Console\Queue;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Mvc\MvcEvent;
+use Core\Table\BeanstalkdLogTable;
 
 
 class ReplayController extends \Core\Console\CoreController
@@ -126,15 +127,19 @@ class ReplayController extends \Core\Console\CoreController
                 }
                 $listener = new $object_name;
 
+
+                $this->getBeanstalkdLogTable()->setState($result["id"], BeanstalkdLogTable::STATE_REPLAYING, ((int)$result["tries"])+1);
                 $listener->setServiceLocator( $this->sm );
                 $this->getLogger()->normal("replay job: ".$id);
 
                 $listener->setUser(isset($result["id_user"])?$usertable->getUser($result["id_user"]):NULL);
                 $listener->preexecute(json_decode($result["json"], True));
+                 $this->getBeanstalkdLogTable()->setState($result["id"], BeanstalkdLogTable::STATE_REPLAYING_EXECUTED);
             }catch(\Exception $e)
             {
                 $failed[] = $id;
                 $this->getLogger()->error($e->getMessage());
+                $this->getBeanstalkdLogTable()->setState($result["id"], BeanstalkdLogTable::STATE_REPLAYING_FAILED);
             }
         }
         foreach($rebuild_ids as $id)
