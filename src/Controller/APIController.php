@@ -179,10 +179,6 @@ class APIController extends FrontController
         $state_user = array();
         if($this->identity->isLoggued())
         {
-            if($this->identity->user->isCandidate())
-            {
-                $state_user["state"] = $this->identity->user->state;
-            }
             $state_user["id_user"] = $this->identity->user->id;
         }else{
             $state_user["id_user"] = 0;

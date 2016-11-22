@@ -8,7 +8,6 @@
 
 namespace Core\Controller;
 use Core\Annotations as ghost;
-use Application\Table\CrawlTable;
 use Zend\View\Model\JsonModel;
 
 

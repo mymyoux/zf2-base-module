@@ -41,7 +41,7 @@ class Twitter extends AbstractAPI
         $url_callback = $data["redirect_uri"];
         try {
             $twitterOAuthRequestToken = $this->api->getRequestToken(  $url_callback );
-            $url = $this->api->getAuthorizeURL( $twitterOAuthRequestToken, FALSE ) . '&force_login=true';
+            $url = $this->api->getAuthorizeURL( $twitterOAuthRequestToken, FALSE ) /*. '&force_login=true'*/;
             if(array_key_exists("login", $data))
             {
                 $url.="&screen_name=".$data["login"];

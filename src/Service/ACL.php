@@ -80,6 +80,7 @@ class ACL extends CoreService implements \JsonSerializable
                 }
             }
         }
+
         foreach($this->categories as $key=>$categoryRoles)
         {
             if($key == ACL::FORBIDDEN)

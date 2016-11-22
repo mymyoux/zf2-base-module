@@ -553,7 +553,6 @@ class UserTable extends CoreTable{
             if(array_key_exists($key, $data))
                 $insert[$key] = $data[$key];
         }
-
         $data = $this->additionalCreationData();
 
         foreach($data as $key => $value)

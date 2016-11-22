@@ -11,6 +11,26 @@ return array(
     'router' => array(
         'routes' => array(
 
+            'picture' => array(
+                'type'    => 'Segment',
+                'options' => array(
+                    'route'    => '/picture/:width/:height[/:dpi][/:extension]',
+                    'constraints' => array(
+                         'width' => '[0-9]+',
+                         'height' => '[0-9]+',
+                         'extension' => '[a-z]+',
+                         'dpi' => '[0-9\.]+'
+                    ),
+                    'defaults' => array(
+                        'module' => 'core',
+                        '__NAMESPACE__' => 'Core\Controller',
+                        'controller'    => 'picture',
+                        'action'        => 'index',
+                        'dpi' =>1
+
+                    )
+                )
+            ),
             'application' => array(
                 'type'    => 'Segment',
                 'options' => array(
@@ -74,6 +94,7 @@ return array(
             'Zend\Log\LoggerAbstractServiceFactory',
         ),
         'invokables'=>array(
+            'Picture' => 'Core\Service\Picture',
             'Email' => 'Core\Service\Email',
             'Notifications'=>'Core\Service\Notifications',
             'Spreadsheet'=>'Core\Service\Spreadsheet',
@@ -115,6 +136,7 @@ return array(
         'invokables' => array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
+            'Core\Controller\Picture' => 'Core\Controller\PictureController',
             'Core\Controller\Ask' => 'Core\Controller\AskController',
             'Core\Controller\AB' => 'Core\Controller\ABController',
             'Core\Controller\Error' => 'Core\Controller\ErrorController',
@@ -163,7 +185,24 @@ return array(
         'retry_count'   => 3
     ],
     'apis' => array(
-        "linkedIn" => array("class"=>'\Core\Service\Api\LinkedIn')
+        'linkedIn' => array(
+                'login' => True,
+                'multi' => False,
+                'sharable'=>False,
+                'class'=>'\Core\Service\Api\LinkedIn',
+        ),
+        'facebook'=> array(
+            'login' => True,
+            'multi' => False,
+            'sharable'=>False,
+            'class'=>'\Core\Service\Api\Facebook',
+        ),
+        'twitter'=> array(
+            'login' => True,
+            'multi' => False,
+            'sharable'=>False,
+            'class'=>'\Core\Service\Api\Twitter',
+        )
     ),
         // Placeholder for console routes
     'console' => array(

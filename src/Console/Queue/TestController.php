@@ -22,19 +22,6 @@ class TestController extends \Core\Console\CoreController
      */
     public function startAction()
     {
-        $path = join_paths(__DIR__,"../../../../../module/Cabinet/view/");
-        $this->sm->get('Email')->sendEmail("cabinet_employee_register", array("template"=>"cabinet/email/invitation-employee", "path"=>$path), 'benjamin.andreosso@gmail.com', "recruitment-firm@yborder.com", "YBorder", "You are invited by ".'Benjamin',array("employee"=> [], "identity"=>[], "token"=>'token',"cabinet"=>[]));
 
-        $this->sm->get('Email')->setMergeLanguage('handlebars');
-        $this->sm->get("Email")->sendEmailTemplate(['inbox', 'message', 'new'], 'new-message-on-yborder', 'benjamin.andreosso@gmail.com', 'inmail@yborder.com', null, null, [
-            'from_name'         => 'test',
-            'to_name'           => 'test',
-            'comment'           => 'test',
-            'sender_hash'       => 'test',
-            'id_conversation'   => 'test',
-        ]);
-        $admin          = $this->sm->get('UserTable')->getConsoleUser( 'company' );
-        $this->sm->get('Notifications')->alert('build_cv', 'test');
-        $this->sm->get('Notifications')->leadUser( $admin );
     }
 }

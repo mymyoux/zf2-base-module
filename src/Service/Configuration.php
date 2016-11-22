@@ -42,7 +42,8 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
             try
             {   $category = substr(basename($filename,".json"), strlen($this->_env)+1);
                 $content = json_decode($content, True);
-                $configuration = array_merge(array($category=>$content), $configuration);
+
+                $configuration = array_replace_recursive(array($category=>$content), $configuration);
             }catch(\Exception $e)
             {
                 throw $e;
@@ -55,27 +56,25 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
             try
             {   $category = substr(basename($filename,".json"), strlen($this->_env)+1);
                 $content = json_decode($content, True);
-                $configuration = array_merge(array($category=>$content), $configuration);
+                $configuration = array_replace_recursive(array($category=>$content), $configuration);
             }catch(\Exception $e)
             {
                 throw $e;
             }
         }
-
+        /*
         if(file_exists($json))
         {
             $content = file_get_contents($json);
             try
             {
                 $content = json_decode($content, True);
-                $configuration = array_merge($content, $configuration);
+                $configuration = array_replace_recursive($content, $configuration);
             }catch(\Exception $e)
             {
                 throw $e;
             }
-
-
-        }
+        }*/
         return $configuration;
     }
     public function getEnv()

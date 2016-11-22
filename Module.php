@@ -20,6 +20,7 @@ use Core\Table\AskTable;
 use Core\Table\DetectLanguageTable;
 use Core\Table\MailTable;
 use Core\Table\RoleTable;
+use Core\Table\PictureTable;
 use Core\Table\ABTable;
 use Core\Table\TokenTable;
 use Zend\Console\Adapter\AdapterInterface as Console;
@@ -128,6 +129,10 @@ class Module
                 'ABTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new ABTable(new TableGateway(ABTable::TABLE,$dbAdapter, NULL, NULL));
+                },
+                'PictureTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new PictureTable(new TableGateway(PictureTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'MailTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');

@@ -162,25 +162,34 @@ class MultipleIdentity extends CoreService implements IIdentity
             $use_extension = $params->fromQuery("extension", $params->fromPost("extension", False)) == "1";
             if($use_extension)
             {
-                return;
+                return False;
             }
             $delay = 300000;//5minutes
             $timestamp = intval(microtime(True)*1000);
             if($this->user->last_connection+$delay<$timestamp)
             {
-                $this->getUserTable()->updateLoginConnection($this->user);
+                $this->updateLoginConnection();
             }
             $delay = 1800000; //30min
             if($this->user->last_connection+$delay<$timestamp || $this->user->num_connection == 1)
             {
-                $this->getUserTable()->updateConnectionCount($this->user);
-                if((!$this->user->isAdmin()) && !$this->sm->get("AppConfig")->isLocal())
-                {
-                    $this->getNotificationManager()->login($this->user);
-                }
+                $this->updateConnectionCount();
             }
             $this->user->last_connection = $timestamp;
-
+            return True;
+        }
+        return False;
+    }
+    protected function updateLoginConnection()
+    {
+        $this->getUserTable()->updateLoginConnection($this->user);
+    } 
+    protected function updateConnectionCount()
+    {
+         $this->getUserTable()->updateConnectionCount($this->user);
+        if((!$this->user->isAdmin()) && !$this->sm->get("AppConfig")->isLocal())
+        {
+            $this->getNotificationManager()->login($this->user);
         }
     }
     /**

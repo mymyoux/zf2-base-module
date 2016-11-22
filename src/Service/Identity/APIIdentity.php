@@ -60,7 +60,6 @@ class APIIdentity extends Identity
     {
         $userTable = $this->sm->get('UserTable');
         $_user = $userTable->getUserFromAPIID($this->name, $user["id"]);
-
         if(empty($_user))
         {
             if($type == "login" && $this->sm->get("Identity")->isLoggued())
@@ -79,14 +78,6 @@ class APIIdentity extends Identity
                 }
             }
             $_user = $userTable->getUserFromAPIID($this->name, $user["id"]);
-        }else
-        {
-            if($type != "login")
-            {
-                //should not have an api user
-                throw new \Exception("api_already_used");
-                return NULL;
-            }
         }
         if(empty($_user))
         {

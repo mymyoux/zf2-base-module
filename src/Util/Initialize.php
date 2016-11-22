@@ -235,7 +235,24 @@ function ends_with($haystack, $needle)
 {
     return $needle === "" || mb_substr($haystack, -mb_strlen($needle)) === $needle;
 }
-
+function str_lreplace($search, $replace, $subject)
+{
+    $pos = strrpos($subject, $search);
+    if($pos !== false)
+    {
+        $subject = substr_replace($subject, $replace, $pos, strlen($search));
+    }
+    return $subject;
+}
+function mb_str_lreplace($search, $replace, $subject)
+{
+    $pos = mb_strrpos($subject, $search);
+    if($pos !== false)
+    {
+        $subject = mb_substr($subject, 0, $pos).mb_ereg_replace( mb_substr($subject, $pos), $search, $replace);
+    }
+    return $subject;
+}
 function remove_accents($string) {
     if ( !preg_match('/[\x80-\xff]/', $string) )
         return $string;
