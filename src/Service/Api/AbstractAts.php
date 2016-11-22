@@ -8,9 +8,11 @@
 
 namespace Core\Service\Api;
 use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-abstract class AbstractAts extends AbstractAPI
+abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInterface
 {
+    protected $client;
     protected $ats_user = null;
 
 	public function typeAuthorize()
@@ -25,19 +27,36 @@ abstract class AbstractAts extends AbstractAPI
     public function setUser( $ats_user )
     {
         if ($ats_user)
+        {
             $this->ats_user = (object) $ats_user;
+
+            $this->ats_company = $this->sm->get('AtsCompanyTable')->getByUserID( $this->ats_user->id_user );
+        }
+    }
+
+    public function getUser()
+    {
+        return $this->user;
     }
 
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
         $this->sm = $serviceLocator;
 
+        $this->client   = new \GuzzleHttp\Client();
         $this->init();
     }
 
     public function getServiceLocator()
     {
         return $this->sm;
+    }
+
+    public function getAtsJobs()
+    {
+        if (!isset($this->ats_company)) return [];
+
+        return $this->sm->get('AtsJobTable')->getAllByCompany( $this->ats_company->id_ats_company );
     }
 
     public function setRessourceJobs( $have_data )
@@ -77,6 +96,7 @@ abstract class AbstractAts extends AbstractAPI
      * @param  string   $method       HTTP method (ie: POST, GET, PUT ...)
      * @param  string   $ressource    Ressource name (ie: /candidates, /jobs ...)
      * @param  array    $params       Params used for the call
+     * @param  boolean  $success      True if the call succeded
      * @param  boolean  $success      True if the call succeded
      * @param  array    $result       Raw result
      * @param  integer  $id_error     ID of the error
