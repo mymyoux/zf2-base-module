@@ -38,7 +38,7 @@ class BeanstalkdLogTable extends CoreTable
     {
         $where  = $this->select([ 'ms' => self::TABLE ])
                         ->where
-                            ->equalTo('id_send', 2)
+                            ->equalTo('state', BeanstalkdLogTable::STATE_EXECUTED_FRONT)
                             ->greaterThan('created_time', new Expression('NOW() - INTERVAL 1 HOUR'))
                                 ;
         $request = $this->select([ 'ms' => self::TABLE ])
