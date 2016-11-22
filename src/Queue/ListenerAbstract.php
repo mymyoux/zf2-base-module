@@ -8,6 +8,7 @@ abstract class ListenerAbstract
 {
     protected $sm;
     protected $api;
+    protected $user;
 
     public function setServiceLocator( $sm )
     {
@@ -33,6 +34,10 @@ abstract class ListenerAbstract
         return $this->sm->get("ControllerPluginManager");
     }
     abstract public function executeJob( $data );
+    public function setUser($user)
+    {
+        $this->user = $user;
+    }
     public function preexecute($data)
     {
         return $this->executeJob($data);

@@ -88,11 +88,12 @@ class BeanstalkdLogTable extends CoreTable
         return $data;
     }
 
-	public function insertLog( $json, $queue )
+	public function insertLog( $json, $queue, $id_user )
     {
         $data   = [
             'json'	=> (string) $json,
-            'queue'=>$queue
+            'queue'=>$queue,
+            'id_user'=>$id_user
         ];
 
         $this->table(self::TABLE)->insert($data);

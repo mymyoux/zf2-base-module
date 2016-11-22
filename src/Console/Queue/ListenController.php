@@ -60,7 +60,7 @@ class ListenController extends \Core\Console\CoreController
         {
             throw new \Exception('Class `' . $object_name . '` not exist', 1);
         }
-
+        $usertable = $this->sm->get("UserTable");
         $listener = new $object_name;
 
         $listener->setServiceLocator( $this->sm );
@@ -86,7 +86,8 @@ class ListenController extends \Core\Console\CoreController
                     $this->queue->delete($job);
                     continue;
                 }
-
+                $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
+                $listener->setUser($user);
                 $listener->preexecute( $data );
                 $this->sm->get('BeanstalkdLogTable')->setSend($log['id'], true);
 
