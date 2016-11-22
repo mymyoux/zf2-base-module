@@ -5,10 +5,16 @@ namespace Core\Queue;
 use Pheanstalk\Pheanstalk;
 use Pheanstalk\PheanstalkInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Core\Table\BeanstalkdLogTable;
+use Pheanstalk\Job as PJob;
 
 class Job implements ServiceLocatorAwareInterface {
 
     private $id_user;
+    /**
+     * identifier ID for deleting
+     */
+    private $identifier;
     private $job;
     /** @var string $tube */
     private $tube;
@@ -34,7 +40,10 @@ class Job implements ServiceLocatorAwareInterface {
         $this->job_json     = json_encode($job);
         $this->tube         = $tube;
     }
-
+    public function setIdentifier($identifier)
+    {
+        $this->identifier = $identifier;
+    }
     public function isConnected()
     {
         if (!$this->beanstalkd)
@@ -49,23 +58,40 @@ class Job implements ServiceLocatorAwareInterface {
 
         return $this->beanstalkd->getConnection()->isServiceListening();
     }
+    /**
+     * Cancel previous jobs not executed yet
+     * @return [type] [description]
+     */
+    public function cancelAllPrevious()
+    {   
+        $previous = $this->sm->get('BeanstalkdLogTable')->getPrevious($this->tube, $this->id_user, $this->identifier);
+        if(!empty($previous))
+        {
+            foreach($previous as $log)
+            {
+                if(isset($log["id_beanstalkd"]))
+                {
+                    $job = new PJob($log["id_beanstalkd"], json_decode($log["json"]));
+                    try
+                    {
+                        $this->getBeanStalkd()->delete($job);
+                    }catch(\Exception $e)
+                    {
+                        //beanstalkd reloaded ?
+                    }
+                    $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_CANCELLED);
+                }
+            }
+        }
+    }
 
     public function now()
     {
         return $this->send(PheanstalkInterface::DEFAULT_DELAY,  PheanstalkInterface::DEFAULT_PRIORITY, true);
     }
 
-    /**
-     * Sends a job onto the specified queue.
-     *
-     * @return int
-     */
-    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
+    protected function getBeanStalkd()
     {
-        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $delay, $this->id_user );
-
-        $this->job['_id_beanstalkd'] = $id;
-
         if (!$this->beanstalkd)
         {
             $config             = $this->sm->get('AppConfig')->get('beanstalkd');
@@ -75,8 +101,24 @@ class Job implements ServiceLocatorAwareInterface {
 
             $this->beanstalkd   = new Pheanstalk($this->ip, $this->port);
         }
+        return $this->beanstalkd;
+    }
 
-        if (!$this->beanstalkd->getConnection()->isServiceListening() || true === $now)
+    /**
+     * Sends a job onto the specified queue.
+     *
+     * @return int
+     */
+    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
+    {
+
+       
+
+        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $delay, $this->id_user, $priority, $this->identifier);
+
+        $this->job['_id_beanstalkd'] = $id;
+
+        if (!$this->getBeanStalkd()->getConnection()->isServiceListening() || true === $now)
         {
             if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
             {
@@ -110,7 +152,7 @@ class Job implements ServiceLocatorAwareInterface {
             $listener->setServiceLocator( $this->sm );
             $listener->preexecute( $this->job );
 
-            $this->sm->get('BeanstalkdLogTable')->setSend($id, 2);
+            $this->sm->get('BeanstalkdLogTable')->setState($id, $now?BeanstalkdLogTable::STATE_EXECUTED_NOW:BeanstalkdLogTable::STATE_EXECUTED_FRONT, 1);
 
             return true;
         }
