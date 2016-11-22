@@ -123,12 +123,14 @@ class MailTable extends CoreTable
     {
         $this->table()->update($data, array("id"=>$id));
     }
-    public function getMailByTypeAndUser( $type, $id_user, $date )
+    public function getMailByTypeAndUser( $type, $id_user, $date = null )
     {
         $where = $this->select(self::TABLE)->where
                     ->and->equalTo("id_user", (int) $id_user)
                     ->and->equalTo("type", (string) $type)
-                    ->and->expression('DATE_FORMAT(tp.created_time, "%Y-%m-%d") = "' . date('Y-m-d', strtotime($date)) . '"', []);
+                    ;
+        if (null !== $date)
+            $where->and->expression('DATE_FORMAT(tp.created_time, "%Y-%m-%d") = "' . date('Y-m-d', strtotime($date)) . '"', []);
 
         $request = $this->select([ 'tp' => self::TABLE ])
                     ->where( $where );
