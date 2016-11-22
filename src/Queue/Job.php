@@ -62,7 +62,7 @@ class Job implements ServiceLocatorAwareInterface {
      */
     public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
     {
-        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $this->id_user );
+        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $delay, $this->id_user );
 
         $this->job['_id_beanstalkd'] = $id;
 
