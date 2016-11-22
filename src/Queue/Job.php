@@ -104,6 +104,12 @@ class Job implements ServiceLocatorAwareInterface {
         return $this->beanstalkd;
     }
 
+     public function throttle( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
+     {
+        $this->cancelAllPrevious();
+        return $this->send($delay, $priority, $now);
+     }
+
     /**
      * Sends a job onto the specified queue.
      *
