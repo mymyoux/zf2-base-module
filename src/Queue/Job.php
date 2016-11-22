@@ -8,6 +8,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 class Job implements ServiceLocatorAwareInterface {
 
+    private $id_user;
     private $job;
     /** @var string $tube */
     private $tube;
@@ -26,9 +27,10 @@ class Job implements ServiceLocatorAwareInterface {
      * @param array $job
      * @param string $tube
      */
-    public function __construct($tube, array $job)
+    public function __construct($tube, array $job, $id_user = NULL)
     {
         $this->job          = $job;
+        $this->id_user          = $id_user;
         $this->job_json     = json_encode($job);
         $this->tube         = $tube;
     }
@@ -60,7 +62,7 @@ class Job implements ServiceLocatorAwareInterface {
      */
     public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
     {
-        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube );
+        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $this->id_user );
 
         $this->job['_id_beanstalkd'] = $id;
 
