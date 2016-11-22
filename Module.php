@@ -35,6 +35,7 @@ use Zend\Permissions\Acl\Role\GenericRole;
 use Zend\Permissions\Acl\Resource\GenericResource;
 use Zend\View\Model\JsonModel;
 use Zend\View\ViewEvent;
+use Core\Table\Cron\LogTable;
 
 use Core\Table\BeanstalkdLogTable;
 use Core\Table\StatsTable;
@@ -161,6 +162,10 @@ class Module
                 'CronTable' => function ($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new CronTable(new TableGateway(CronTable::TABLE,$dbAdapter, NULL, NULL));
+                },
+                'CronLogTable' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new LogTable(new TableGateway(LogTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'Zend\Db\Adapter\Adapter'
                 => 'Zend\Db\Adapter\AdapterServiceFactory'
