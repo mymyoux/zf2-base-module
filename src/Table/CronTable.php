@@ -12,7 +12,7 @@ use Core\Exception\FatalException;
 use Core\Table\CoreTable;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Expression;
-use Application\Model\CronModel;
+use Core\Model\CronModel;
 
 class CronTable extends CoreTable
 {
