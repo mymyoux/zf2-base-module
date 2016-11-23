@@ -20,6 +20,7 @@ class APIController extends FrontController
 {
     public function indexAction()
     {
+        $start_time = microtime(True);
         $view       = new JsonModel();
         $controller = $this->params()->fromRoute("cont", NULL);
         $action     = $this->params()->fromRoute("act", "index");
@@ -206,6 +207,11 @@ class APIController extends FrontController
 
             $api_stats["value"] = json_encode($view->getVariables(), \JSON_PRETTY_PRINT);
             $api_stats["type"] = $this->sm->get("Route")->getType();
+            $api_stats["duration"] = round((microtime(True) - $start_time)*1000);
+            if($api_stats["duration"] < 0)
+            {
+                $api_stats["duration"] = 0;
+            }
             $this->getStatsTable()->recordAPICall($api_stats);
 
         }catch(\Exception $e)
