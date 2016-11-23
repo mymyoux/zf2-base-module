@@ -75,6 +75,7 @@ class ListenController extends \Core\Console\CoreController
         {
             try
             {
+                $start_time = microtime(True);
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
@@ -92,8 +93,13 @@ class ListenController extends \Core\Console\CoreController
                 $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
                 $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
                 $listener->setUser($user);
+
                 $listener->preexecute( $data );
-                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1);
+
+
+                $total_time = round((microtime(True) - $start_time)*1000);
+               
+                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
 
                 $this->queue->delete($job);
                 $this->getLogger()->info('Success (delete the job)');
