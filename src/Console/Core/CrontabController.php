@@ -347,7 +347,7 @@ class CrontabController extends \Core\Console\CoreController
         }
         if(count($params))
         {
-            if(strpos($params[0], ".") !== False)
+            if(strpos($params[0], "-") === 0)
             {
                 unset($params[0]);
                 $params = array_values($params);
@@ -373,7 +373,6 @@ class CrontabController extends \Core\Console\CoreController
                 'ns'   => '\Core\Console\\'
             ]
         ];
-
 
         $this->includePathArr = array_map(function($item)
             {
@@ -432,6 +431,7 @@ class CrontabController extends \Core\Console\CoreController
         	else
         		break;
         }
+      
         $cron = $this->initCron( $name, isset($arguments['user_id']) ? $arguments['user_id'] : null );
 
         $name = $cron->getName();
@@ -442,13 +442,14 @@ class CrontabController extends \Core\Console\CoreController
 
             if(!$this->sm->get("Module")->loaded($path["name"]))
             {
-                echo "full load:".$path["name"].PHP_EOL;
-                 $this->sm->get("Module")->lightLoad($path["name"]);
+                echo "light load:".$path["name"].PHP_EOL;
+                 $this->sm->get("Module")->fullLoad($path["name"]);
             }
             if (class_exists($namespace . 'Controller'))
             {
                 if(!$this->sm->get("Module")->loaded($path["name"]))
                 {
+                    echo "full load:".$path["name"].PHP_EOL;
                     $this->sm->get("Module")->fullLoad($path["name"]);
                     $this->sm->get("ControllerManager")->setInvokableClass($namespace,  $namespace . 'Controller', True);
                 }

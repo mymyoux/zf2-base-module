@@ -38,6 +38,30 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     {
 
     }
+      public function alert($type, $optional_message = '', $user = NULL)
+    {
+        $color = 'danger';
+
+        switch ( $type )
+        {
+             case 'beanstalkd':
+                $icon       = ':fire: :fire_engine: ';
+                $message    = 'Beanstalkd is DOWN ';
+                break;
+ 
+            default:
+                $icon       = ':warning:';
+                $message    = 'Alert ?';
+                break;
+        }
+        $text = "$icon\t $message$optional_message";
+        if(isset($user))
+        {
+            $text.=PHP_EOL.$user->id." ".$user->first_name." ".$user->last_name;
+        }
+
+        return $this->sendNotification("alert", $text."\n");
+    }
     public function ask($type, $value, $id_external)
     {
         $icon = ':question:';
@@ -97,6 +121,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             $file = mb_substr($info["file"], $index+7);
         }
         $message .= "\n".$file.":".$info["line"]."\n";
+        return;
         return $this->sendNotification($channel, $message);
     }
     public function sendSlack( $slack )
@@ -107,12 +132,13 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             return;
         }
         $data = $slack->toSlackArray();
-
+        return;
         return $this->sendToBeanstalkd($data);
     }
 
     public function sendNotification($channel, $message, $attachments = [], $bot_name = null, $icon = null)
     {
+        return;
         $data = array(
             'channel'     => (mb_strpos($channel, '#') === false ? '#' : '') . $channel,
             'username'    => $bot_name,
