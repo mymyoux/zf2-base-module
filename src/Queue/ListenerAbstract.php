@@ -46,7 +46,10 @@ abstract class ListenerAbstract
     {
         return $this->executeJob($data);
     }
-
+    public function createJob($name, $data, $user = NULL, $identifier = NULL)
+    {
+        return $this->sm->get('QueueService')->createJob($name, $data, $user, $identifier);
+    }
     /**
      * Determine if the memory limit has been exceeded.
      *

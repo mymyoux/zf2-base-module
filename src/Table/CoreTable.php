@@ -75,7 +75,10 @@ class CoreTable extends \Core\Service\CoreService
         }
 
     }
-
+    public function createJob($name, $data, $user = NULL, $identifier = NULL)
+    {
+        return $this->sm->get('QueueService')->createJob($name, $data, $user, $identifier);
+    }
     protected function endTransaction()
     {
         $this->db->getDriver()->getConnection()->commit();
