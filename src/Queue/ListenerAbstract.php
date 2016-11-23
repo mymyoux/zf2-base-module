@@ -10,6 +10,10 @@ abstract class ListenerAbstract
     protected $api;
     protected $user;
 
+    public function cooldown()
+    {
+        return 0;
+    }
     public function setServiceLocator( $sm )
     {
         $this->sm = $sm;

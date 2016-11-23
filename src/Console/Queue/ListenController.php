@@ -42,7 +42,6 @@ class ListenController extends \Core\Console\CoreController
         $port        = $config['port'];
 
         $this->queue = new Pheanstalk($ip, $port);
-
         $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
 
 
@@ -66,7 +65,7 @@ class ListenController extends \Core\Console\CoreController
         $listener = new $object_name;
 
         $listener->setServiceLocator( $this->sm );
-
+        $cooldown = $listener->cooldown();
         $this->queue->watch($this->queueName)->ignore('default');
 
         $this->getLogger()->debug('Listening to `' . $this->queueName . '`');
@@ -128,7 +127,11 @@ class ListenController extends \Core\Console\CoreController
                     $priority = isset($log["priority"])?(int)$log["priority"]:PheanstalkInterface::DEFAULT_PRIORITY;
                     $this->queue->release($job, $priority, 60);
                 }
-
+            }
+            if($cooldown>0)
+            {
+                $this->getLogger()->warn("cooldown ".$cooldown."s");
+                sleep($cooldown);
             }
         }
     }
