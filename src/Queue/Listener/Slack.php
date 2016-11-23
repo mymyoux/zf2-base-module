@@ -25,14 +25,16 @@ class Slack extends ListenerAbstract implements ListenerInterface
     {
         return true;
     }
-
+    public function cooldown()
+    {
+        if ($this->sm->get('AppConfig')->isCLI())
+            return 1;
+        return 0;
+    }
     public function executeJob( $data )
     {
         $json   = json_encode($data);
         $result = $this->sm->get('Notifications')->send( $json );
-
-        if ($this->sm->get('AppConfig')->isCLI())
-            sleep(1);
     }
 
 }
