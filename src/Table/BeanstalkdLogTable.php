@@ -145,7 +145,7 @@ class BeanstalkdLogTable extends CoreTable
         return $this->table(self::TABLE)->lastInsertValue;
     }
 
-    public function setState( $id, $state, $tries = NULL )
+    public function setState( $id, $state, $tries = NULL, $duration  = NULL)
     {
         $data   = [
             'state'         => $state
@@ -153,6 +153,14 @@ class BeanstalkdLogTable extends CoreTable
         if(isset($tries))
         {
             $data["tries"] = $tries;
+        }
+        if(isset($duration))
+        {
+            if($duration<0)
+            {
+                $duration = 0;
+            }
+            $data["duration"] = $duration;
         }
 
         $this->table(self::TABLE)->update($data, ['id' => (int) $id]);

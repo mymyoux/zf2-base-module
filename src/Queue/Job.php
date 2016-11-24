@@ -108,6 +108,12 @@ class Job implements ServiceLocatorAwareInterface {
         return $this->beanstalkd;
     }
 
+     public function throttle( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
+     {
+        $this->cancelAllPrevious();
+        return $this->send($delay, $priority, $now);
+     }
+
     /**
      * Sends a job onto the specified queue.
      *
@@ -129,6 +135,7 @@ class Job implements ServiceLocatorAwareInterface {
                 $this->sm->get('Log')->warn('waiting for ' . $delay . ' secs...');
                 sleep( $delay );
             }
+           $start_time = microtime(True);
             $classname = ucfirst(camel($this->tube, '-', '\\'));
             $this->sendAlert();
             $modules = $this->sm->get("ApplicationConfig")["modules"];
@@ -151,12 +158,14 @@ class Job implements ServiceLocatorAwareInterface {
                 if (false === class_exists($object_name))
                     throw new \Exception('Class `' . $object_name . '` not exist', 1);
             }
+         
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
             $listener->preexecute( $this->job );
 
-            $this->sm->get('BeanstalkdLogTable')->setState($id, $now?BeanstalkdLogTable::STATE_EXECUTED_NOW:BeanstalkdLogTable::STATE_EXECUTED_FRONT, 1);
+             $total_time = round((microtime(True) - $start_time)*1000);
+            $this->sm->get('BeanstalkdLogTable')->setState($id, $now?BeanstalkdLogTable::STATE_EXECUTED_NOW:BeanstalkdLogTable::STATE_EXECUTED_FRONT, 1, $total_time);
 
             return true;
         }

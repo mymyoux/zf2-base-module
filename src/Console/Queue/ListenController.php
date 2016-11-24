@@ -42,7 +42,6 @@ class ListenController extends \Core\Console\CoreController
         $port        = $config['port'];
 
         $this->queue = new Pheanstalk($ip, $port);
-
         $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
 
 
@@ -66,7 +65,7 @@ class ListenController extends \Core\Console\CoreController
         $listener = new $object_name;
 
         $listener->setServiceLocator( $this->sm );
-
+        $cooldown = $listener->cooldown();
         $this->queue->watch($this->queueName)->ignore('default');
 
         $this->getLogger()->debug('Listening to `' . $this->queueName . '`');
@@ -75,6 +74,7 @@ class ListenController extends \Core\Console\CoreController
         {
             try
             {
+                $start_time = microtime(True);
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
@@ -92,8 +92,13 @@ class ListenController extends \Core\Console\CoreController
                 $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
                 $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
                 $listener->setUser($user);
+
                 $listener->preexecute( $data );
-                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1);
+
+
+                $total_time = round((microtime(True) - $start_time)*1000);
+               
+                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
 
                 $this->queue->delete($job);
                 $this->getLogger()->info('Success (delete the job)');
@@ -122,7 +127,11 @@ class ListenController extends \Core\Console\CoreController
                     $priority = isset($log["priority"])?(int)$log["priority"]:PheanstalkInterface::DEFAULT_PRIORITY;
                     $this->queue->release($job, $priority, 60);
                 }
-
+            }
+            if($cooldown>0)
+            {
+                $this->getLogger()->warn("cooldown ".$cooldown."s");
+                sleep($cooldown);
             }
         }
     }
