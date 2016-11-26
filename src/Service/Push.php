@@ -23,13 +23,12 @@ class Push extends CoreService implements ServiceLocatorAwareInterface{
   public function createPush()
   {
     $config = $this->sm->get("AppConfig");
-        $apis = $config->get("apis");
-        if(!isset($apis["gcm"]))
+        $gcm = $config->get("gcm");
+        if(!isset($gcm))
         {
             throw new \Exception('you must have specified your gcm api key in config');
             return;
         }
-        $gcm = $apis["gcm"];
     return new PushModel($gcm["api_key"], $this->sm);
   }
 }
