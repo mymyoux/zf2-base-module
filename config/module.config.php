@@ -96,6 +96,7 @@ return array(
         'invokables'=>array(
             'Picture' => 'Core\Service\Picture',
             'Email' => 'Core\Service\Email',
+            'Push' => 'Core\Service\Push',
             'Notifications'=>'Core\Service\Notifications',
             'Spreadsheet'=>'Core\Service\Spreadsheet',
             'Geolocation'=>'Core\Service\Geolocation',
@@ -137,6 +138,7 @@ return array(
             'Core\Controller\CoreController' => 'Core\Controller\CoreController',
             'Core\Controller\Api' => 'Core\Controller\APIController',
             'Core\Controller\Picture' => 'Core\Controller\PictureController',
+            'Core\Controller\User' => 'Core\Controller\UserController',
             'Core\Controller\Ask' => 'Core\Controller\AskController',
             'Core\Controller\AB' => 'Core\Controller\ABController',
             'Core\Controller\Error' => 'Core\Controller\ErrorController',
