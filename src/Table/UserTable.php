@@ -25,15 +25,10 @@ class UserTable extends CoreTable{
      */
     public function pushRegistration($user, $apirequest)
     {
-        $registation = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->selectOne(["id_user"=>$user->id]);
-        if(isset($registation))
-        {
-            $this->table(UserTable::TABLE_PUSH_REGISTRATION)->update([ "registration_id"=>$apirequest->params->id->value], ["id_user"=>$user->id]);
-
-        }else
+        $registation = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->selectOne(["id_user"=>$user->id,"registration_id"=>$apirequest->params->id->value]);
+        if(!isset($registation))
         {
             $this->table(UserTable::TABLE_PUSH_REGISTRATION)->insert(["id_user"=>$user->id, "registration_id"=>$apirequest->params->id->value]);
-            
         }
     }
     public function getPushRegistrationID($user)
@@ -48,6 +43,19 @@ class UserTable extends CoreTable{
             return NULL;
         }
         return $registration["registration_id"];
+    }
+    public function getPushRegistrationIDs($user)
+    {
+        if(!isset($user))
+        {
+            return NULL;
+        }
+        $registration = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->select(["id_user"=>(int)$user->id]);
+        if(!isset($registration) || $registration === False)
+        {
+            return NULL;
+        }
+        return array_map(function($item){return $item["registration_id"];}, $registration->toArray());
     }
     public function setSource($user, $source)
     {

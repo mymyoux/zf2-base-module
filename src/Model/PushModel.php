@@ -24,6 +24,7 @@ class PushModel extends CoreModel{
     private $title;
     private $message;
     private $api_key;
+    private $_test = false;
     private $sm;
     public function __construct($api_key, $sm)
     {
@@ -101,12 +102,18 @@ class PushModel extends CoreModel{
     public function setData($key, $value)
     {
         $this->data[$key] = $value;
+        return $this;
     }
     public function send()
     {
         $data = $this->toArray();
         $job = $this->sm->get('QueueService')->createJob("push", $data);
         $job->send();
+    }
+    public function test()
+    {
+        $this->_test = True;
+        return $this;
     }
     public function toArray()
     {
@@ -136,6 +143,10 @@ class PushModel extends CoreModel{
         if(isset($this->message))
         {
             $data["message"] = $this->message;
+        }
+        if(isset($this->_test))
+        {
+            $data["test_notification"] = "TEST";
         }
         return ["ids"=>$this->ids, "data"=>$data, "api_key"=>$this->api_key, "options"=>$options];
 
