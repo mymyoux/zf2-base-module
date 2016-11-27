@@ -22,19 +22,6 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 class Push extends CoreService implements ServiceLocatorAwareInterface{
   public function createPush()
   {
-    $config = $this->sm->get("AppConfig");
-        $gcm = $config->get("gcm");
-        $app = $this->sm->get("App")->getApp();
-        if(!isset($app))
-        {
-            throw new \Exception('No current app');
-        }
-        $app = $app->name;
-        if(!isset($gcm) || !isset($gcm[$app]) || !isset($gcm[$app]["api_key"]))
-        {
-            throw new \Exception('you must have specified your gcm api key in config');
-            return;
-        }
-    return new PushModel($gcm[$app]["api_key"], $this->sm);
+    return new PushModel($this->sm);
   }
 }
