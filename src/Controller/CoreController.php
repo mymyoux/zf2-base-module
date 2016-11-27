@@ -173,6 +173,8 @@ class CoreController  extends AbstractActionController
                 $method = $httpmethod;
             }
         }
+        
+        
         //remove from Post on console
         if(!($e->getRequest() instanceof \Zend\Console\Request))
         {

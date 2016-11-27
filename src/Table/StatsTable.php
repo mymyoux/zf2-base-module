@@ -17,6 +17,7 @@ use Zend\Db\Sql\Select;
 class StatsTable extends CoreTable
 {
     const TABLE_API_CALL = "stats_api_call";
+    const TABLE = "stats_api_call";
    
     public function recordAPICall($call)
     {
