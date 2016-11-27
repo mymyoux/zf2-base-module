@@ -53,7 +53,7 @@ class Push extends ListenerAbstract implements ListenerInterface
         }
         $api_key = $gcm[$app->name]["api_key"];
 
-        $users = $this->sm->get("API")->user->method('GET')->user($this->user)->getPushRegistrations(["id_app_users"=>$data["ids"]])->value;
+        $users = $this->sm->get("API")->user->method('GET')->user($this->user)->getPushRegistrations(["id_app_users"=>$id_app_users])->value;
 
         if(empty($users))
         {
