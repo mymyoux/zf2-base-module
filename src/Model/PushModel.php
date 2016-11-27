@@ -21,6 +21,7 @@ class PushModel extends CoreModel{
     private $background;
     private $collapseKey;
     private $ttl;
+    private $_url;
     private $title;
     private $message;
     private $_test = false;
@@ -46,6 +47,15 @@ class PushModel extends CoreModel{
             $id = $id->id_app_user;
         }
         $this->ids[] = $id;
+        return $this;
+    }
+    public function hasRecipient()
+    {
+        return !empty($this->ids);   
+    }
+    public function url($url)
+    {
+        $this->_url = $url;
         return $this;
     }
     /**
@@ -149,9 +159,13 @@ class PushModel extends CoreModel{
         {
             $data["message"] = $this->message;
         }
-        if(isset($this->_test))
+        if(isset($this->_test) && $this->_test)
         {
             $data["test_notification"] = "TEST";
+        }
+        if(isset($this->_url))
+        {
+            $data["redirect_url"] = $this->_url;
         }
         return ["ids"=>$this->ids, "data"=>$data, "options"=>$options];
 

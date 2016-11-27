@@ -27,7 +27,7 @@ class PushTable extends CoreTable
             $this->table(PushTable::TABLE_USER)->insert(["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value]);
         }else
         {
-            $this->table(PushTable::TABLE_USER)->update(["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value,"valid"=>1]);//reset to valid state
+            $this->table(PushTable::TABLE_USER)->update(["valid"=>1],["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value]);//reset to valid state
         }
     }
     /**
@@ -35,10 +35,6 @@ class PushTable extends CoreTable
      */
     public function getPushRegistrations($user, $apirequest)
     {
-        if(!isset($user))
-        {
-            return NULL;
-        }
         $where = $this->select()->where->in("id_app_user", $apirequest->params->id_app_users->value)
         ->and->equalTo("valid", 1);
         $request = $this->select(["push"=>PushTable::TABLE_USER])->where($where);
