@@ -14,6 +14,7 @@ use Core\Annotations as ghost;
 class UserTable extends CoreTable{
 
     const TABLE = "user";
+    const TABLE_USER = "user";
     const TABLE_API = "user_api";
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
