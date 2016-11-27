@@ -23,13 +23,11 @@ class PushModel extends CoreModel{
     private $ttl;
     private $title;
     private $message;
-    private $api_key;
     private $_test = false;
     private $sm;
-    public function __construct($api_key, $sm)
+    public function __construct($sm)
     {
         $this->sm = $sm;
-        $this->api_key = $api_key;
         $this->data = [];
         $this->ids = [];
         $this->priority = PushModel::PRIORITY_NORMAL;
@@ -155,7 +153,7 @@ class PushModel extends CoreModel{
         {
             $data["test_notification"] = "TEST";
         }
-        return ["ids"=>$this->ids, "data"=>$data, "api_key"=>$this->api_key, "options"=>$options];
+        return ["ids"=>$this->ids, "data"=>$data, "options"=>$options];
 
     }
 }
