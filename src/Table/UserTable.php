@@ -18,45 +18,7 @@ class UserTable extends CoreTable{
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
     const TABLE_SOURCE = "user_source";
-    const TABLE_PUSH_REGISTRATION = "user_registration";
 
-    /**
-     * @ghost\Param(name="id", required=True)
-     */
-    public function pushRegistration($user, $apirequest)
-    {
-        $registation = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->selectOne(["id_user"=>$user->id,"registration_id"=>$apirequest->params->id->value]);
-        if(!isset($registation))
-        {
-            $this->table(UserTable::TABLE_PUSH_REGISTRATION)->insert(["id_user"=>$user->id, "registration_id"=>$apirequest->params->id->value]);
-        }
-    }
-    public function getPushRegistrationID($user)
-    {
-        if(!isset($user))
-        {
-            return NULL;
-        }
-        $registration = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->selectOne(["id_user"=>(int)$user->id]);
-        if(!isset($registration))
-        {
-            return NULL;
-        }
-        return $registration["registration_id"];
-    }
-    public function getPushRegistrationIDs($user)
-    {
-        if(!isset($user))
-        {
-            return NULL;
-        }
-        $registration = $this->table(UserTable::TABLE_PUSH_REGISTRATION)->select(["id_user"=>(int)$user->id]);
-        if(!isset($registration) || $registration === False)
-        {
-            return NULL;
-        }
-        return array_map(function($item){return $item["registration_id"];}, $registration->toArray());
-    }
     public function setSource($user, $source)
     {
         $this->table(UserTable::TABLE_SOURCE)->delete(array("id_user"=>$user->id));

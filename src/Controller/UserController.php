@@ -22,9 +22,17 @@ class UserController extends FrontController
 {
     /**
      * @ghost\Roles("user")
-     * @ghost\Table(method="pushRegistration", useDoc=true)
+     * @ghost\Table(name="PushTable", method="pushRegistration", useDoc=true)
      */
     public function pushRegistrationAPIPOST()
+    {
+
+    }
+      /**
+     * @ghost\Back
+     * @ghost\Table(name="PushTable", method="getPushRegistrations", useDoc=true)
+     */
+    public function getPushRegistrationsAPIGET()
     {
 
     }

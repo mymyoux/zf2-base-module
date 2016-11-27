@@ -104,73 +104,51 @@ class Module
     }
     public function getServiceConfig()
     {
-        $config = array(
-            'factories' => array(
-                'BeanstalkdLogTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new BeanstalkdLogTable(new TableGateway(BeanstalkdLogTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'TokenTable' =>  function($sm) {
+        $tables = [
+            'Core\Table\BeanstalkdLogTable',
+            'Core\Table\AppTable',
+            'Core\Table\ErrorTable',
+            'Core\Table\StatsTable',
+            'Core\Table\AskTable',
+            'Core\Table\ABTable',
+            'Core\Table\PictureTable',
+            'Core\Table\DetectLanguageTable',
+            'Core\Table\TranslationTable',
+            'Core\Table\CronTable',
+            'Core\Table\CronLogTable',
+            'Core\Table\MailTable',
+            'Core\Table\PushTable',
+        ];
+
+        $factories = array_reduce($tables, function($previous, $tablename)
+        {
+            $last = explode('\\', $tablename);
+            $previous[$last[count($last)-1]] = function($sm)use($tablename) {
+             $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new $tablename(new TableGateway($tablename::TABLE,$dbAdapter, NULL, NULL));
+                };
+            return $previous;
+        }, []);
+
+        $factories['TokenTable'] = function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     $resultSetPrototype = new ResultSet();
                     $resultSetPrototype->setArrayObjectPrototype(new TokenModel());
                     return new TokenTable(new TableGateway("user_token",$dbAdapter, NULL, $resultSetPrototype));
-                },
-                'ErrorTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new ErrorTable(new TableGateway("error",$dbAdapter, NULL, NULL));
-                },
-                'StatsTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new StatsTable(new TableGateway(StatsTable::TABLE_API_CALL,$dbAdapter, NULL, NULL));
-                },
-                'AskTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new AskTable(new TableGateway(AskTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'ABTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new ABTable(new TableGateway(ABTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'PictureTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new PictureTable(new TableGateway(PictureTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'MailTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new MailTable(new TableGateway("mail",$dbAdapter, NULL, NULL));
-                },
-                'DetectLanguageTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new DetectLanguageTable(new TableGateway(DetectLanguageTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'TranslationTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new TranslationTable(new TableGateway("translate",$dbAdapter, NULL, NULL));
-                },
-                'UserTable' =>  function($sm) {
+                };
+        $factories['UserTable'] = function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     $resultSetPrototype = new ResultSet();
                     $resultSetPrototype->setArrayObjectPrototype(new UserModel());
                     return new UserTable(new TableGateway("user",$dbAdapter, NULL, $resultSetPrototype));
-                },
-                'RoleTable' =>  function($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    $resultSetPrototype = new ResultSet();
-                    return new RoleTable(new TableGateway("user_role",$dbAdapter, NULL, $resultSetPrototype));
-                },
-                'CronTable' => function ($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
-                    return new CronTable(new TableGateway(CronTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'CronLogTable' => function ($sm) {
-                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                };
+        $factories['CronLogTable'] = function($sm) {
+                      $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new LogTable(new TableGateway(LogTable::TABLE,$dbAdapter, NULL, NULL));
-                },
-                'Zend\Db\Adapter\Adapter'
-                => 'Zend\Db\Adapter\AdapterServiceFactory'
-
-            ),
+                };
+        $factories['Zend\Db\Adapter\Adapter'] = 'Zend\Db\Adapter\AdapterServiceFactory';
+        $config = array(
+            'factories' => $factories ,
             'services'=>array(
                 'Identity' =>   new \Core\Service\Identity(),
                 'Session' =>   new \Core\Service\Session(),
