@@ -45,7 +45,7 @@ abstract class AbstractAPI implements IAPI
     /**
      * @inheritDoc
      */
-    public function setConfig($config)
+    public function setAPIConfig($config)
     {
         $this->config = $config;
     }

@@ -91,7 +91,10 @@ class ApiManager extends CoreService
             return False;
         }
         $api = $this->get($name);
-
+        if($api->$api->typeAuthorize() === NULL)
+        {
+            return true;
+        }
         return in_array($type, $api->typeAuthorize());
     }
     /**
@@ -201,7 +204,7 @@ class ApiManager extends CoreService
         $params = array_key_exists("params", $api)?$api["params"] : [];
         $name = mb_strtolower($name);
         $this->apis[$name] = $reflection_class->newInstanceArgs($params);
-        $this->apis[$name]->setConfig($api);
+        $this->apis[$name]->setAPIConfig($api);
         if($this->apis[$name] instanceof ServiceLocatorAwareInterface)
         {
             $this->apis[$name]->setServiceLocator($this->sm);
