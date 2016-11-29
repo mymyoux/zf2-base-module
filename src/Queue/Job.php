@@ -137,7 +137,7 @@ class Job implements ServiceLocatorAwareInterface {
             }
            $start_time = microtime(True);
             $classname = ucfirst(camel($this->tube, '-', '\\'));
-            $this->sendAlert();
+            $this->sendAlert($now);
             $modules = $this->sm->get("ApplicationConfig")["modules"];
             $modules =  array_reverse($modules);
             foreach($modules as $module)
@@ -158,7 +158,7 @@ class Job implements ServiceLocatorAwareInterface {
                 if (false === class_exists($object_name))
                     throw new \Exception('Class `' . $object_name . '` not exist', 1);
             }
-         
+
             $listener = new $object_name;
 
             $listener->setServiceLocator( $this->sm );
@@ -176,11 +176,11 @@ class Job implements ServiceLocatorAwareInterface {
         return $id_beanstalkd;
     }
 
-    private function sendAlert()
+    private function sendAlert($now = false)
     {
         $count = $this->sm->get('BeanstalkdLogTable')->getCountLastError();
 
-        if (0 === $count)
+        if (0 === $count && $now === false)
         {
             $this->sm->get('Notifications')->sendNow();
             $this->sm->get('Notifications')->alert('beanstalkd');
