@@ -10,9 +10,11 @@
  */
 
 namespace Core\Service\Api;
-use Happyr\LinkedIn\LinkedIn as HLinkedIn;
+use Google_Client;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-class LinkedIn extends HLinkedIn implements IAPI
+class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
 {
 
     protected $sm;
@@ -20,12 +22,66 @@ class LinkedIn extends HLinkedIn implements IAPI
      * @inheritDoc
      */
     protected $config;
+    protected $user;
+    protected $access_token;
+    /**
+     * Set service locator
+     *
+     * @param ServiceLocatorInterface $serviceLocator
+     */
 
+    /**
+     * Get service locator
+     *
+     * @return ServiceLocatorInterface
+     */
+    public function getServiceLocator()
+    {
+        return $this->sm;
+    }
     public function typeAuthorize()
     {
-        return ['company', 'candidate', null, 'cabinet'];
+        return NULL;
     }
-
+    public function getUser()
+    {
+        $user = $this->user;
+        if(isset($user))
+        {
+           /* $user = $user->toSimpleObject();
+            dd($this->verifyIdToken());
+            dd($user);*/
+        }
+        return $user;
+    }
+    public function callbackRequest($request)
+    {
+        $code = $request->getQuery()->get("code");
+        if(isset($code))
+        {
+            $this->access_token = $access_token = $this->fetchAccessTokenWithAuthCode($code);
+            $service = new \Google_Service_Games($this);
+            $me = $service->players->get('me');
+            $this->user = $this->verifyIdToken();
+            $this->user["player"] = $me->toSimpleObject();
+            $this->user["access_token"] = $access_token;
+            $this->user["id"] = $this->user["sub"];
+            $this->user["id_player"] = $this->user["player"]->playerId;
+            $this->user["login"] = $this->user["player"]->displayName;
+            $this->user = array_merge($this->user, $this->access_token);
+            $this->user["expires"] = ($this->user["created"] + $this->user["expires_in"])*1000;
+            return $me;
+        }
+    }
+    public function getLoginUrl()
+    {
+        $url = $this->createAuthUrl();
+        return $url;
+    }
+   public function isAuthenticated()
+    {
+        return (null !== $this->access_token);
+    }
     /**
      * @inheritDoc
      */
@@ -135,7 +191,8 @@ class LinkedIn extends HLinkedIn implements IAPI
      */
     public function logout()
     {
-        $this->getStorage()->clearAll();
+
+     //   $this->getStorage()->clearAll();
     }
 
     /**
@@ -146,11 +203,15 @@ class LinkedIn extends HLinkedIn implements IAPI
         $user = $this->getUser();
         $keys = $this->getDatabaseColumns();
         $sanitazed_user = array();
-        foreach($keys as $key)
+        foreach($keys as $key=>$value)
         {
+            if(is_numeric($key))
+            {
+                $key = $value;
+            }
             if(array_key_exists($key, $user))
             {
-                $sanitazed_user[$key] = $user[$key];
+                $sanitazed_user[$value] = $user[$key];
             }
         }
         return $sanitazed_user;
@@ -159,10 +220,10 @@ class LinkedIn extends HLinkedIn implements IAPI
     /**
      * @inheritDoc
      */
-    protected function getDatabaseColumns()
+    public function getDatabaseColumns()
     {
         //camelCase from Linkedin
-        return array("id" ,"headline","firstName","lastName","access_token","email", "link");
+        return array("id" ,"id_player","given_name"=>"first_name","family_name"=>"last_name","email","login","access_token","refresh_token","token_type","id_token","expires");
     }
 
     public function request($resource, array $urlParams=array(), $method='GET', $postParams=array(), $language = "fr-FR, en-US, en-EN")
@@ -216,16 +277,30 @@ class LinkedIn extends HLinkedIn implements IAPI
 
         return $result;
     }
-    public function company($id_company, $fields)
-    {
-        if(is_array($fields))
-        {
-            $fields = implode(",", $fields);
-        }
-        return $this->request("v1/companies/".$id_company.":(".$fields.")");
-    }
-    public function setServiceLocator($sm)
+
+    public function setServiceLocator(ServiceLocatorInterface $sm)
     {
        $this->sm = $sm;
+        $this->sm->get("App")->setServiceLocator($this->sm);
+        $app = $this->sm->get("App")->getApp();
+        if(isset($app))
+        {
+            $file_config = join_paths(ROOT_PATH,"module",$app->name,"config","google.json");
+            if(file_exists($file_config))
+            {
+                $this->setAuthConfig($file_config);
+                $this->setAccessType('offline');
+                if(isset($this->config["scopes"]))
+                {
+                    foreach($this->config["scopes"] as $scope)
+                    {
+                        $this->addScope($scope);
+                    }
+                }
+                return;
+            }
+        }
+        //bad app
+        $this->config = [];
     }
 }

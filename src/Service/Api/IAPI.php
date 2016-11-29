@@ -30,7 +30,7 @@ interface IAPI {
      * Sets the api config
      * @param $config array Module's config api's part
      */
-    public function setConfig($config);
+    public function setAPIConfig($config);
     /**
      * Gets Access token
      * @return string|null

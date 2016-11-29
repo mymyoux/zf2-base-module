@@ -204,6 +204,13 @@ return array(
             'multi' => False,
             'sharable'=>False,
             'class'=>'\Core\Service\Api\Twitter',
+        ), 
+        'google'=> array(
+            'login' => True,
+            'multi' => False,
+            'sharable'=>False,
+            'by_app'=>True,
+            'class'=>'\Core\Service\Api\Google',
         )
     ),
         // Placeholder for console routes

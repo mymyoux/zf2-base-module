@@ -42,7 +42,6 @@ class APIIdentity extends Identity
             return isset($user["email"])?$user["email"]:NULL;
         else
             return isset($user->email)?$user->email:NULL;
-
     }
     public function getUser($type = NULL)
     {
@@ -59,6 +58,10 @@ class APIIdentity extends Identity
     private function _getUser($user, $type)
     {
         $userTable = $this->sm->get('UserTable');
+        if(isset($user))
+        {
+         //   dd($user);
+        }
         $_user = $userTable->getUserFromAPIID($this->name, $user["id"]);
         if(empty($_user))
         {
