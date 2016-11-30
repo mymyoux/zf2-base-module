@@ -29,7 +29,7 @@ class TranslationTable extends CoreTable
 		 $request = $this->select("translate_locales")->where(array("locale"=>$locale))->limit(1);
 		 $result = $this->execute($request);
 		 $current = $result->current();
-		 return $current === False?False:True;
+		 return $current === NULL?False:True;
 	}
 	public function getDistinctKeys()
 	{

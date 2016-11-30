@@ -74,7 +74,7 @@ class MailTable extends CoreTable
     {
         $result = $this->table()->select(array("id_mandrill"=>$id_mandrill));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }

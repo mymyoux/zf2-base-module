@@ -47,7 +47,7 @@ class ABTable extends CoreTable
         $request = $this->select(array("ab"=>ABTable::TABLE))->where($where)->order(array("ab.created_time"=>"DESC"))->limit(1);
         $result = $this->execute($request);
         $result = $result->current();
-        return $result === False ? NULL: $result;
+        return $result;
     }
     protected function getWhere($user, $apirequest)
     {
