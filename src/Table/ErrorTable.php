@@ -192,10 +192,6 @@ class ErrorTable extends CoreTable
     {
         $result = $this->table(ErrorTable::TABLE)->select(array("id"=>$id_error));
         $result = $result->current();
-        if($result === False)
-        {
-            return NULL;
-        }
         return $result;
     }
 }

@@ -27,7 +27,7 @@ class UserTable extends CoreTable{
     {
         $result =  $this->table(UserTable::TABLE_SOURCE)->select(array("id_user"=>$user->id));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
@@ -59,7 +59,7 @@ class UserTable extends CoreTable{
     {
         $result = $this->table(UserTable::TABLE_TOKEN)->select(array("token"=>$token));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
@@ -114,7 +114,7 @@ class UserTable extends CoreTable{
         }
         $result = $this->table(UserTable::TABLE_MANUAL)->select(array("id_user"=>$user["id_user"]));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
              $apis = $this->getApis($user["id_user"]);
             if(!empty($apis))
@@ -151,7 +151,7 @@ class UserTable extends CoreTable{
         ->where(array("u.id_user"=>$id_user,"deleted"=>0))->limit(1);
         $result = $this->execute($request);
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
@@ -196,7 +196,7 @@ class UserTable extends CoreTable{
     {
         $result = $this->table($network)->select(array("id_user"=>$user->id));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
@@ -218,13 +218,13 @@ class UserTable extends CoreTable{
             $suffix = "_network_".$api;
         }
         $user = $this->table()->select(array("email"=>$email))->current();
-        if($user === False)
+        if($user === NULL || $user === False)
         {
             $user = $this->table(isset($suffix)?UserTable::TABLE.$suffix:UserTable::TABLE_MANUAL)->select(array("email"=>$email))->current();
-            if($user !== False)
+            if($user !== NULL && $user !==False)
             {
                 $user = $this->getUser($user["id_user"]);
-                if($user !== False)
+                if($user !== NULL && $user !==False)
                 {
                     return $user;
                 }
@@ -308,10 +308,6 @@ class UserTable extends CoreTable{
          }
          $row = $this->table($api)->select(array("id_user"=>$id_user));
          $user = $row->current();
-         if($user === False)
-         {
-             return NULL;
-         }
          return $user;
      }
      public function updateAccessToken($access_token, $api)

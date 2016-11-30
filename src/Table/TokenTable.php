@@ -84,7 +84,7 @@ class TokenTable extends CoreTable
             $result = $this->table(TokenTable::TABLE_ONE_SHOT)->select(array("token"=>$token));
             $result = $result->current();
             //no token
-            if($result === False)
+            if($result === NULL)
             {
                 return NULL;
             }

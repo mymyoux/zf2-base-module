@@ -38,7 +38,7 @@ class AskTable extends CoreTable
 
         $result = $this->table(AskTable::TABLE_TYPE)->select(array("type"=>$value["type"]));
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             $this->table(AskTable::TABLE_TYPE)->insert(array("type"=>$value["type"]));
             $id_type = $this->table(AskTable::TABLE_TYPE)->lastInsertValue;
@@ -141,7 +141,7 @@ class AskTable extends CoreTable
         ->where(array("type.type"=>$apirequest->params->type->value, "ask.id_external_ask"=>$apirequest->params->id_external->value));
         $result = $this->execute($request);
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
@@ -158,7 +158,7 @@ class AskTable extends CoreTable
         ->where(array("id_ask"=>$id_ask));
         $result = $this->execute($request);
         $result = $result->current();
-        if($result === False)
+        if($result === NULL)
         {
             return NULL;
         }
