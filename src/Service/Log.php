@@ -5,7 +5,7 @@ namespace Core\Service;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\Console\ColorInterface as Color;
 
-class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class Log extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
 	CONST LOG_CRITICAL  = 6;
     CONST LOG_ERROR     = 5;

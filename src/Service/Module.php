@@ -5,7 +5,7 @@ namespace Core\Service;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\Loader\AutoloaderFactory;
 use Zend\ServiceManager\Config;
-class Module extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class Module extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
 
     public function __construct()

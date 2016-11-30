@@ -14,7 +14,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use GuzzleHttp\Post\PostFile;
 
-class FullContact extends AbstractAPI implements ServiceLocatorAwareInterface
+class FullContact extends AbstractAPI //implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Twitter\Twitter

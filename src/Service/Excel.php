@@ -10,7 +10,7 @@ namespace Core\Service;
 use PHPExcel;
 use PHPExcel_Writer_Excel2007;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
-class Excel extends CoreService implements ServiceLocatorAwareInterface 
+class Excel extends CoreService //implements ServiceLocatorAwareInterface 
 {
 	protected static $letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
    public function createFromArray($data, $filename)

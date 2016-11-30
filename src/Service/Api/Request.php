@@ -23,7 +23,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
  * Class API
  * @package Application\Service
  */
-class Request implements ServiceLocatorAwareInterface
+class Request //implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Core\Annotations\PaginateObject

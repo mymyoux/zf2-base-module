@@ -17,7 +17,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
  * Class Email
  * @package Core\Service
  */
-class Geolocation extends CoreService implements ServiceLocatorAwareInterface
+class Geolocation extends CoreService //implements ServiceLocatorAwareInterface
 {
     public function getInformation($ip = NULL, $purpose = "location", $deep_detect = TRUE) {
         $output = NULL;

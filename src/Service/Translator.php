@@ -12,7 +12,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 
 
-class Translator extends CoreService implements ServiceLocatorAwareInterface
+class Translator extends CoreService //implements ServiceLocatorAwareInterface
 {
 	const DEFAULT_LOCALE = "en";
 	private $default_locale = NULL;

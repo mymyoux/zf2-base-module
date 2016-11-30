@@ -21,7 +21,7 @@ use Google\Spreadsheet\SpreadsheetService;
  * Class Email
  * @package Core\Service
  */
-class Spreadsheet extends CoreService implements ServiceLocatorAwareInterface
+class Spreadsheet extends CoreService //implements ServiceLocatorAwareInterface
 {
     private $_instance;
     private $sheets;

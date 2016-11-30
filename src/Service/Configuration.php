@@ -26,7 +26,7 @@ use Jlinn\Mandrill\Struct\Message;
  * Configuration Helper
  * @package Core\Service
  */
-class Configuration extends CoreService implements ServiceLocatorAwareInterface
+class Configuration extends CoreService ////implements ServiceLocatorAwareInterface
 {
     protected $_configuration;
     protected $_env;

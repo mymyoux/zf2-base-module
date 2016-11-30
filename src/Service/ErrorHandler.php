@@ -13,7 +13,7 @@ use Core\Exception\Exception;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-class ErrorHandler extends CoreService implements ServiceLocatorAwareInterface{
+class ErrorHandler extends CoreService /*implements ServiceLocatorAwareInterface*/{
     public function handleError(MvcEvent $event, $status = NULL)
     {
         $this->sm = $event->getApplication()->getServiceManager();

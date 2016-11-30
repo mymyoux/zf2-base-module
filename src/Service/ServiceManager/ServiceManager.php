@@ -14,7 +14,16 @@ class ServiceManager extends BaseServiceManager
         if (!$this->has($name) && $this->autoAddInvokableClass && class_exists($name)) {
             $this->setInvokableClass($name, $name);
         }
-        return parent::get($name, $options, $usePeeringServiceManagers);
+        $service = parent::get($name, $options, $usePeeringServiceManagers);
+        if(isset($service) && is_object($service) && method_exists($service, "setServiceLocator"))
+        {
+            $sm = $service->getServiceLocator();
+            if(!isset($sm))
+            {
+                $service->setServiceLocator($this);
+            }
+        }
+        return $service;
     }
 
 

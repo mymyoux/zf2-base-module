@@ -17,7 +17,7 @@ use Core\Model\Slack\SlackModel;
  * Class Email
  * @package Core\Service
  */
-class Notifications extends CoreService implements ServiceLocatorAwareInterface
+class Notifications extends CoreService //implements ServiceLocatorAwareInterface
 {
     private $slack_url;
     private $client;

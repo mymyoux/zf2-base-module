@@ -26,7 +26,7 @@ use Core\Exception\ApiException;
  * Class API
  * @package Core\Service
  */
-class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class API extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
     private $_forward;
 

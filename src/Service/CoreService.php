@@ -14,7 +14,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\ServiceManager\ServiceManager;
 
-class CoreService extends CoreObject implements ServiceLocatorAwareInterface
+class CoreService extends CoreObject ////implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Zend\ServiceManager\ServiceLocatorInterface

@@ -14,7 +14,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use GuzzleHttp\Post\PostFile;
 
-class Gmap extends AbstractAPI implements ServiceLocatorAwareInterface
+class Gmap extends AbstractAPI //implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Twitter\Twitter

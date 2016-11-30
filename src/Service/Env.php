@@ -25,7 +25,7 @@ use Zend\View\Resolver\TemplatePathStack;
  * Class Env
  * @package Core\Service
  */
-class Env extends CoreService implements ServiceLocatorAwareInterface{
+class Env extends CoreService /*implements ServiceLocatorAwareInterface*/{
 
     public function isLocal()
     {

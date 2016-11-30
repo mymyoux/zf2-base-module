@@ -27,7 +27,7 @@ use Core\Struct\MandrillMessage;
  * Class Email
  * @package Core\Service
  */
-class Email extends CoreService implements ServiceLocatorAwareInterface{
+class Email extends CoreService /*implements ServiceLocatorAwareInterface*/{
     /**
      * Debug mode
      * @var boolean
