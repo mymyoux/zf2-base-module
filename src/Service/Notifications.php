@@ -29,7 +29,10 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
         $this->slack_url = $config['url'];
     }
-
+    public function login($user)
+    {
+        return;
+    }
     public function sendNow()
     {
         $this->send_now = true;
