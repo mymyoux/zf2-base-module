@@ -66,6 +66,11 @@ class AppTable extends CoreTable
         }
         return $result;
     }
+     public function getAppData($user, $app)
+    {
+        
+        return $user;
+    }
     public function getUser($id_app_user)
     {
         $app_user = $this->table(AppTable::TABLE_USER)->selectOne(["id_app_user"=>$id_app_user]);

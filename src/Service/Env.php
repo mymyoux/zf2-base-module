@@ -33,6 +33,6 @@ class Env extends CoreService implements ServiceLocatorAwareInterface{
         {
             return False;
         }
-        return mb_strpos($_SERVER['HTTP_HOST'], ".local")!==FALSE;
+        return mb_strpos($_SERVER['HTTP_HOST'], "local")!==FALSE;
     }
 }
