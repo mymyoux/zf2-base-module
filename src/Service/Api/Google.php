@@ -223,7 +223,7 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
     public function getDatabaseColumns()
     {
         //camelCase from Linkedin
-        return array("id" ,"id_player","given_name"=>"first_name","family_name"=>"last_name","email","login","access_token","refresh_token","token_type","id_token","expires");
+        return array("id" ,"picture","id_player","given_name"=>"first_name","family_name"=>"last_name","email","login","access_token","refresh_token","token_type","id_token","expires");
     }
 
     public function request($resource, array $urlParams=array(), $method='GET', $postParams=array(), $language = "fr-FR, en-US, en-EN")

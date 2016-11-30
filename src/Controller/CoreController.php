@@ -212,7 +212,7 @@ class CoreController  extends AbstractActionController
         {
             return False;
         }
-        return mb_strpos($_SERVER['HTTP_HOST'], ".local")!==FALSE;*/
+        return mb_strpos($_SERVER['HTTP_HOST'], "local")!==FALSE;*/
     }
     public function getEnv()
     {
@@ -221,6 +221,6 @@ class CoreController  extends AbstractActionController
         {
             return False;
         }
-        return mb_strpos($_SERVER['HTTP_HOST'], ".local")!==FALSE;*/
+        return mb_strpos($_SERVER['HTTP_HOST'], "local")!==FALSE;*/
     }
 }

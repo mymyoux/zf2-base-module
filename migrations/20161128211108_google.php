@@ -48,6 +48,7 @@ class Google extends AbstractMigration
             ->addColumn('first_name', 'string', ['limit' => 200, 'null'=>true])
             ->addColumn('last_name', 'string', ['limit' => 200, 'null'=>true])
             ->addColumn('email', 'string', ['limit' => 255, 'null'=>true])
+            ->addColumn('picture', 'string', ['limit' => 2000, 'null'=>true])
             ->addColumn('login', 'string', ['limit' => 200, 'null'=>true])
             ->addColumn('access_token', 'string', ['limit' => 200, 'null'=>true])
             ->addColumn('refresh_token', 'string', ['limit' => 200, 'null'=>true])

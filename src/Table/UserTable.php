@@ -353,7 +353,7 @@ class UserTable extends CoreTable{
             "user"=>array("first_name","last_name","type","email","picture"),
             "smartrecruiters"=>array("first_name","last_name","role","email","active", 'id_smartrecruiters', 'access_token', 'refresh_token'),
             "greenhouse"=>array("first_name","last_name","email", 'id_greenhouse', 'access_token', 'harvest_key'),
-            "google"=>array("first_name","last_name","email","login","access_token","refresh_token","token_type","id_token","expires")
+            "google"=>array("first_name","last_name","email","login","access_token","refresh_token","token_type","id_token","expires","picture")
         );
         //$keys = array("first_name","last_name","email","picture", "access_token");
         $keys = $meta_keys[$key];
@@ -544,8 +544,7 @@ class UserTable extends CoreTable{
         $this->execute($update);
     }
     public function createUser($data, $keys = array("id_user", "first_name", "last_name", "email"))
-    {
-
+    {   
         if(empty($keys))
         {
             $keys = array_keys($data);

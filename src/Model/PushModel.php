@@ -24,6 +24,7 @@ class PushModel extends CoreModel{
     private $_url;
     private $title;
     private $message;
+    private $type;
     private $_test = false;
     private $sm;
     public function __construct($sm)
@@ -130,6 +131,11 @@ class PushModel extends CoreModel{
         $this->_test = True;
         return $this;
     }
+    public function type($type)
+    {
+        $this->_type = $type;
+        return $this;
+    }
     public function toArray()
     {
         if(empty($this->ids))
@@ -166,6 +172,10 @@ class PushModel extends CoreModel{
         if(isset($this->_url))
         {
             $data["redirect_url"] = $this->_url;
+        }
+        if(isset($this->_type))
+        {
+            $data["type"] = $this->_type;
         }
         return ["ids"=>$this->ids, "data"=>$data, "options"=>$options];
 
