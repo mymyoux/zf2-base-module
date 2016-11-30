@@ -15,7 +15,7 @@ class ErrorTable extends CoreTable
     const TABLE_JAVASCRIPT = "error_javascript";
 
     private $loggued;
-    public function logError(\Exception $exception)
+    public function logError($exception)
     {
         if(!isset($this->loggued))
         {
@@ -24,6 +24,10 @@ class ErrorTable extends CoreTable
         if(in_array($exception, $this->loggued, True))
         {
            return;
+        }
+        if(!($exception instanceof \Exception))
+        {
+            //dd($exception);
         }
         $this->loggued[] = $exception;
         $info = array();

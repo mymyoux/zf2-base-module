@@ -16,7 +16,7 @@ use Facebook\FacebookSession;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class Facebook extends AbstractAPI implements ServiceLocatorAwareInterface
+class Facebook extends AbstractAPI //implements ServiceLocatorAwareInterface
 {
     /**
      * @var \Zend\ServiceManager\ServiceLocatorInterface

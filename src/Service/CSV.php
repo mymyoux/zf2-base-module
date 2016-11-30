@@ -22,7 +22,7 @@ use Core\Model\CSVModel;
  * Class CSV
  * @package Core\Service
  */
-class CSV extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class CSV extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
     public function load($url)
     {

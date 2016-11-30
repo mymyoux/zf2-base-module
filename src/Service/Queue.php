@@ -10,7 +10,7 @@ use Core\Model\UserModel;
  * Class API
  * @package Application\Service
  */
-class Queue extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class Queue extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
     public function createJob( $tube, array $job, $user  = NULL, $identifier = NULL)
     {

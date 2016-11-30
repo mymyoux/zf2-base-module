@@ -7,7 +7,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use DetectLanguage\DetectLanguage as DetectLanguageLibrary;
 
-class DetectLanguage extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class DetectLanguage extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
     public static $plans = [
         "free"=>["requests"=>5000,"bytes"=>1048576],

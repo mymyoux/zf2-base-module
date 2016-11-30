@@ -8,7 +8,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Core\Table\BeanstalkdLogTable;
 use Pheanstalk\Job as PJob;
 
-class Job implements ServiceLocatorAwareInterface {
+class Job /*implements ServiceLocatorAwareInterface*/ {
 
     private $id_user;
     /**

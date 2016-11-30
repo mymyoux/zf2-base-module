@@ -6,7 +6,7 @@ use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\Console\ColorInterface as Color;
 use Core\Model\ABModel;
 
-class ABTesting extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
+class ABTesting extends \Core\Service\CoreService //implements ServiceLocatorAwareInterface
 {
 	
 

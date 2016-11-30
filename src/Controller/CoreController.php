@@ -98,8 +98,8 @@ class CoreController  extends AbstractActionController
      */
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
+        $this->sm = $serviceLocator;
         parent::setServiceLocator($serviceLocator);
-       // $this->sm = $serviceLocator;"
        // $this->init();
     }
 
@@ -126,7 +126,7 @@ class CoreController  extends AbstractActionController
      */
     public function onDispatch(MvcEvent $e)
     {
-        $this->sm = $this->getServiceLocator();
+        $this->sm = $this->sm;
 
         if(($result = $this->init($e)) !== NULL)
         {

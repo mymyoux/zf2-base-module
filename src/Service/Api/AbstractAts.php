@@ -10,7 +10,7 @@ namespace Core\Service\Api;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInterface
+abstract class AbstractAts extends AbstractAPI //implements ServiceLocatorAwareInterface
 {
     protected $client;
     protected $ats_user = null;
