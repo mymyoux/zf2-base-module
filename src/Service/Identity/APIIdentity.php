@@ -74,6 +74,7 @@ class APIIdentity extends Identity
                 if($type == "register")
                 {
                     $userTable->createUserFromAPI($this->name, $this->_formatUserData($user));
+ 
                 }else
                 {
                     throw new \Exception("no_user");

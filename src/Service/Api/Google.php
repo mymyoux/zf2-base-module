@@ -56,7 +56,7 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
     }
     public function callbackRequest($request)
     {
-        $code = $request->getQuery()->get("code");
+        $code = $request->getPost()->get("code", $request->getQuery()->get("code"));
         if(isset($code))
         {
             $this->access_token = $access_token = $this->fetchAccessTokenWithAuthCode($code);
@@ -64,13 +64,13 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
             $me = $service->players->get('me');
             $this->user = $this->verifyIdToken();
             $this->user["player"] = $me->toSimpleObject();
-            $this->user["access_token"] = $access_token;
+            //$this->user["access_token"] = $access_token;
             $this->user["id"] = $this->user["sub"];
             $this->user["id_player"] = $this->user["player"]->playerId;
             $this->user["login"] = $this->user["player"]->displayName;
             $this->user = array_merge($this->user, $this->access_token);
             $this->user["expires"] = ($this->user["created"] + $this->user["expires_in"])*1000;
-            return $me;
+            return $this->user;
         }
     }
     public function getLoginUrl()
@@ -213,6 +213,11 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
             {
                 $sanitazed_user[$value] = $user[$key];
             }
+        }
+        if(!isset($sanitazed_user["id_app"]))
+        {
+            $app = $this->sm->get("App")->getApp();
+            $sanitazed_user["id_app"] = $app->id_app;
         }
         return $sanitazed_user;
     }
