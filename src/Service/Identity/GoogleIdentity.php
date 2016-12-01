@@ -73,6 +73,9 @@ class GoogleIdentity extends APIIdentity
             }*/
         }
         parent::callbackRequest($request);
+
+
+        return $user;
         //TODO:why ?
         //return $user;
     }

@@ -452,8 +452,8 @@ class UserTable extends CoreTable{
         $id_user = $this->createUser($underScoreData);
         $underScoreData["id_user"] = $id_user;
         $this->table($api)->insert($underScoreData);
-
         $this->_addAPIToUserAPIList($api, $id_user);
+
     }
      private function cleanUser($user, $api)
      {
@@ -511,7 +511,8 @@ class UserTable extends CoreTable{
         }
         if($api != "manual")
         {
-            $underScoreData["access_token"] = $this->sm->get("Identity")->$api->getAccessToken();
+            if(!isset($underScoreData["access_token"]))
+                $underScoreData["access_token"] = $this->sm->get("Identity")->$api->getAccessToken();
 
             if ($api === 'twitter')
             {
@@ -519,7 +520,6 @@ class UserTable extends CoreTable{
             }
         }
         $underScoreData["id_user"] = $id_user;
-
 
 
         $this->table($api)->insert($underScoreData);
