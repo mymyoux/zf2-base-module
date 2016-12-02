@@ -72,7 +72,7 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
     public function selectOne($where = NULL)
     {
         $result = $this->select($where);
-        if($result->current() !== False)
+        if($result->current() !== NULL)
         {
             return $result->current();
         }

@@ -78,13 +78,13 @@ class UserTable extends CoreTable{
         }
         $result = $this->table(UserTable::TABLE)->select(array("email"=>$email));
         $result = $result->current();
-        if($result !== False)
+        if($result !== NULL)
         {
             return $result;
         }
         $result = $this->table(UserTable::TABLE_MANUAL)->select(array("email"=>$email));
         $result = $result->current();
-        if($result !== False)
+        if($result !== NULL)
         {
             return $result;
         }
@@ -96,7 +96,7 @@ class UserTable extends CoreTable{
             {
                  $result = $this->table(UserTable::TABLE."_network_".$api)->select(array("email"=>$email));
                  $result = $result->current();
-                 if($result !== False)
+                 if($result !== NULL)
                  {
                     return $result;
                  }
@@ -376,7 +376,7 @@ class UserTable extends CoreTable{
 
         $result =$this->table()->select(array("email"=>trim($data["email"])));
         $result = $result->current();
-        if($result !== False)
+        if($result !== NULL)
         {
             throw new \Exception("email.already_exists");
         }

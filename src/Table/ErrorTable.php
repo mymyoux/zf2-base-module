@@ -144,7 +144,7 @@ class ErrorTable extends CoreTable
             $notin = $this->select()->where->IsNotNull("hardware_os");
              $results = $this->table(ErrorTable::TABLE_JAVASCRIPT)->select(array("session"=>$data["session"],$notin));
              $result = $results->current();
-             if($result !== False)
+             if($result !== NULL)
              {
                 $hardware = array();
                 foreach($result as $key=>$value)
