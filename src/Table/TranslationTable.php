@@ -63,7 +63,7 @@ class TranslationTable extends CoreTable
 		$request = $this->select()->where($where)->columns(array("singular","plurial","missing"))->limit(1);
 
 		$result = $this->execute($request);
-		if(($result = $result->current()) !== False)
+		if(($result = $result->current()) !== NULL)
 		{
 			return $result;
 		}else
@@ -86,7 +86,7 @@ class TranslationTable extends CoreTable
 		$request = $this->select()->where($where)->columns(array("singular","plurial","controller","action","key","type","locale","missing"))->limit(1);
 
 		$result = $this->execute($request);
-		if(($result = $result->current()) !== False)
+		if(($result = $result->current()) !== NULL)
 		{
 			return $result;
 		}else

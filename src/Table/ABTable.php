@@ -27,7 +27,7 @@ class ABTable extends CoreTable
         $request = $this->select(array("ab"=>ABTable::TABLE))->columns(array("count"=>new Expression("COUNT(*)")));
         $result = $this->execute($request);
         $result = $result->current();
-        if($result !== False)
+        if($result !== NULL)
         {
             return (int)$result["count"];
         }

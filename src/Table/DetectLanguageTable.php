@@ -25,7 +25,7 @@ class DetectLanguageTable extends CoreTable
         $today = date("Y-m-d");
         $result = $this->table(DetectLanguageTable::TABLE)->select(array("date"=>$today,"apikey"=>$apikey));
         $result = $result->current();
-        if($result !== False)
+        if($result !== NULL)
         {
             return $result;
         }
