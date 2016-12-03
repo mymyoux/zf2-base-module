@@ -18,17 +18,31 @@ class PushTable extends CoreTable
 
     /**
      * @ghost\Param(name="id", required=True)
+     * @ghost\Param(name="uuid", required=False)
      */
     public function pushRegistration($user, $apirequest)
     {
+        $uuid = $apirequest->params->uuid->value;
+        if(!isset($uuid))
+        {
+            $uuid="php:uuid";
+        }
+
         $registation = $this->table(PushTable::TABLE_USER)->selectOne(["id_app_user"=>$user->id_app_user,"registration_id"=>$apirequest->params->id->value]);
         if(!isset($registation))
         {
-            $this->table(PushTable::TABLE_USER)->insert(["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value]);
+            $this->table(PushTable::TABLE_USER)->insert(["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value,"uuid"=>$uuid]);
         }else
         {
-            $this->table(PushTable::TABLE_USER)->update(["valid"=>1],["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value]);//reset to valid state
+            $this->table(PushTable::TABLE_USER)->update(["valid"=>1,"uuid"=>$uuid],["id_app_user"=>$user->id_app_user, "registration_id"=>$apirequest->params->id->value]);//reset to valid state
         }
+    }
+    /**
+     * @ghost\Param(name="uuid", required=False)
+     */
+    public function invalidPushRegistration($user, $apirequest)
+    {
+         $this->table(PushTable::TABLE_USER)->update(["valid"=>0],["id_app_user"=>$user->id_app_user, "uuid"=>$apirequest->params->uuid->value]);
     }
     /**
      * @ghost\Param(name="id_app_users", array=true, required=true,requirements="\d+")
