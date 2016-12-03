@@ -68,7 +68,6 @@ class AppTable extends CoreTable
     }
      public function getAppData($user, $app)
     {
-        
         return $user;
     }
     public function getUser($id_app_user)

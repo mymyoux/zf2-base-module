@@ -290,7 +290,7 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
         $app = $this->sm->get("App")->getApp();
         if(isset($app))
         {
-            $file_config = join_paths(ROOT_PATH,"module",ucfirst($app->name),"config","google.json");
+            $file_config = join_paths(ROOT_PATH,"module",ucfirst($app->name),"config","google.".$this->sm->get("AppConfig")->getEnv().".json");
             if(file_exists($file_config))
             {
                 $this->setAuthConfig($file_config);

@@ -29,6 +29,14 @@ class UserController extends FrontController
     {
 
     }
+     /**
+     * @ghost\Back
+     * @ghost\Table(name="PushTable", method="invalidPushRegistration", useDoc=true)
+     */
+    public function invalidPushRegistrationAPIPOST()
+    {
+
+    }
       /**
      * @ghost\Back
      * @ghost\Table(name="PushTable", method="getPushRegistrations", useDoc=true)
@@ -99,13 +107,16 @@ class UserController extends FrontController
         return null;
     }
     /**
-     * 
+     * @ghost\Param(name="uuid", required=False)
      */
     public function logoutAPIPOST()
     {
         $apirequest = $this->params()->fromRoute("request");
         $user = $apirequest->user;
-
+        if(isset($user))
+        {
+            $this->api->user->user($user)->post()->invalidPushRegistration(["uuid"=>$apirequest->params->uuid->value]);
+        }
         if($this->identity->isLoggued())
         {
             if($this->identity->user->isImpersonated())
