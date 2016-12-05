@@ -25,7 +25,7 @@ class CoreModel extends CoreObject
         {
             if(property_exists($this, $key))
             {
-                if (true === is_numeric($value) && mb_strpos($key, '_str') === false)
+                if (true === is_numeric($value) && mb_strpos($key, '_str') === false && (preg_match('/^\-?[0-9,\.]+$/', $value, $matches)) > 0)
                 {
                     if (mb_strpos($value, '.') !== false || mb_strpos($value, ',') !== false)
                         $value = floatval($value);
