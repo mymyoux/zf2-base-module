@@ -119,7 +119,11 @@ Trait WorkableTrait
 
                 $e = new WorkableException((isset($error->error) && is_string($error->error) ? $error->error : $e_message), $e_code);
 
-                $id_error = $this->sm->get('ErrorTable')->logError($e);
+                if ($e->getCode() !== 404)
+                    $id_error = $this->sm->get('ErrorTable')->logError($e);
+                else
+                    $id_error = null;
+
                 $this->sm->get('Log')->error((isset($error->error) ? $error->error : $e_message));
 
                 // log error
@@ -130,7 +134,6 @@ Trait WorkableTrait
         }
         $data   = $data->json();
 
-        // var_dump($data);
         $found  = false;
 
         // log success
