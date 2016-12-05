@@ -14,6 +14,7 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
 {
     protected $client;
     protected $ats_user = null;
+    protected $ats_company = null;
 
 	public function typeAuthorize()
 	{
@@ -373,5 +374,16 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
      * @return MessageModel                 Message model
      */
     abstract public function sendMessage($id_api, $content, $share_with_everyone = false);
+
+    /**
+     * Field name YBorder
+     *
+     * Return true of the job is open
+     */
+    public function isOpenBySpecificField( $job )
+    {
+        // need to override this if the user hasRole('ats_client_2')
+        return false;
+    }
 }
 

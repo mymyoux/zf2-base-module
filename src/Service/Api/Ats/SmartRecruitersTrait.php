@@ -60,12 +60,12 @@ trait SmartRecruitersTrait
         return $this->request('POST', $ressource, ['json' => $_params]);
     }
 
-    public function get( $ressource, $_params = [] )
+    public function get( $ressource, $_params = [], $auth = true )
     {
-        return $this->request('GET', $ressource, ['query' => $_params]);
+        return $this->request('GET', $ressource, ['query' => $_params], $auth);
     }
 
-    public function request( $method, $ressource, $_params )
+    public function request( $method, $ressource, $_params, $auth = true )
     {
         // 500 ms sleep
         usleep(500000);
@@ -74,7 +74,7 @@ trait SmartRecruitersTrait
 
         try
         {
-            if (!empty($this->access_token))
+            if (!empty($this->access_token) && $auth)
             {
                 $params = [
                     'headers'         => ['Authorization' => 'Bearer ' . $this->access_token]
