@@ -161,10 +161,12 @@ class Job implements ServiceLocatorAwareInterface {
 
             $listener = new $object_name;
 
+            $user = isset($this->id_user)?$this->sm->get('UserTable')->getUser($this->id_user):NULL;
+            $listener->setUser($user);
             $listener->setServiceLocator( $this->sm );
             $listener->preexecute( $this->job );
 
-             $total_time = round((microtime(True) - $start_time)*1000);
+            $total_time = round((microtime(True) - $start_time)*1000);
             $this->sm->get('BeanstalkdLogTable')->setState($id, $now?BeanstalkdLogTable::STATE_EXECUTED_NOW:BeanstalkdLogTable::STATE_EXECUTED_FRONT, 1, $total_time);
 
             return true;
