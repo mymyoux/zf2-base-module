@@ -48,12 +48,19 @@ class APIIdentity extends Identity
         if($this->user !== NULL)
             return $this->user;
         $user = $this->api->getUser();
-        if(!$user)
+        if(!isset($user))
         {
             return NULL;
         }
         $this->user = $this->_getUser($user, $type);
         return $this->user;
+    }
+    public function setDataFromDB($data)
+    {
+        if(method_exists($this->api, "setDataFromDB"))
+        {
+            $this->api->setDataFromDB($data);
+        }
     }
     private function _getUser($user, $type)
     {

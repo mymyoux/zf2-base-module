@@ -18,6 +18,7 @@ class UserModel extends CoreModel
     protected $isIdentity = False;
     protected $roles;
     protected $_ids;
+    protected $_apis;
     public $role;
     /**
      *  Login token
@@ -109,6 +110,7 @@ class UserModel extends CoreModel
     public function addAPI($name, \ArrayObject $data)
     {
         $this->_ids[$name] = $data["id_".$name];
+        $this->_apis[$name] = $data;
         $this->removeRole(UserModel::ROLE_TEMP);
         $this->invalidate();
     }
@@ -116,6 +118,10 @@ class UserModel extends CoreModel
     public function getAPIID( $name )
     {
         return isset($this->_ids[$name]) ? $this->_ids[$name] : null;
+    }
+    public function getAPIData( $name )
+    {
+        return isset($this->_apis[$name]) ? $this->_apis[$name] : null;
     }
     public function getRoles()
     {

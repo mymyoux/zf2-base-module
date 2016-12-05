@@ -54,12 +54,52 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
         }
         return $user;
     }
+    public function setDataFromDB($data)
+    {
+        if(!isset($data))
+        {
+            return;
+        }
+
+        $keys = ["access_token","refresh_token","token_type","id_token","expires","expires_in","created"];
+        if(!isset($this->access_token))
+        {
+            $this->access_token = [];
+        }
+        foreach($keys as $key)
+        {
+            if(isset($data[$key]))
+            {
+                /*if($key == "expires")
+                {
+                    $this->access_token["expires_in"] = $data[$key] - time();
+                    if($this->access_token["expires_in"]<0)
+                    {
+                        $this->access_token["expires_in"] = 0;
+                    }
+                }*/
+                $this->access_token[$key] = $data[$key];
+            }
+        }
+        $this->user = $data;
+        $this->user["id"] = $this->user["id_google"];
+         $this->setAccessToken($this->access_token);
+    }
+    public function setAccessToken($token)
+    {
+        if(is_array($token) && isset($token["access_token"]))
+        {
+            $token["token"] = $token["access_token"];
+        }
+        return parent::setAccessToken($token);
+    }
     public function callbackRequest($request)
     {
         $code = $request->getPost()->get("code", $request->getQuery()->get("code"));
         if(isset($code))
         {
             $this->access_token = $access_token = $this->fetchAccessTokenWithAuthCode($code);
+            $this->setAccessToken($this->access_token);
             $service = new \Google_Service_Games($this);
             $me = $service->players->get('me');
             $this->user = $this->verifyIdToken();
@@ -69,7 +109,8 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
             $this->user["id_player"] = $this->user["player"]->playerId;
             $this->user["login"] = $this->user["player"]->displayName;
             $this->user = array_merge($this->user, $this->access_token);
-            $this->user["expires"] = ($this->user["created"] + $this->user["expires_in"])*1000;
+            //TODO:verif
+            $this->user["expires"] = $this->user["created"] + $this->user["expires_in"];
             return $this->user;
         }
     }
@@ -228,7 +269,7 @@ class Google extends Google_Client implements IAPI, ServiceLocatorAwareInterface
     public function getDatabaseColumns()
     {
         //camelCase from Linkedin
-        return array("id" ,"picture","id_player","given_name"=>"first_name","family_name"=>"last_name","email","login","access_token","refresh_token","token_type","id_token","expires");
+        return array("id" ,"picture","id_player","given_name"=>"first_name","family_name"=>"last_name","email","login","access_token","refresh_token","token_type","id_token","expires","expires_in","created");
     }
 
     public function request($resource, array $urlParams=array(), $method='GET', $postParams=array(), $language = "fr-FR, en-US, en-EN")
