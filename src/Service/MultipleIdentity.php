@@ -228,6 +228,8 @@ class MultipleIdentity extends CoreService implements IIdentity
         $name = '\Core\Service\Identity\\'.ucfirst($caseAPI).'Identity';
         $this->_identities[$api] = new $name();
         $this->_identities[$api]->setServiceLocator($this->sm);
+        if(isset($this->user))
+            $this->_identities[$api]->setDataFromDB($this->user->getAPIData($api));
         return $this->_identities[$api];
     }
 
