@@ -26,6 +26,7 @@ class Job implements ServiceLocatorAwareInterface {
     private $port;
     /** @var string $env */
     private $env;
+    private $module;
 
     private $sm;
 
@@ -118,12 +119,9 @@ class Job implements ServiceLocatorAwareInterface {
     public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
     {
 
-       
-
-        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $delay, $this->id_user, $priority, $this->identifier);
+        $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $this->getModule(),$delay, $this->id_user, $priority, $this->identifier);
 
         $this->job['_id_beanstalkd'] = $id;
-
         if (!$this->getBeanStalkd()->getConnection()->isServiceListening() || true === $now)
         {
             if ($delay != PheanstalkInterface::DEFAULT_DELAY && php_sapi_name() === 'cli')
@@ -165,8 +163,7 @@ class Job implements ServiceLocatorAwareInterface {
 
             return true;
         }
-
-        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
+        $id_beanstalkd = $this->beanstalkd->useTube($this->getFullTube())->put(json_encode($this->job), $priority, $delay);
         $this->sm->get('BeanstalkdLogTable')->setBeanstalkdID($id, $id_beanstalkd);
 
         return $id_beanstalkd;
@@ -187,7 +184,31 @@ class Job implements ServiceLocatorAwareInterface {
     {
         return $this->getEnv() . '-' . $this->tube;
     }
-
+    public function getFullTube()
+    {
+        $module = $this->getModule();
+        if(isset($module) && $module !== False)
+        {
+            $module.="-";
+        }
+        return $this->getEnv() . '-' .$module. $this->tube;
+    }
+    /**
+     * Set module by default last one, if set to false will not be prefixed
+     * @param [type] $module [description]
+     */
+    public function setModule($module)
+    {
+        $this->module = $module;
+    }
+    protected function getModule()
+    {
+        if(!isset($this->module))
+        {
+            $this->module = $this->sm->get("AppConfig")->getModule();
+        }
+        return $this->module;
+    }
     /**
      * Sets the tube name
      *

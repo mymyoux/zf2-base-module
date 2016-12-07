@@ -42,7 +42,8 @@ class ListenController extends \Core\Console\CoreController
         $port        = $config['port'];
 
         $this->queue = new Pheanstalk($ip, $port);
-        $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
+        $module =  $this->sm->get("AppConfig")->getModule();
+        $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' .$module.'-'. $name;
 
 
         $modules = $this->sm->get("ApplicationConfig")["modules"];

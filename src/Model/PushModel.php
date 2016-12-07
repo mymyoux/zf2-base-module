@@ -40,14 +40,17 @@ class PushModel extends CoreModel{
      */
     public function addRecipient($id)
     {
-        if(is_array($id))
+        if(isset($id))
         {
-            $id = $id["id_app_user"];
-        }elseif(!is_numeric($id))
-        {
-            $id = $id->id_app_user;
+            if(is_array($id))
+            {
+                $id = $id["id_app_user"];
+            }elseif(!is_numeric($id))
+            {
+                $id = $id->id_app_user;
+            }
+            $this->ids[] = $id;
         }
-        $this->ids[] = $id;
         return $this;
     }
     public function hasRecipient()

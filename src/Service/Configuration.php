@@ -77,6 +77,15 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
         }*/
         return $configuration;
     }
+    public function getModule()
+    {
+        $app =  $this->sm->get("ApplicationConfig");
+        if(isset($app["modules"]))
+        {
+            return $app["modules"][count( $app["modules"])-1];
+        }
+        return $this->sm->get('Route')->getRouteType();
+    }
     public function getEnv()
     {
          if(!isset($this->_configuration))
