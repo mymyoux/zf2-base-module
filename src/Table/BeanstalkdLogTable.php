@@ -128,11 +128,12 @@ class BeanstalkdLogTable extends CoreTable
         return $data;
     }
 
-	public function insertLog( $json, $queue, $delay, $id_user,  $priority,  $identifier)
+	public function insertLog( $json, $queue,$module, $delay, $id_user,  $priority,  $identifier)
     {
         $data   = [
             'json'	=> (string) $json,
             'queue'=>$queue,
+            'module'=>$module!==False?$module:NULL,
             'delay'=>$delay,
             'id_user'=>$id_user,
             'priority'=>$priority,
