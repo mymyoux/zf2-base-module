@@ -94,7 +94,7 @@ class PaginateObject extends CoreObject implements \JsonSerializable
         {
              $this->next = is_array($data["next"])?array_map(function($item){
             $item = strval($item);
-          
+
             return  strval($item);}, $data["next"]):[strval($data["next"])];
         }
         if(isset($this->previous) && isset($this->next))
@@ -623,6 +623,11 @@ class PaginateObject extends CoreObject implements \JsonSerializable
     public function setValue($name, $value)
     {
         $this->_values[$name] = $value;
+    }
+
+    public function getValue($name)
+    {
+        return isset($this->_values[$name]) ? $this->_values[$name] : null;
     }
 
     public function jsonSerialize()
