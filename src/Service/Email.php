@@ -234,6 +234,12 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             'debug'             => $this->debug
         ];
 
+
+        if(isset( $config["local_notifications"]["no_email"]) && $config["local_notifications"]["no_email"]===True)
+        {
+            return array("data"=>$data,"result"=>NULL,"message"=>$message);
+        }
+
         $result = $this->sendToBeanstalkd( $beanstalkd );
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);
