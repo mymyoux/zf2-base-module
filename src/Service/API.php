@@ -460,7 +460,10 @@ class API extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         {
             $result = array($result_name=>$result);
         }
-
+        if (!isset($result[$result_name]))
+        {
+            $result = [$result_name=>$result];
+        }
         $formatted_result = new \StdClass();
         $formatted_result->value = $result;
         $api_data = new \StdClass();
