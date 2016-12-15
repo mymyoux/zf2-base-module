@@ -69,5 +69,9 @@ abstract class ListenerAbstract
     {
         die;
     }
+    public function getLogger()
+    {
+        return $this->sm->get("Log");
+    }
 }
 
