@@ -98,6 +98,7 @@ return array(
             'Email' => 'Core\Service\Email',
             'Push' => 'Core\Service\Push',
             'Notifications'=>'Core\Service\Notifications',
+            'Console'=>'Core\Service\Console',
             'Spreadsheet'=>'Core\Service\Spreadsheet',
             'Geolocation'=>'Core\Service\Geolocation',
             'Env'=>'Core\Service\Env',

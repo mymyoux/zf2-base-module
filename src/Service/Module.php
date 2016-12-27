@@ -74,6 +74,10 @@ class Module extends \Core\Service\CoreService implements ServiceLocatorAwareInt
         }
         return True;
     }
+    public function getLoaded()
+    {
+        return $this->sm->get("ModuleManager")->getLoadedModules();
+    }
     public function loaded($name)
     {
         $name = ucfirst($name);
@@ -110,6 +114,57 @@ class Module extends \Core\Service\CoreService implements ServiceLocatorAwareInt
             })));
         }
         $modules = array_values($modules);
+        $configuration = $this->sm->get("ApplicationConfig");
+
+        $initial = $configuration["initial_modules"];
+        $news = array_diff($configuration["modules"], $configuration["initial_modules"]);
+        if(!empty($news))
+        {
+            $modules = array_values(array_filter($modules, function($item) use($configuration)
+            {
+                return in_array($item["name"], $configuration["modules"]);
+            }));
+        }
+        //dd($configuration["modules"]);
+        usort($modules, function($a, $b) use ($initial, $news)
+        {   
+            $is_origina = array_search($a["name"], $initial);
+            $is_originb = array_search($b["name"], $initial);
+            $is_newa = array_search($a["name"], $news);
+            $is_newb = array_search($b["name"], $news);
+
+            //both not present or same place
+            if($is_newa === $is_newb && $is_origina === $is_originb)
+            {
+                var_dump(["a"=>$a, "b"=>$b]);
+                return 0;
+            }
+            if($is_newa !== False && $is_newb === False)
+            {
+                return -1;
+            }
+            if($is_newb !== False && $is_newa === False)
+            {
+                return 1;
+            }
+            if($is_newb !== False && $is_newa !== False)
+            {
+                return $is_newb - $is_newa;
+            }
+             if($is_origina !== False && $is_originb === False)
+            {
+                return 1;
+            }
+            if($is_originb !== False && $is_origina === False)
+            {
+                return -1;
+            }
+            if($is_origina !== False && $is_originb !== False)
+            {
+                return $is_originb - $is_origina;
+            }
+            return 0;
+        });
        return $modules;
     }
 }
