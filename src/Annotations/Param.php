@@ -73,7 +73,25 @@ class ParamClass
         }
         return $result;
     }
+    public function set($name, $value)
+    {
+        if(!isset($this->$name))
+        {
+            $this->$name = new ParamObject();
+            $this->$name->name = $name;
+        }
+        $this->$name->value = $value;
+        return $this;
+    }
 
+    public function unset($name)
+    {
+        if(!isset($this->$name))
+        {
+            unset($this->$name);
+        }
+        return $this;
+    }
 }
 /**
  *
