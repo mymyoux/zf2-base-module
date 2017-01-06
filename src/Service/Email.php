@@ -58,7 +58,7 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         return $this->sendEmailTemplate($type, 'raw-content', $email, $email_sender, $sender, $subject, $data);
     }
 
-    public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL)
+    public function sendEmailTemplate($type, $template, $email, $email_sender = NULL, $sender = NULL, $subject = NULL, $data = NULL, $delay = 0)
     {
         $user = NULL;
         if($email instanceof \Core\Model\UserModel)
@@ -93,7 +93,6 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         {
             $email_sender = "notifications@yborder.com";
         }
-
         // $mandrill       = $this->createMandrill();
         $sender_hash    = null;
         $headers        = null;
@@ -234,18 +233,16 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
             'debug'             => $this->debug
         ];
 
-
-
-        $result = $this->sendToBeanstalkd( $beanstalkd );
+        $result = $this->sendToBeanstalkd( $beanstalkd, $delay );
 
         return array("data"=>$data,"result"=>$result,"message"=>$message);
     }
 
-    public function sendToBeanstalkd( $data )
+    public function sendToBeanstalkd( $data, $delay = 0 )
     {
         $job = $this->sm->get('QueueService')->createJob('email', $data);
 
-        return $job->send();
+        return $job->send( $delay );
     }
 
     /**
