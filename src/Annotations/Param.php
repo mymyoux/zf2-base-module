@@ -84,7 +84,7 @@ class ParamClass
         return $this;
     }
 
-    public function unset($name)
+    public function remove($name)
     {
         if(!isset($this->$name))
         {
