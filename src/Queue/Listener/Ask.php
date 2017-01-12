@@ -11,7 +11,7 @@ class Ask extends ListenerAbstract implements ListenerInterface
 {
 
     protected $queueName;
-    private $tries;
+    protected $tries;
     private $queue;
 
     /**
@@ -65,7 +65,7 @@ class Ask extends ListenerAbstract implements ListenerInterface
 
         $listener->setServiceLocator( $this->sm );
         $listener->executeJob($ask);
-        
+
     }
     protected function getAskTable()
     {

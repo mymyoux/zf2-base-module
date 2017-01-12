@@ -64,6 +64,10 @@ class ListenController extends \Core\Console\CoreController
         $usertable = $this->sm->get("UserTable");
         $listener = new $object_name;
 
+        $retry = $listener->getRetry();
+        if (isset($retry))
+            $this->tries = $retry;
+
         $listener->setServiceLocator( $this->sm );
         $cooldown = $listener->cooldown();
         $this->queue->watch($this->queueName)->ignore('default');
@@ -97,7 +101,7 @@ class ListenController extends \Core\Console\CoreController
 
 
                 $total_time = round((microtime(True) - $start_time)*1000);
-               
+
                 $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
 
                 $this->queue->delete($job);
@@ -117,7 +121,7 @@ class ListenController extends \Core\Console\CoreController
                 if ($jobsStats->releases >= $this->tries) {
 
                     $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_FAILED );
-                    
+
                     $this->getLogger()->error("Burrying job!");
                     $this->buryJob($job, $this->queue);
                 } else {
