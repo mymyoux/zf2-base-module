@@ -127,6 +127,13 @@ class Job implements ServiceLocatorAwareInterface {
         $id = $this->sm->get('BeanstalkdLogTable')->insertLog( $this->job_json, $this->tube, $delay, $this->id_user, $priority, $this->identifier);
 
         $this->job['_id_beanstalkd'] = $id;
+        if(isset($id))
+        {
+            $data_json = ['_id_beanstalkd' => $id];
+        }else
+        {
+            $data_json = $this->job;
+        }
 
         if (!$this->getBeanStalkd()->getConnection()->isServiceListening() || true === $now)
         {
@@ -164,7 +171,8 @@ class Job implements ServiceLocatorAwareInterface {
             $user = isset($this->id_user)?$this->sm->get('UserTable')->getUser($this->id_user):NULL;
             $listener->setUser($user);
             $listener->setServiceLocator( $this->sm );
-            $listener->preexecute( $this->job );
+             $data = $listener->unserialize($data_json);
+             $listener->preexecute($data);
 
             $total_time = round((microtime(True) - $start_time)*1000);
             $this->sm->get('BeanstalkdLogTable')->setState($id, $now?BeanstalkdLogTable::STATE_EXECUTED_NOW:BeanstalkdLogTable::STATE_EXECUTED_FRONT, 1, $total_time);
@@ -172,7 +180,7 @@ class Job implements ServiceLocatorAwareInterface {
             return true;
         }
 
-        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($this->job), $priority, $delay);
+        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($data_json), $priority, $delay);
         $this->sm->get('BeanstalkdLogTable')->setBeanstalkdID($id, $id_beanstalkd);
 
         return $id_beanstalkd;

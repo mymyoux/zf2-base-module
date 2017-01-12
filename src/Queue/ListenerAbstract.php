@@ -48,6 +48,20 @@ abstract class ListenerAbstract
     {
         $this->user = $user;
     }
+    public function unserialize($data)
+    {
+        if(isset($data["_id_beanstalkd"]))
+        {
+            $id = $data["_id_beanstalkd"];
+            $record = $this->sm->get("BeanstalkdLogTable")->findById($id);
+            if(isset($record))
+            {
+                $data = json_decode($record["json"], True);
+                $data["_id_beanstalkd"] = $id;
+            }
+        }
+        return $data;
+    }
     public function preexecute($data)
     {
         return $this->executeJob($data);

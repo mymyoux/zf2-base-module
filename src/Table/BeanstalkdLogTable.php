@@ -139,7 +139,6 @@ class BeanstalkdLogTable extends CoreTable
             'identifier'=>$identifier,
             'state'=>  $delay <= 0?BeanstalkdLogTable::STATE_CREATED:BeanstalkdLogTable::STATE_PENDING
         ];
-
         $this->table(self::TABLE)->insert($data);
 
         return $this->table(self::TABLE)->lastInsertValue;

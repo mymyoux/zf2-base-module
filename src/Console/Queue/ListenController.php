@@ -82,6 +82,7 @@ class ListenController extends \Core\Console\CoreController
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
+                $data = $listener->unserialize($data);
                 $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data["_id_beanstalkd"] );
 
                 $this->getLogger()->debug('ID BeanstalkdLogTable (' . $log['id'] .')');
