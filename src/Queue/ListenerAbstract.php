@@ -9,6 +9,12 @@ abstract class ListenerAbstract
     protected $sm;
     protected $api;
     protected $user;
+    protected $tries;
+
+    public function getRetry()
+    {
+        return $this->tries;
+    }
 
     public function cooldown()
     {

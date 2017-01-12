@@ -14,7 +14,7 @@ class Email extends ListenerAbstract implements ListenerInterface
 {
 
     protected $queueName;
-    private $tries;
+    protected $tries;
     private $queue;
     private $debug;
 
