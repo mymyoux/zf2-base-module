@@ -72,7 +72,7 @@ class ListenController extends \Core\Console\CoreController
         $cooldown = $listener->cooldown();
         $this->queue->watch($this->queueName)->ignore('default');
 
-        $this->getLogger()->debug('Listening to `' . $this->queueName . '`');
+        $this->getLogger()->debug('Listening to `' . $this->queueName . '` retry (' . $this->tries . ')');
 
         while ($job = $this->queue->reserve())
         {
