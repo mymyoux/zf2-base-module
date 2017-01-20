@@ -11,7 +11,7 @@ class Slack extends ListenerAbstract implements ListenerInterface
 {
 
     protected $queueName;
-    private $tries;
+    protected $tries;
     private $queue;
 
     /**
