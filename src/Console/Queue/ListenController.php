@@ -42,7 +42,10 @@ class ListenController extends \Core\Console\CoreController
         $port        = $config['port'];
 
         $this->queue = new Pheanstalk($ip, $port);
-        $this->queueName = $this->sm->get('AppConfig')->getEnv() . '-' . $name;
+
+        $prefix = $this->sm->get('AppConfig')->has('tube_prefix')?$this->sm->get('AppConfig')->get('tube_prefix'):$this->sm->get('AppConfig')->getEnv();
+
+        $this->queueName = $prefix . '-' . $name;
 
 
         $modules = $this->sm->get("ApplicationConfig")["modules"];
