@@ -21,7 +21,9 @@ class ReplayController extends \Core\Console\CoreController
      * @return
      */
     public function startAction()
-    {   
+    {
+        define('REPLAY', true);
+
         $id = $this->params()->fromRoute("id", NULL);
         if(!isset($id))
         {
@@ -39,7 +41,7 @@ class ReplayController extends \Core\Console\CoreController
             $user = $this->getUserTable($call["id_user"]);
         }
 
-        $api = $this->api->$controller->method($method); 
+        $api = $this->api->$controller->method($method);
         if(isset($user))
         {
             $api = $api->user($user);

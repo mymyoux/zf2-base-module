@@ -121,6 +121,25 @@ class Configuration extends CoreService implements ServiceLocatorAwareInterface
     {
         return (php_sapi_name() === 'cli');
     }
+
+    public function isCron()
+    {
+        return defined('CRON') && CRON === true;
+    }
+
+    public function isReplay()
+    {
+        return defined('REPLAY') && REPLAY === true;
+    }
+
+    public function isQueue( $strict = true )
+    {
+        if (true === $strict)
+            return defined('QUEUE') && QUEUE === true && $this->isCLI();
+
+        return defined('QUEUE') && QUEUE === true;
+    }
+
     /**
      * Check if current env is not Prod
      * @return boolean [description]

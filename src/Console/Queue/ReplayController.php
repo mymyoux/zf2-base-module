@@ -21,6 +21,7 @@ class ReplayController extends \Core\Console\CoreController
      */
     public function startAction()
     {
+        define('REPLAY', true);
         $id             = $this->params()->fromRoute('id');
         $queue_type     = $this->params()->fromRoute('queue', null);
 
