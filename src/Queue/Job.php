@@ -199,7 +199,8 @@ class Job implements ServiceLocatorAwareInterface {
 
     public function getTube()
     {
-        return $this->getEnv() . '-' . $this->tube;
+        $prefix = $this->sm->get('AppConfig')->has('tube_prefix')?$this->sm->get('AppConfig')->get('tube_prefix'):$this->sm->get('AppConfig')->getEnv();
+        return $prefix . '-' . $this->tube;
     }
 
     /**
