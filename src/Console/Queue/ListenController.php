@@ -36,6 +36,8 @@ class ListenController extends \Core\Console\CoreController
 
     public function listen( $name )
     {
+        define('QUEUE', true);
+
         $config      = $this->sm->get('AppConfig')->get('beanstalkd');
         $this->tries = $config['retry_count'];
         $ip          = $config['ip'];
