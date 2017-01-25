@@ -82,32 +82,69 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
             $set["created_time"] = new \Zend\Db\Sql\Expression("NOW(3)");
         }
 
+        $start_time = microtime( true );
+        $result     = parent::insert($set);
+
         if ($this->sm_initialized)
         {
             $this->sm->get('Log')->logMetric('insert', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $insert = $this->sql->insert();
+                $insert->values($set);
+                $this->sm->get('Log')->logSqlQuery('insert', $insert->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
         }
 
-        return parent::insert($set);
+        return $result;
     }
 
     public function update($set, $where = null)
     {
+        $start_time = microtime( true );
+        $result     = parent::update($set, $where);
+
         if ($this->sm_initialized)
         {
             $this->sm->get('Log')->logMetric('update', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $update = $this->sql->update();
+                $update->set($set);
+                if ($where !== null) {
+                    $update->where($where);
+                }
+                $this->sm->get('Log')->logSqlQuery('update', $update->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
         }
 
-        return parent::update($set, $where);
+        return $result;
     }
 
     public function delete($where)
     {
+        $start_time = microtime( true );
+        $result     = parent::delete($where);
+
         if ($this->sm_initialized)
         {
             $this->sm->get('Log')->logMetric('delete', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $delete = $this->sql->delete();
+                if ($where instanceof \Closure) {
+                    $where($delete);
+                } else {
+                    $delete->where($where);
+                }
+                $this->sm->get('Log')->logSqlQuery('deleete', $delete->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
         }
 
-        return parent::delete($where);
+        return $result;
     }
 
     /**
