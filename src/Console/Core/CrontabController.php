@@ -171,7 +171,12 @@ class CrontabController extends \Core\Console\CoreController
             'load'              => $this->getCpuUsage( true ),
             'executionTime'     => $this->getExecutionTime( true ),
             'errors'            => $this->getLogger()->getMetric('error'),
-            'criticals'         => $this->getLogger()->getMetric('critical')
+            'warnings'          => $this->getLogger()->getMetric('warn'),
+            'criticals'         => $this->getLogger()->getMetric('critical'),
+            'insert'            => $this->getLogger()->getMetric('insert'),
+            'update'            => $this->getLogger()->getMetric('update'),
+            'delete'            => $this->getLogger()->getMetric('delete'),
+            'select'            => $this->getLogger()->getMetric('select'),
         ];
 
         $status = 'ok';
@@ -261,7 +266,7 @@ class CrontabController extends \Core\Console\CoreController
             {
                 return False;
             }
-//            return $item["path"] !=    
+//            return $item["path"] !=
             return True;
         }));
         return $classArr;
@@ -477,7 +482,7 @@ class CrontabController extends \Core\Console\CoreController
             $this->getLogger()->critical($e->getMessage() );
             $this->getErrorTable()->logError($e);
 
-            echo $e->getTraceAsString();
+            $this->getLogger()->warn($e->getTraceAsString());
         }
 
         $this->terminated();
