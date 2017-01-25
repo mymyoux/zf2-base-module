@@ -36,7 +36,7 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
         if (false === in_array($type, $this->config_query['types_allow']))
             return false;
 
-        $duration = (microtime( true ) - $start_time);
+        $duration = (microtime( true ) - $start_time) * 1000;
 
         if ($duration < $this->config_query['min_duration'])
         {
