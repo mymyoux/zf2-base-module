@@ -229,6 +229,8 @@ class CoreTable extends \Core\Service\CoreService
     }
     public function execute($request, $parameters = NULL)
     {
+        $start_time = microtime( true );
+
         if ($this->sm_initialized)
         {
             $this->sm->get('Log')->logMetric('select', 1);
@@ -263,6 +265,11 @@ class CoreTable extends \Core\Service\CoreService
             }else
             {
                 $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+            }
+
+            if ($this->sm_initialized)
+            {
+                $this->sm->get('Log')->logSqlQuery( 'select', $strRequest, $start_time );
             }
         }
         catch (\Exception $e)

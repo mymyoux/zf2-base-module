@@ -19,10 +19,44 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
     private $metrics        = [];
     private $critical       = null;
     private $display_time   = true;
+    private $config_query   = null;
 
     public function __construct()
     {
         $this->metrics = [];
+    }
+
+    public function logSqlQuery( $type, $strRequest, $start_time )
+    {
+        if (null === $this->config_query)
+        {
+            $this->config_query = $this->sm->get('AppConfig')->get('query_log');
+        }
+
+        if (false === in_array($type, $this->config_query['types_allow']))
+            return false;
+
+        $duration = (microtime( true ) - $start_time);
+
+        if ($duration < $this->config_query['min_duration'])
+        {
+            return false;
+        }
+
+        try
+        {
+            throw new \Exception('log_query_sql', 1);
+        }
+        catch(\Exception $e)
+        {
+            // log
+            $is_cron    = $this->sm->get('AppConfig')->isCron();
+            $is_front   = !$this->sm->get('AppConfig')->isCLI();
+            $is_queue   = $this->sm->get('AppConfig')->isQueue();
+            $stack      = $e->getTraceAsString();
+
+            $this->sm->get('QueryLogTable')->insertLog($type, $strRequest, $duration, $is_front, $is_cron, $is_queue, $stack);
+        }
     }
 
     public function setDisplayTime( $boolean )
