@@ -10,15 +10,35 @@ namespace Core\Table;
 
 
 use Zend\Db\Sql\Select;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
 class TableGateway extends \Zend\Db\TableGateway\TableGateway
 {
+    protected $sm_initialized;
+    protected $sm;
+    protected $session;
     /**
      * @return \Zend\Db\Sql\Select
      */
     public function getSelect()
     {
         return new Select($this->getTable());
+    }
+
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        if ($this->sm_initialized || null === $serviceLocator)
+        {
+            return;
+        }
+        $this->sm = $serviceLocator;
+        // $this->session = $this->sm->get("session");
+        // if($this->session->getServiceLocator() === NULL)
+        // {
+        //     $this->session->setServiceLocator($this->sm);
+        // }
+        // $this->init();
+        $this->sm_initialized = true;
     }
 
     /**
@@ -61,7 +81,33 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
         {
             $set["created_time"] = new \Zend\Db\Sql\Expression("NOW(3)");
         }
+
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('insert', 1);
+        }
+
         return parent::insert($set);
+    }
+
+    public function update($set, $where = null)
+    {
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('update', 1);
+        }
+
+        return parent::update($set, $where);
+    }
+
+    public function delete($where)
+    {
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('delete', 1);
+        }
+
+        return parent::delete($where);
     }
 
     /**
@@ -78,4 +124,4 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
         }
         return NULL;
     }
-} 
+}

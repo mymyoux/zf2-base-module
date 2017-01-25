@@ -18,7 +18,11 @@ class LogModel extends CoreModel
 	public $execution_time;
 	public $errors;
 	public $critical;
-	// public $critical_message;
+	public $warnings;
+	public $insert;
+	public $update;
+	public $select;
+	public $delete;
 
 	public function getId()
 	{
@@ -61,6 +65,41 @@ class LogModel extends CoreModel
 	public function setErrors( $errors )
 	{
 		$this->errors = $errors;
+
+		return $this;
+	}
+
+	public function setWarnings( $warnings )
+	{
+		$this->warnings = $warnings;
+
+		return $this;
+	}
+
+	public function setInsert( $insert )
+	{
+		$this->insert = $insert;
+
+		return $this;
+	}
+
+	public function setSelect( $select )
+	{
+		$this->select = $select;
+
+		return $this;
+	}
+
+	public function setUpdate( $update )
+	{
+		$this->update = $update;
+
+		return $this;
+	}
+
+	public function setDelete( $delete )
+	{
+		$this->delete = $delete;
 
 		return $this;
 	}

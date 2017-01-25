@@ -48,6 +48,11 @@ class CoreService extends CoreObject implements ServiceLocatorAwareInterface
         }
         $this->init();
         $this->initialized = True;
+
+        if (method_exists($this, 'setTableServiceLocator'))
+        {
+            $this->setTableServiceLocator( $this->getServiceLocator() );
+        }
     }
 
     /**
@@ -57,4 +62,4 @@ class CoreService extends CoreObject implements ServiceLocatorAwareInterface
     {
         return $this->sm;
     }
-} 
+}
