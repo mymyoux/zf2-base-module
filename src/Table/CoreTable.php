@@ -32,6 +32,9 @@ class CoreTable extends \Core\Service\CoreService
      */
     protected $sql;
 
+    protected $sm;
+    protected $sm_initialized;
+
     /**
      * @param $tableGateway
      */
@@ -58,6 +61,33 @@ class CoreTable extends \Core\Service\CoreService
             }
         }
 
+    }
+
+    public function setTableServiceLocator( $sm )
+    {
+        if ($this->_table instanceof ZTableGateway)
+        {
+            if (method_exists($this->_table, 'setServiceLocator'))
+            {
+                $this->_table->setServiceLocator( $sm );
+            }
+        }
+        else
+        {
+            foreach($this->_tables as $key => $value)
+            {
+                if (method_exists($this->_tables[$key], 'setServiceLocator'))
+                {
+                    $this->_tables[$key]->setServiceLocator( $sm );
+                }
+            }
+        }
+
+        if (null !== $sm)
+        {
+            $this->sm_initialized = true;
+            $this->sm = $sm;
+        }
     }
 
     protected function startTransaction()
@@ -100,6 +130,7 @@ class CoreTable extends \Core\Service\CoreService
         if(!array_key_exists($name, $this->_tables))
         {
             $this->_tables[mb_strtolower($name)] = new TableGateway($name, $this->db, NULL, NULL);
+            $this->_tables[mb_strtolower($name)]->setServiceLocator( $this->getServiceLocator() );
         }
         return $this->_tables[mb_strtolower($name)];
     }
@@ -193,11 +224,18 @@ class CoreTable extends \Core\Service\CoreService
         for($i=1; $i<$count; $i++)
         {
             $string.=",?";
-        }   
+        }
         return $string;
     }
     public function execute($request, $parameters = NULL)
     {
+        $start_time = microtime( true );
+
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('select', 1);
+        }
+
         if(is_string($request))
         {
             $strRequest = $request;
@@ -205,6 +243,7 @@ class CoreTable extends \Core\Service\CoreService
         {
             $strRequest = $this->sql->getSqlStringForSqlObject($request);
         }
+        // var_dump($strRequest);
 
         try
         {
@@ -226,6 +265,11 @@ class CoreTable extends \Core\Service\CoreService
             }else
             {
                 $results = $this->db->query($strRequest, Adapter::QUERY_MODE_EXECUTE);
+            }
+
+            if ($this->sm_initialized)
+            {
+                $this->sm->get('Log')->logSqlQuery( 'select', $strRequest, $start_time );
             }
         }
         catch (\Exception $e)

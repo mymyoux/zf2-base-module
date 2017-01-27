@@ -10,15 +10,35 @@ namespace Core\Table;
 
 
 use Zend\Db\Sql\Select;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
 class TableGateway extends \Zend\Db\TableGateway\TableGateway
 {
+    protected $sm_initialized;
+    protected $sm;
+    protected $session;
     /**
      * @return \Zend\Db\Sql\Select
      */
     public function getSelect()
     {
         return new Select($this->getTable());
+    }
+
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        if ($this->sm_initialized || null === $serviceLocator)
+        {
+            return;
+        }
+        $this->sm = $serviceLocator;
+        // $this->session = $this->sm->get("session");
+        // if($this->session->getServiceLocator() === NULL)
+        // {
+        //     $this->session->setServiceLocator($this->sm);
+        // }
+        // $this->init();
+        $this->sm_initialized = true;
     }
 
     /**
@@ -61,7 +81,70 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
         {
             $set["created_time"] = new \Zend\Db\Sql\Expression("NOW(3)");
         }
-        return parent::insert($set);
+
+        $start_time = microtime( true );
+        $result     = parent::insert($set);
+
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('insert', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $insert = $this->sql->insert();
+                $insert->values($set);
+                $this->sm->get('Log')->logSqlQuery('insert', $insert->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
+        }
+
+        return $result;
+    }
+
+    public function update($set, $where = null)
+    {
+        $start_time = microtime( true );
+        $result     = parent::update($set, $where);
+
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('update', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $update = $this->sql->update();
+                $update->set($set);
+                if ($where !== null) {
+                    $update->where($where);
+                }
+                $this->sm->get('Log')->logSqlQuery('update', $update->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
+        }
+
+        return $result;
+    }
+
+    public function delete($where)
+    {
+        $start_time = microtime( true );
+        $result     = parent::delete($where);
+
+        if ($this->sm_initialized)
+        {
+            $this->sm->get('Log')->logMetric('delete', 1);
+
+            if (isset($this->table) && $this->table != 'query_log')
+            {
+                $delete = $this->sql->delete();
+                if ($where instanceof \Closure) {
+                    $where($delete);
+                } else {
+                    $delete->where($where);
+                }
+                $this->sm->get('Log')->logSqlQuery('deleete', $delete->getSqlString($this->getAdapter()->getPlatform()), $start_time);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -78,4 +161,4 @@ class TableGateway extends \Zend\Db\TableGateway\TableGateway
         }
         return NULL;
     }
-} 
+}
