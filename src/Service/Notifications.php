@@ -20,14 +20,17 @@ use Core\Model\Slack\SlackModel;
 class Notifications extends CoreService implements ServiceLocatorAwareInterface
 {
     private $slack_url;
+    private $rocket;
     private $client;
     protected $send_now = false;
 
     public function init()
     {
         $config = $this->getServiceLocator()->get("AppConfig")->get('slack');
-
+        if(isset($config))
         $this->slack_url = $config['url'];
+
+      $this->rocket = $this->getServiceLocator()->get("AppConfig")->get('rocket');
     }
 
     public function sendNow()
@@ -133,18 +136,50 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
     public function send( $json )
     {
-        $ch = curl_init( $this->slack_url );
+        if(isset($this->slack_url))
+        {
+            $ch = curl_init( $this->slack_url );
 
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($json))
-        );
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($json)
+                )
+            );
 
-        $result = curl_exec($ch);
-        curl_close($ch);
+            $result = curl_exec($ch);
+            curl_close($ch);
+        }
+
+        if(isset($this->rocket))
+        {
+            try
+            {
+                $headers = array(
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($json),
+                );
+                foreach($this->rocket['headers'] as $key=>$header)
+                {
+                    $headers[] = $key.': '.$header;
+                }
+                $ch = curl_init( $this->rocket["url"] );
+
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+                $result = curl_exec($ch);
+                curl_close($ch);
+                    
+            }catch(\Exception $e)
+            {
+
+            }
+        }
 
         return $result;
     }
