@@ -74,6 +74,7 @@ return array(
             'Zend\Log\LoggerAbstractServiceFactory',
         ),
         'invokables'=>array(
+            'Redis' => 'Core\Service\Cache\Redis',
             'Email' => 'Core\Service\Email',
             'Notifications'=>'Core\Service\Notifications',
             'Spreadsheet'=>'Core\Service\Spreadsheet',
