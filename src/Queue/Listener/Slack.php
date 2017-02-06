@@ -27,14 +27,27 @@ class Slack extends ListenerAbstract implements ListenerInterface
     }
     public function cooldown()
     {
-        if ($this->sm->get('AppConfig')->isCLI())
-            return 1;
+        /*if ($this->sm->get('AppConfig')->isCLI())
+            return 1;*/
         return 0;
     }
     public function executeJob( $data )
     {
+        $cooldown = 1;
         $json   = json_encode($data);
-        $result = $this->sm->get('Notifications')->send( $json );
+
+        $provider = isset($data["channel"]) && in_array($data["channel"],["#errors","#test_yb","#marketplace_anonyme"])?'rocket':NULL;
+
+        $used_slack = $this->sm->get('Notifications')->send( $json, $provider );
+        if(isset($provider))
+        {
+            $cooldown = 0;
+        }
+        if($cooldown && $this->sm->get('AppConfig')->isCLI())
+        {
+            $this->getLogger()->warn("cooldown ".$cooldown."s");
+            sleep($cooldown);
+        }
     }
 
 }
