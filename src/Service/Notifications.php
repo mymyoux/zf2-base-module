@@ -134,9 +134,9 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         return $this->sendToBeanstalkd($data);
     }
 
-    public function send( $json )
+    public function send( $json, $provider = NULL )
     {
-        if(isset($this->slack_url))
+        if(isset($this->slack_url) && (!isset($provider) || $provider == "slack"))
         {
             $ch = curl_init( $this->slack_url );
 
@@ -153,7 +153,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             curl_close($ch);
         }
 
-        if(isset($this->rocket))
+        if(isset($this->rocket) && (!isset($provider) || $provider == "rocket"))
         {
             try
             {
