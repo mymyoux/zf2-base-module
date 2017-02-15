@@ -125,13 +125,15 @@ class APIController extends FrontController
             $view->setVariable("api_data", $result->api_data);
             if(isset($result->use_excel) && $result->use_excel)
             {
-                    $file_url = $this->sm->get("Excel")->createFromArray($result->value[$result->api_data->key], 'exports/'.$controller);
-                    header('Content-Type: application/octet-stream');
-                    header("Content-Transfer-Encoding: Binary"); 
-                    header("Content-disposition: attachment; filename=\"" . basename($file_url) . "\""); 
-                    header("Location: /".$file_url);
-                    exit();
-                    return;
+                // PATCH for now
+                // @fix bug export prospects
+                ini_set('memory_limit', '256M');
+                $file_url = $this->sm->get("Excel")->createFromArray($result->value[$result->api_data->key], 'exports/'.$controller);
+                header('Content-Type: application/octet-stream');
+                header("Content-Transfer-Encoding: Binary");
+                header("Content-disposition: attachment; filename=\"" . basename($file_url) . "\"");
+                header("Location: /".$file_url);
+                exit();
             }
             if(isset($result->headers))
             {
