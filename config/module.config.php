@@ -85,6 +85,7 @@ return array(
             'API'=>'Core\Service\API',
             'QueueService' => 'Core\Service\Queue',
             'DetectLanguage' => 'Core\Service\DetectLanguage',
+            'GTranslate' => 'Core\Service\GTranslate',
             'Log'=>'Core\Service\Log',
             'CSV' => 'Core\Service\CSV',
             'ABTesting' => 'Core\Service\ABTesting',
