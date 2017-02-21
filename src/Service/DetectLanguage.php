@@ -51,7 +51,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         {
             return [$this->_getDefaultLang($text)];
         }
-        $this->getDetectLanguageTable()->addCall($this->key, mb_strlen($text));
+        $this->getDetectLanguageTable()->addCall($this->key, mb_strlen($text), $text);
         $detections = DetectLanguageLibrary::detect( $text );
         foreach($detections as $key=>$detect)
         {
