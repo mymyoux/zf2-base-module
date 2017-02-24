@@ -123,6 +123,26 @@ class MailTable extends CoreTable
     {
         $this->table()->update($data, array("id"=>$id));
     }
+
+    public function getMailByTypeAndUserAndGreaterThan( $type, $id_user, $date )
+    {
+        $where = $this->select(self::TABLE)->where
+                    ->and->equalTo("id_user", (int) $id_user)
+                    ->and->equalTo("type", (string) $type)
+                    ->and->greaterThan('created_time', date('Y-m-d H:i:s', $date))
+                    ;
+
+        $request = $this->select([ 'tp' => self::TABLE ])
+                    ->where( $where );
+
+        $result = $this->execute($request);
+
+        $data = $result->current();
+
+        if (!$data) return null;
+        return $data;
+    }
+
     public function getMailByTypeAndUser( $type, $id_user, $date = null )
     {
         $where = $this->select(self::TABLE)->where
