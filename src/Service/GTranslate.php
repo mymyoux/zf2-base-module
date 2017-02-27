@@ -60,7 +60,17 @@ class GTranslate extends \Core\Service\CoreService implements ServiceLocatorAwar
             $params['source'] = $source;
 
         // https://www.googleapis.com/language/translate/v2?q=bonjour&target=en&source=fr&key=AIzaSyB6qK07W3zR4e1b7ELTLOJR0_qkf3oHUW8
-        $data = $this->client->get('https://www.googleapis.com/language/translate/v2', ['query' => $params]);
+        try
+        {
+            $data = $this->client->get('https://www.googleapis.com/language/translate/v2', ['query' => $params]);
+        }
+        catch (\Exception $e)
+        {
+            $this->sm->get('ErrorTable')->logError( $e );
+
+            if (null !== $source)
+                return $this->translate($text, null);
+        }
 
         $json = $data->json();
 
