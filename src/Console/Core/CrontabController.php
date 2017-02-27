@@ -541,6 +541,8 @@ class CrontabController extends \Core\Console\CoreController
                 if (true === isset($options[$key]) && false === empty($options[$key]))
                     $line .= ' ' . $options[ $key ];
 
+                $line .= ' cron=1';
+
                 if ($cron['server_log'] == 1)
                     $line .= ' >> ' . $cron['directory'] . 'logs/' . preg_replace('/[^A-Za-z0-9]/', '_',  $cron['name']) . '.log';
 
