@@ -50,37 +50,56 @@ class GTranslate extends \Core\Service\CoreService implements ServiceLocatorAwar
             }
         }
 
-        $params = [
-            'q'         => $text,
-            'target'    => 'en',
-            'key'       => $this->key
-        ];
+        $texts = str_split($text, 1800);
 
-        if (null !== $source)
-            $params['source'] = $source;
-
-        // https://www.googleapis.com/language/translate/v2?q=bonjour&target=en&source=fr&key=AIzaSyB6qK07W3zR4e1b7ELTLOJR0_qkf3oHUW8
-        try
+        if (count($texts) > 1)
         {
-            $data = $this->client->get('https://www.googleapis.com/language/translate/v2', ['query' => $params]);
+            $new_text = '';
+            foreach ($texts as $text)
+            {
+                list($new_source, $new_translate) = $this->translate($text, $source);
+
+                $new_text .= $new_translate;
+            }
+
+            return [$new_source, $new_text];
         }
-        catch (\Exception $e)
+        else
         {
-            $this->sm->get('ErrorTable')->logError( $e );
+            $params = [
+                'q'         => $text,
+                'target'    => 'en',
+                'key'       => $this->key
+            ];
 
             if (null !== $source)
-                return $this->translate($text, null);
+                $params['source'] = $source;
+
+            // https://www.googleapis.com/language/translate/v2?q=bonjour&target=en&source=fr&key=AIzaSyB6qK07W3zR4e1b7ELTLOJR0_qkf3oHUW8
+            try
+            {
+                $data = $this->client->get('https://www.googleapis.com/language/translate/v2', ['query' => $params]);
+                $json = $data->json();
+            }
+            catch (\Exception $e)
+            {
+                $this->sm->get('ErrorTable')->logError( $e );
+
+                if (null !== $source)
+                    return $this->translate($text, null);
+
+                $json = [];
+            }
+
+
+            if (isset($json['data']) && isset($json['data']['translations']))
+            {
+                if (isset($json['data']['translations'][0]['detectedSourceLanguage']))
+                    $source = $json['data']['translations'][0]['detectedSourceLanguage'];
+                return [ $source, $json['data']['translations'][0]['translatedText'] ];
+            }
+
+            return $json;
         }
-
-        $json = $data->json();
-
-        if (isset($json['data']) && isset($json['data']['translations']))
-        {
-            if (isset($json['data']['translations'][0]['detectedSourceLanguage']))
-                $source = $json['data']['translations'][0]['detectedSourceLanguage'];
-            return [ $source, $json['data']['translations'][0]['translatedText'] ];
-        }
-
-        return $data->json();
     }
 }
