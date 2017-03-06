@@ -124,7 +124,21 @@ Trait WorkableTrait
                 else
                     $id_error = null;
 
-                $this->sm->get('Log')->error((isset($error->error) ? $error->error : $e_message));
+                if (isset($error->error))
+                {
+                    if (isset($error->error->error) && isset($error->error->error->description) && isset($error->error->error->reason))
+                    {
+                        if ($error->error->error->description === 'The access token was revoked' && $error->error->error->reason === 'revoked')
+                        {
+                            // set null token
+                            $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
+
+                            $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                        }
+                    }
+                }
+
+                $this->sm->get('Log')->error((isset($error->error) && is_string($error->error) ? $error->error : $e_message));
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
