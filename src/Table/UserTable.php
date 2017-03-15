@@ -351,6 +351,7 @@ class UserTable extends CoreTable{
             "user"=>array("first_name","last_name","type","email","picture"),
             "smartrecruiters"=>array("first_name","last_name","role","email","active", 'id_smartrecruiters', 'access_token', 'refresh_token'),
             "greenhouse"=>array("first_name","last_name","email", 'id_greenhouse', 'access_token', 'harvest_key'),
+            "wttj"=>array("first_name","last_name","email", 'access_token', 'avatar_url'),
         );
         //$keys = array("first_name","last_name","email","picture", "access_token");
         $keys = $meta_keys[$key];
