@@ -38,7 +38,7 @@ class ReplayController extends \Core\Console\CoreController
 
         if(isset($call["id_user"]))
         {
-            $user = $this->getUserTable($call["id_user"]);
+            $user = $this->getUserTable()->getUser($call["id_user"]);
         }
 
         $api = $this->api->$controller->method($method);
