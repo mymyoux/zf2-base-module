@@ -77,9 +77,6 @@ Trait WttjTrait
         if ($ressource === 'oauth/token')
             $path = 'https://www.welcomekit.co/';
 
-        if (null !== $this->ats_user)
-            $path .= $this->ats_user->subdomain . '/';
-
         try
         {
             if (!empty($this->access_token))
@@ -105,7 +102,6 @@ Trait WttjTrait
                 $params = $_params;
             }
 
-            var_dump('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
             $this->sm->get('Log')->normal('[' . $method . '] ' . $path . $ressource . ' ' . json_encode($params));
 
             $data = $this->client->{ strtolower($method) }($path . $ressource, $params);
@@ -118,9 +114,6 @@ Trait WttjTrait
                 $error = json_decode( $e->getResponse()->getBody()->__toString() );
             else
                 $error = null;
-
-            var_dump($error);
-            var_dump($e->getMessage());
 
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
@@ -180,36 +173,31 @@ Trait WttjTrait
             $tmp_ressource = explode('/', $ressource);
             $ressource = end($tmp_ressource);
 
-            if (isset($data[$ressource]) && is_array($data[$ressource]))
+            if (is_array($data))
             {
                 $is_content = true;
-                foreach ($data[$ressource] as $key => $d)
+                foreach ($data as $key => $d)
                     if (!is_numeric($key))
                         $is_content = false;
             }
 
             if (true === $is_content)
             {
-                $data[$ressource] = array_map(function($item) use ($modelClass, $sm){
+                $data = array_map(function($item) use ($modelClass, $sm){
                     $model = new $modelClass();
 
                     $model->setServiceLocator( $sm );
                     $model->exchangeArray($item);
 
                     return $model;
-                }, $data[$ressource]);
+                }, $data);
             }
             else
             {
                 $model = new $modelClass();
 
                 $model->setServiceLocator( $sm );
-                if (isset($data[$ressource]))
-                    $model->exchangeArray($data[$ressource]);
-                elseif ($ressource === 'candidates' && isset($data['candidate']))
-                    $model->exchangeArray($data['candidate']);
-                else
-                    $model->exchangeArray($data);
+                $model->exchangeArray($data);
 
                 $data = $model;
             }
@@ -267,21 +255,27 @@ Trait WttjTrait
         }
         catch( \Exception $e )
         {
-            // dd($e->getMessage());
             return NULL;
         }
-        // dd('b');
+
         return NULL;
     }
 
     private function formatUser( $user )
     {
+        $id_organization = null;
+        foreach ($user['organizations'] as $organization)
+        {
+            $id_organization = $organization['reference'];
+            break;
+        }
+
         $data = [
             // 'id'                => $user['id'],
             'first_name'        => $user['firstname'],
             'last_name'         => $user['lastname'],
             'avatar_url'        => $user['avatar_url'],
-            // 'role'              => $user['role'],
+            'id_organization'   => $id_organization,
             'email'             => $user['email'],
             'access_token'      => $this->access_token
         ];
@@ -291,7 +285,7 @@ Trait WttjTrait
 
     protected function getDatabaseColumns()
     {
-        return array("id", "email", "first_name", "last_name", "access_token", 'id_wttj');
+        return array("id", "email", "first_name", "last_name", "access_token", 'avatar_url', 'id_organization', 'id_wttj');
     }
 
     public function getExcludeFunctions()
@@ -301,7 +295,7 @@ Trait WttjTrait
 
     public function getJob( $id )
     {
-        return $this->get('jobs/' . $id);
+        return $this->get('jobs/' . $id, ['stages' => true]);
     }
 
     public function isCandidateHired( $state )

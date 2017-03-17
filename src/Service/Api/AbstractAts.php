@@ -15,6 +15,7 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
     protected $client;
     protected $ats_user = null;
     protected $ats_company = null;
+    protected $user;
 
 	public function typeAuthorize()
 	{
