@@ -300,12 +300,12 @@ Trait WttjTrait
 
     public function isCandidateHired( $state )
     {
-        return $state === 'Hired';
+        return $state === 'hired';
     }
 
     public function isCandidateProcessClose( $state )
     {
-        return true === in_array($state, ['Disqualified']);
+        return true === in_array($state, ['refused']);
     }
 }
 
