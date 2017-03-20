@@ -10,7 +10,6 @@ trait SmartRecruitersTrait
     protected $refresh_token;
 
     protected $has_refresh = false;
-    protected $user;
 
     public function setAccessToken($access_token, $refresh_token, $refresh = true)
     {
