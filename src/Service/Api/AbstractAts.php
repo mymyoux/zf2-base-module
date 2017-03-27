@@ -45,8 +45,13 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
     {
         $this->sm = $serviceLocator;
 
-        $this->client   = new \GuzzleHttp\Client();
+        $this->setGuzzleClient();
         $this->init();
+    }
+
+    public function setGuzzleClient()
+    {
+        $this->client   = new \GuzzleHttp\Client();
     }
 
     public function getServiceLocator()
