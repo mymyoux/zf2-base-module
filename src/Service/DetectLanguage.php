@@ -45,7 +45,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
     {
         if($this->sm->get("AppConfig")->isLocal())
         {
-            // return [$this->_getDefaultLang($text)];
+            return [$this->_getDefaultLang($text)];
         }
         if(mb_strlen($text) == 0)
         {
