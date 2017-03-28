@@ -143,6 +143,27 @@ class MailTable extends CoreTable
         return $data;
     }
 
+
+    public function getMailByTypeAndRecipient( $type, $email, $date = null )
+    {
+        $where = $this->select(self::TABLE)->where
+                    ->and->equalTo("recipient", (string) $email)
+                    ->and->equalTo("type", (string) $type)
+                    ;
+        if (null !== $date)
+            $where->and->expression('DATE_FORMAT(tp.created_time, "%Y-%m-%d") = "' . date('Y-m-d', strtotime($date)) . '"', []);
+
+        $request = $this->select([ 'tp' => self::TABLE ])
+                    ->where( $where );
+
+        $result = $this->execute($request);
+
+        $data = $result->current();
+
+        if (!$data) return null;
+        return $data;
+    }
+
     public function getMailByTypeAndUser( $type, $id_user, $date = null )
     {
         $where = $this->select(self::TABLE)->where

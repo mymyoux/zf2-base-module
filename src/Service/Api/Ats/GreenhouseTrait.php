@@ -148,6 +148,35 @@ trait GreenhouseTrait
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
             }
 
+            if (isset($error_message) && $error_message == 'This API Key does not have permission for this endpoint')
+            {
+                $is_allow = in_array($ressource, ['candidates', 'jobs']);
+
+                if ($is_allow && true === $is_harvest)
+                {
+                    if ($ressource === 'candidates')
+                    {
+                        // get ids candidates
+                        $candidates = $this->sm->get('AtsCompanyCandidateTable')->getAllByCompany($this->ats_company->id_company, $this->ats_user->id_user);
+
+                        $limit = $_params['query']['per_page'] / 10;
+                        $offset = ($_params['query']['page'] - 1) * $limit;
+                        $candidates = array_slice($candidates, $offset, $limit);
+
+                        $ids = array_column($candidates, 'id_api');
+                        $_params['query'] = [
+                            'candidate_ids' => implode(',', $ids),
+                        ];
+                    }
+                    return $this->request( $method, $ressource, $_params, false );
+                }
+                else
+                {
+                    $e = new GreenHouseException( 'permissions_error' );
+                    throw $e->setPermissionError(true);
+                }
+            }
+
             throw $e;
         }
 
