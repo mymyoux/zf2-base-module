@@ -148,6 +148,11 @@ trait GreenhouseTrait
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
             }
 
+            if (isset($error_message) && $error_message == 'Forbidden' && $e->getCode() === 403)
+            {
+                return null;
+            }
+
             if (isset($error_message) && $error_message == 'This API Key does not have permission for this endpoint')
             {
                 $is_allow = in_array($ressource, ['candidates', 'jobs']);
