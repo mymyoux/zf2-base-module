@@ -10,6 +10,7 @@ use Pheanstalk\Job as PJob;
 
 class Job implements ServiceLocatorAwareInterface {
 
+    const DEFAULT_TTR = 429496729;
     private $id_user;
     /**
      * identifier ID for deleting
@@ -119,7 +120,7 @@ class Job implements ServiceLocatorAwareInterface {
      *
      * @return int
      */
-    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
+    public function send( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false, $ttr = Job::DEFAULT_TTR )
     {
 
 
@@ -180,7 +181,7 @@ class Job implements ServiceLocatorAwareInterface {
             return true;
         }
 
-        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($data_json), $priority, $delay);
+        $id_beanstalkd = $this->beanstalkd->useTube($this->getTube())->put(json_encode($data_json), $priority, $delay, $ttr);
         $this->sm->get('BeanstalkdLogTable')->setBeanstalkdID($id, $id_beanstalkd);
 
         return $id_beanstalkd;
