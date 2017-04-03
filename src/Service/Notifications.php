@@ -19,7 +19,7 @@ use Core\Model\Slack\SlackModel;
  */
 class Notifications extends CoreService implements ServiceLocatorAwareInterface
 {
-    private $slack_url;
+    private $slack;
     private $rocket;
     private $client;
     protected $send_now = false;
@@ -28,7 +28,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
     {
         $config = $this->getServiceLocator()->get("AppConfig")->get('slack');
         if(isset($config))
-        $this->slack_url = $config['url'];
+            $this->slack = $config;
 
       $this->rocket = $this->getServiceLocator()->get("AppConfig")->get('rocket');
     }
@@ -136,21 +136,62 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
     public function send( $json, $provider = NULL )
     {
-        if(isset($this->slack_url) && (!isset($provider) || $provider == "slack"))
+        if(isset($this->slack) && (!isset($provider) || $provider == "slack"))
         {
-            $ch = curl_init( $this->slack_url );
+            $slacks = $this->slack["accounts"];
+            $rawjson = json_decode($json);
+            $channel = $rawjson->channel;
+            if(starts_with($channel, "#"))
+            {
+                $channel = substr($channel, 1);
+            }
+            
+            $mapping = $this->slack["channels"];
+            $filter = NULL;
+            if(isset($mapping) && isset($mapping[$channel]))
+            {
+                $filter = $mapping[$channel];
+                if(is_string($filter))
+                {
+                    $filter = [$filter];
+                }
+            }   
+            foreach($slacks as $name=>$slack)
+            {
 
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($json)
-                )
-            );
+                if(isset($filter) && !in_array($name, $filter))
+                {
+                    continue;
+                }
+                $url    = $slack['url'];
+                $ch = curl_init( $url );
+              //  $json = json_encode($json);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: application/json',
+                    'Content-Length: ' . strlen($json))
+                );
 
-            $result = curl_exec($ch);
-            curl_close($ch);
+                $result = curl_exec($ch);
+                curl_close($ch);
+            }
+
+
+            // $ch = curl_init( $this->slack_url );
+
+            // curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            // curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+            // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            // curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            //     'Content-Type: application/json',
+            //     'Content-Length: ' . strlen($json)
+            //     )
+            // );
+
+            // $result = curl_exec($ch);
+            // curl_close($ch);
         }
 
         if(isset($this->rocket) && (!isset($provider) || $provider == "rocket"))
