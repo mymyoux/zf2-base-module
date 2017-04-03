@@ -177,7 +177,7 @@ trait GreenhouseTrait
                 }
                 else
                 {
-                    $e = new GreenHouseException( 'permissions_error' );
+                    $e = new GreenHouseException( 'permissions_error', 403 );
                     throw $e->setPermissionError(true);
                 }
             }
