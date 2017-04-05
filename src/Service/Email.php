@@ -238,6 +238,21 @@ class Email extends CoreService implements ServiceLocatorAwareInterface{
         return array("data"=>$data,"result"=>$result,"message"=>$message);
     }
 
+    private function createMandrill()
+    {
+        $mandrill_configuration = $this->sm->get("AppConfig")->get("mandrill");
+        $this->checkDebug();
+
+        $api_key = (true === $this->debug ? $mandrill_configuration["test_api_key"] : $mandrill_configuration["api_key"]);
+
+        return new Mandrill( $api_key );
+    }
+
+    public function getTemplates()
+    {
+        return $this->createMandrill()->templates()->listTemplates();
+    }
+
     public function sendToBeanstalkd( $data, $delay = 0 )
     {
         $job = $this->sm->get('QueueService')->createJob('email', $data);
