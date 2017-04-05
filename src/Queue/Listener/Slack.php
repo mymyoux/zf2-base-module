@@ -36,9 +36,8 @@ class Slack extends ListenerAbstract implements ListenerInterface
         $cooldown = 1;
         $json   = json_encode($data);
 
-        $provider = isset($data["channel"]) && in_array($data["channel"],["#errors","#marketplace_anonyme"])?'rocket':NULL;
 
-        $used_slack = $this->sm->get('Notifications')->send( $json, $provider );
+        $used_slack = $this->sm->get('Notifications')->send( $json );
         if(isset($provider))
         {
             $cooldown = 0;
