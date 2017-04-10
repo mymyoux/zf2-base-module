@@ -271,7 +271,7 @@ Trait WttjTrait
         }
 
         $data = [
-            // 'id'                => $user['id'],
+            'id_wttj'           => 'yborder_' . $user['id'],
             'first_name'        => $user['firstname'],
             'last_name'         => $user['lastname'],
             'avatar_url'        => $user['avatar_url'],
