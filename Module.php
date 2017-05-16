@@ -21,6 +21,7 @@ use Core\Table\DetectLanguageTable;
 use Core\Table\MailTable;
 use Core\Table\RoleTable;
 use Core\Table\ABTable;
+use Core\Table\EventTable;
 use Core\Table\CronTable;
 use Core\Table\TokenTable;
 use Zend\Console\Adapter\AdapterInterface as Console;
@@ -130,6 +131,10 @@ class Module
                 'ABTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new ABTable(new TableGateway(ABTable::TABLE,$dbAdapter, NULL, NULL));
+                },
+                 'EventTable' =>  function($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new EventTable(new TableGateway(EventTable::TABLE,$dbAdapter, NULL, NULL));
                 },
                 'MailTable' =>  function($sm) {
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
