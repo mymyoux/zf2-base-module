@@ -63,7 +63,19 @@ class MailTable extends CoreTable
                     return;
                 }
                 $this->getNotifications()->alert('unsubscribe_email', $data["type"], $user);
-                $this->getUserTable()->addRole($user, "no_email");
+
+                if ('unsub' === $data['type'])
+                {
+                    $mail = $this->getByMandrill( $data["id_mandrill"] );
+
+                    if (null !== $mail)
+                    {
+                        $this->getUserTable()->addRole($user, "no_email_custom");
+                        $this->getUserTable()->addRole($user, "no_email_custom_" . $mail['type']);
+                    }
+                }
+                else
+                    $this->getUserTable()->addRole($user, "no_email");
             }
         }else
         {
@@ -143,6 +155,22 @@ class MailTable extends CoreTable
         return $data;
     }
 
+    public function getByMandrill( $id_mandrill )
+    {
+        $where = $this->select(self::TABLE)->where
+                    ->and->equalTo("id_mandrill", $id_mandrill)
+                    ;
+
+        $request = $this->select([ 'tp' => self::TABLE ])
+                    ->where( $where );
+
+        $result = $this->execute($request);
+
+        $data = $result->current();
+
+        if (!$data) return null;
+        return $data;
+    }
 
     public function getMailByTypeAndRecipient( $type, $email, $date = null )
     {
