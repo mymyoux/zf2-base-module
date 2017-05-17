@@ -64,18 +64,7 @@ class MailTable extends CoreTable
                 }
                 $this->getNotifications()->alert('unsubscribe_email', $data["type"], $user);
 
-                if ('unsub' === $data['type'])
-                {
-                    $mail = $this->getByMandrill( $data["id_mandrill"] );
-
-                    if (null !== $mail)
-                    {
-                        $this->getUserTable()->addRole($user, "no_email_custom");
-                        $this->getUserTable()->addRole($user, "no_email_custom_" . $mail['type']);
-                    }
-                }
-                else
-                    $this->getUserTable()->addRole($user, "no_email");
+                $this->getUserTable()->addRole($user, "no_email");
             }
         }else
         {
