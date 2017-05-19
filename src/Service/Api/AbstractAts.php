@@ -117,10 +117,10 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
         }
         else
         {
-            $id_user = (int) $this->ats_user->id_user;
+            $id_user = $this->ats_user->id_user;
         }
 
-        $this->sm->get('AtsApiCallTable')->insertCall([
+        $data = [
             'id_user'   => $id_user,
             'id_ats'    => (int) $this->ats['id_ats'],
             'ressource' => (string) $ressource,
@@ -129,7 +129,12 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
             'success'   => (int) $success,
             'id_error'  => $id_error,
             'value'     => json_encode($result)
-        ]);
+        ];
+
+        if (0 == $data['id_user'])
+            unset($data['id_user']);
+
+        $this->sm->get('AtsApiCallTable')->insertCall($data);
     }
 
     /**
