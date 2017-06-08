@@ -21,6 +21,8 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
 
     private $config;
     private $files;
+    private $files_laravel;
+    private $laravel_url;
     private $basePath;
     /**
      * Set the service locator.
@@ -41,6 +43,34 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
     public function getServiceLocator()
     {
         return $this->serviceLocator;
+    }
+    protected function _laravel($file)
+    {
+          if(!isset($this->files_laravel))
+        {
+            $sm = $this->getServiceLocator()->getServiceLocator();
+            $javascript = $sm->get("AppConfig")->get('javascript');
+            $this->laravel_url = $javascript["laravel"];
+            $folder = $sm->get("AppConfig")->get('laravel_folder');
+            $folder = join_paths($folder, "storage/framework/cache/assets.php");
+            $this->files_laravel = require $folder;
+        }
+        $prefix = "";
+        if(starts_with($file, '/js/'))
+        {
+            $prefix.="js/";
+            $file = substr($file, 4);
+        }else
+        if(starts_with($file, '/css/'))
+        {
+            $prefix.="css/";
+            $file = substr($file, 5);
+        }
+        if(isset($this->files_laravel[$file]))
+        {
+            return $this->laravel_url.$prefix.$this->files_laravel[$file]["min"].'?t='.$this->files_laravel[$file]["suffix"];
+        }
+        return $file;
     }
     public function __invoke($file)
     {
@@ -64,6 +94,11 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
         {
             if(isset($this->files["public".$file]))
             {
+                if(isset($this->files["public".$file]["is_link"]))
+                {
+                
+                    return $this->_laravel($file);
+                }
                 if(isset($this->files["public".$file]["file"]))
                 {
                     $str = $basePath().mb_substr($this->files["public".$file]["file"], 6);
@@ -73,6 +108,8 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
                     $str = $basePath().mb_substr($this->files["public".$file]["file_with_map"], 6);
                 }
                 $str.="?v=".$this->files["public".$file]["label"];
+            }else {
+                return $this->_laravel($file);
             }
         }
         return $str;

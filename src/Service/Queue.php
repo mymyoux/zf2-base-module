@@ -4,6 +4,7 @@ namespace Core\Service;
 
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Core\Queue\Job;
+use Core\Queue\LJob;
 use Core\Model\UserModel;
 
 /**
@@ -46,4 +47,17 @@ class Queue extends \Core\Service\CoreService implements ServiceLocatorAwareInte
 
     	return $job;
     }
+	public function createLJob( $class, $arguments  = NULL)
+	{
+        // if(!defined($class."::name"))
+        // {
+        //     throw new \Exception("Queue $class doesn't have a constant name");
+        // }
+		$job = new LJob($class, $arguments);
+		$job->setServiceLocator($this->sm);
+		$job->prefix = "laravel_";
+		$job->init();
+		$job->id_user = $this->sm->get('Identity')->isLoggued()?$this->sm->get('Identity')->user->id:NULL;
+        return $job;
+	}
 }

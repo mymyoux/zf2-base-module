@@ -26,6 +26,10 @@ class EventTable extends CoreTable
 	{
 		$event = new EventModel();
         $event->setServiceLocator($this->sm);
+        if(starts_with($type,"Application\\"))
+        {
+            $type  = "App".substr($type,11);
+        }
 		$event->type = $type;
 		$event->notification_time = $notification;
 		if(isset($external))
@@ -41,6 +45,19 @@ class EventTable extends CoreTable
 			$event->notification_time = date('Y-m-d H:i:s', time());
 		}
 		return $event;
+	}
+    protected function get($external)
+	{
+         if(!defined(get_class($external).'::LARAVEL'))
+        {
+        throw new \Exception('bad external');
+        }
+		$event = $this->table()->selectOne(["external_type"=>$external::LARAVEL,"external_id"=>$external->id]);
+        if($event)
+        {
+            $event->setServiceLocator($this->sm);
+        }
+        return $event;
 	}
     public function saveEvent($event)
     {
