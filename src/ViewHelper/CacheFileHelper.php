@@ -44,7 +44,7 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
     {
         return $this->serviceLocator;
     }
-    protected function _laravel($file)
+    protected function _laravel($file, $link = true)
     {
           if(!isset($this->files_laravel))
         {
@@ -53,7 +53,12 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
             $this->laravel_url = $javascript["laravel"];
             $folder = $sm->get("AppConfig")->get('laravel_folder');
             $folder = join_paths($folder, "storage/framework/cache/assets.php");
-            $this->files_laravel = require $folder;
+            if(file_exists($folder))
+                $this->files_laravel = require $folder;
+            if(empty($this->files_laravel))
+            {
+                $this->files_laravel = [];
+            }
         }
         $prefix = "";
         if(starts_with($file, '/js/'))
@@ -69,6 +74,10 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
         if(isset($this->files_laravel[$file]))
         {
             return $this->laravel_url.$prefix.$this->files_laravel[$file]["min"].'?t='.$this->files_laravel[$file]["suffix"];
+        }
+        if(True || $link)
+        {
+             return $this->laravel_url.$prefix.$file;
         }
         return $file;
     }
@@ -109,7 +118,7 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
                 }
                 $str.="?v=".$this->files["public".$file]["label"];
             }else {
-                return $this->_laravel($file);
+                return $this->_laravel($file, False);
             }
         }
         return $str;
