@@ -12,6 +12,23 @@ use Core\Traits\ServiceLocator;
 
 class EventModel extends CoreModel 
 {
+    /**
+	 * traitment on going
+	 */
+	const STATE_PENDING = "pending";
+	/**
+	 * failed
+	 */
+	const STATE_FAILED = "failed";
+	/**
+	 * done
+	 */
+	const STATE_DONE = "done";
+	const STATE_POSTPONED = "postpone";
+	/**
+	 * Have to be traited
+	 */
+	const STATE_CREATED = "created";
 	use ServiceLocator;
 
 	public $id_event;
@@ -21,6 +38,7 @@ class EventModel extends CoreModel
    	public $state;
    	public $data;
    	public $result;
+   	public $step;
    	public $owner_id;
    	public $owner_type;
    	public $notification_time;
@@ -44,12 +62,72 @@ class EventModel extends CoreModel
         {
             $data["data"] = json_encode($data["data"]);
         }
-        if(isset($this->sm))
-        {
-   		    return $this->sm->get("EventTable")->saveEvent($data);
-        }
-        return null;
+      	return $this->id_event = $this->sm->get("EventTable")->saveEvent($data);
    	}
+    
+    public function answer($result, $state = NULL, $postpone_time = NULL, $id_user = NULL)
+	{
+		if($state === NULL)
+		{
+			$state =  isset($postpone_time)?static::STATE_POSTPONED:static::STATE_DONE;
+		}
+		if($state == static::STATE_POSTPONED || $postpone_time === True)
+		{
+			if(!isset($postpone_time) || $postpone_time === True)
+			{
+				$postpone_time = date('Y-m-d H:i:s', time());
+			}
+		}
+		if(!isset($id_user))
+		{
+			$id_user = $this->sm->get("Identity")->isLoggued()? $this->sm->get("Identity")->user->id:NULL;
+		}
+		if($id_user === False)
+		{
+			$id_user = NULL;
+		}
+		$data = ["id_event"=>$this->id_event, "step"=>$this->step,"result" => json_encode($result), "id_user"=>$id_user,"state"=>$state,"notification_time"=>$postpone_time];
+		$this->table('event_action')->insert($data);
+		foreach($data as $key=>$value)
+		{
+			if($key == "id_user")
+			{
+				continue;
+			}	
+			$this->$key = $value;
+		}
+		if(isset($data["notification_time"]))
+		{
+			$this->state = static::STATE_POSTPONED;
+		}
+		unset($data["id_user"]);
+		
+        $this->table()->update($data, ["id_event"=>$this->id_event]);
+		$this->sm->get("APIL")->path('event/handle')->param("id_event",$this->id_event)->send();
+		//$handler = $this->type;
+		//$handler::handle($this);
+	}
+	public function table($name = NULL)
+	{
+		return $this->sm->get("EventTable")->table($name);
+	}
+	public function done($result = NULL, $id_user = NULL)
+	{
+		return $this->answer($result, static::STATE_DONE, NULL, $id_user);
+	}
+	public function fail($result = NULL, $id_user = NULL)
+	{
+		return $this->answer($result, static::STATE_FAILED, NULL, $id_user);
+	}
+    public function nextStep($step, $result, $state = NULL, $postpone_time = NULL, $id_user = NULL)
+	{
+		$this->step = $step;
+		if($state === NULL)
+		{
+			$state =  isset($postpone_time)?static::STATE_POSTPONED:static::STATE_PENDING;
+		}
+		return $this->answer($result, $state, $postpone_time, $id_user);
+	}
    	public function owner($owner)
    	{
            if(!defined(get_class($owner).'::LARAVEL'))
@@ -67,10 +145,5 @@ class EventModel extends CoreModel
            }
             $this->external_type = $external::LARAVEL;
             $this->external_id = $external->id;
-   	}
-   	public function done()
-   	{
-   		$this->state = "end";
-   		$this->save();
    	}
 }

@@ -83,6 +83,7 @@ return array(
             'AppConfig'=>'Core\Service\Configuration',
             'Excel'=>'Core\Service\Excel',
             'API'=>'Core\Service\API',
+            'APIL'=>'Core\Service\APIL',
             'QueueService' => 'Core\Service\Queue',
             'DetectLanguage' => 'Core\Service\DetectLanguage',
             'GTranslate' => 'Core\Service\GTranslate',

@@ -128,7 +128,7 @@ class BeanstalkdLogTable extends CoreTable
         return $data;
     }
 
-	public function insertLog( $json, $queue, $delay, $id_user,  $priority,  $identifier)
+	public function insertLog( $json, $queue, $delay, $id_user,  $priority,  $identifier, $class = NULL)
     {
         $data   = [
             'json'	=> (string) $json,
@@ -137,7 +137,8 @@ class BeanstalkdLogTable extends CoreTable
             'id_user'=>$id_user,
             'priority'=>$priority,
             'identifier'=>$identifier,
-            'state'=>  $delay <= 0?BeanstalkdLogTable::STATE_CREATED:BeanstalkdLogTable::STATE_PENDING
+            'state'=>  $delay <= 0?BeanstalkdLogTable::STATE_CREATED:BeanstalkdLogTable::STATE_PENDING,
+            'cls'=>$class
         ];
         $this->table(self::TABLE)->insert($data);
 
