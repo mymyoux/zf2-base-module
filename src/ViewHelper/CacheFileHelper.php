@@ -75,7 +75,7 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
         {
             return $this->laravel_url.$prefix.$this->files_laravel[$file]["min"].'?t='.$this->files_laravel[$file]["suffix"];
         }
-        if(True || $link)
+        if($link)
         {
              return $this->laravel_url.$prefix.$file;
         }
