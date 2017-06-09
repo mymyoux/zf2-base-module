@@ -60,6 +60,7 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
                 $this->files_laravel = [];
             }
         }
+        $original = $file;
         $prefix = "";
         if(starts_with($file, '/js/'))
         {
@@ -79,7 +80,7 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
         {
              return $this->laravel_url.$prefix.$file;
         }
-        return $file;
+        return $original;
     }
     public function __invoke($file)
     {
