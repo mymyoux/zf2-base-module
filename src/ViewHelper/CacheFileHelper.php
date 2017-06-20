@@ -85,10 +85,10 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
              return $this->laravel_url.$prefix.$file;
         }
         //TODO:uncomment
-        // if(ends_with($original, ".css"))
-        // {
-        //     return $this->laravel_url.substr($original,1);
-        // }
+        if(ends_with($original, ".css"))
+        {
+            return $this->laravel_url.substr($original,1);
+        }
         return $original;
     }
     public function __invoke($file)
