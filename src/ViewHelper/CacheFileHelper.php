@@ -46,9 +46,9 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
     }
     protected function _laravel($file, $link = true)
     {
+        $sm = $this->getServiceLocator()->getServiceLocator();
           if(!isset($this->files_laravel))
         {
-            $sm = $this->getServiceLocator()->getServiceLocator();
             $javascript = $sm->get("AppConfig")->get('javascript');
             $this->laravel_url = $javascript["laravel"];
             $folder = $sm->get("AppConfig")->get('laravel_folder');
@@ -74,11 +74,19 @@ class CacheFileHelper extends AbstractHelper  implements ServiceLocatorAwareInte
         }
         if(isset($this->files_laravel[$file]))
         {
+            // if($sm->get('AppConfig')->isLocal())
+            // {
+            //     return $this->laravel_url.$prefix.$file.'?t='.$this->files_laravel[$file]["suffix"];
+            // }
             return $this->laravel_url.$prefix.$this->files_laravel[$file]["min"].'?t='.$this->files_laravel[$file]["suffix"];
         }
         if($link)
         {
              return $this->laravel_url.$prefix.$file;
+        }
+        if(ends_with($original, ".css"))
+        {
+            return $this->laravel_url.substr($original,1);
         }
         return $original;
     }
