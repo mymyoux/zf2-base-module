@@ -68,11 +68,13 @@ Trait WorkableTrait
         usleep(500000);
 
         // The username is your Lever API token and the password should be blank
-        $path   = 'https://www.workable.com/spi/v3/accounts/';
+        $path   = $this->config['url'];
         $auth   = 'Bearer ' . $this->access_token;
 
         if (null !== $this->ats_user)
-            $path .= $this->ats_user->subdomain . '/';
+        {
+            $path = str_replace('www.', $this->ats_user->subdomain . '.', $path);
+        }
 
         try
         {
@@ -147,7 +149,6 @@ Trait WorkableTrait
             throw $e;
         }
         $data   = $data->json();
-
         $found  = false;
 
         // log success
@@ -196,7 +197,7 @@ Trait WorkableTrait
                 $model->setServiceLocator( $sm );
                 if (isset($data[$ressource]))
                     $model->exchangeArray($data[$ressource]);
-                elseif ($ressource === 'candidates' && isset($data['candidate']))
+                elseif (isset($data['candidate']))
                     $model->exchangeArray($data['candidate']);
                 else
                     $model->exchangeArray($data);
