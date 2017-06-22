@@ -64,8 +64,12 @@ trait LeverTrait
         // 500 ms sleep
         usleep(500000);
 
-        // The username is your Lever API token and the password should be blank
-        $path   = 'https://api.' . $this->config['url'] . '/v' . $this->config['api_version'] . '/';
+        // Prod token for our lever test account
+        if ($this->access_token === 'TEST_ACCOUNT')
+            $path   = 'https://api.sandbox.lever.co/v' . $this->config['api_version'] . '/';
+        else 
+            $path   = 'https://api.' . $this->config['url'] . '/v' . $this->config['api_version'] . '/';
+
         $auth   = 'Basic ' . base64_encode($this->access_token . ':');
 
         try
