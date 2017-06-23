@@ -72,8 +72,6 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
             return [$this->_getDefaultLang($text)];
         }
 
-        var_dump($detections);
-
         $langs = [];
 
         foreach($detections as $key=>$detect)
