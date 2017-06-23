@@ -51,7 +51,16 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         {
             return [$this->_getDefaultLang($text)];
         }
+
+        $hash = $this->getDetectLanguageTable()->getHash( $text );
+        $db_result = $this->getDetectLanguageTable()->findByHash( $hash );
+
+        if ($db_result)
+        {
+            return [$this->formatFromDB( $db_result )];
+        }
         $this->getDetectLanguageTable()->addCall($this->key, mb_strlen($text), $text);
+        
         try
         {
             $detections = DetectLanguageLibrary::detect( $text );
@@ -62,13 +71,41 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
 
             return [$this->_getDefaultLang($text)];
         }
+
+        var_dump($detections);
+
+        $langs = [];
+
         foreach($detections as $key=>$detect)
         {
             $detections[$key]->len =  mb_strlen($text);
+            $langs[] = $detect->language;
+
+            $this->getDetectLanguageTable()->insertTranslate([
+                'text'          => $text,
+                'lang'          => $langs[0],
+                'is_reliable'   => $detect->isReliable,
+                'fake'          => isset($detect->fake) ? $detect->fake : false,
+                'len'           => $detect->len,
+                'confidence'    => $detect->confidence
+            ]);
         }
+
 
         return $detections;
     }
+
+    protected function formatFromDB($db)
+    {
+        $lang = new \StdClass();
+        $lang->language = $db['lang'];
+        $lang->isReliable = true;
+        $lang->confidence = 10.0;
+        $lang->fake = true;
+        $lang->len = mb_strlen($db['text']);
+        return $lang;
+    }
+
     protected function _getDefaultLang($text)
     {
         $this->getNotificationManager()->alert("detect_language", "used default language");

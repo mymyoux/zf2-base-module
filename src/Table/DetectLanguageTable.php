@@ -20,6 +20,47 @@ class DetectLanguageTable extends CoreTable
 
     const TABLE = "lang_detection";
     const TABLE_CALL = "lang_detection_call";
+    const TABLE_HASH = "detect_language";
+
+    public function insertTranslate( $data )
+    {
+        $hash   = $this->getHash( $data['text'] );
+
+        if (null === $this->findByHash($hash))
+        {
+            $data['hash'] = $hash;
+            $this->table(self::TABLE_HASH)->insert($data);
+
+            return $this->table(self::TABLE_HASH)->lastInsertValue;
+        }
+
+        return null;
+    }
+
+    public function findByHash( $hash )
+    {
+        $request = $this    ->select([ 'a' => self::TABLE_HASH ])
+                             ->where([
+                                'hash' => (string) $hash
+                            ]);
+
+        $result = $this->execute($request);
+
+        $data = $result->current();
+
+        if (!$data) return null;
+
+        return $data;
+    }
+
+    public function getHash( $text )
+    {
+        $text          = strip_tags($text);
+        $hash          = sha1($text);
+
+        return $hash;
+    }
+
 
    public function getTodayUsage($apikey)
    {
