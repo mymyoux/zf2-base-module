@@ -9,6 +9,8 @@ use DetectLanguage\DetectLanguage as DetectLanguageLibrary;
 
 class DetectLanguage extends \Core\Service\CoreService implements ServiceLocatorAwareInterface
 {
+    CONST SIZE = 150;
+
     public static $plans = [
         "free"=>["requests"=>5000,"bytes"=>1048576],
         "basic"=>["requests"=>100000,"bytes"=>20971520],
@@ -45,7 +47,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
     {
         if($this->sm->get("AppConfig")->isLocal())
         {
-            return [$this->_getDefaultLang($text)];
+            return [$this->_getDefaultLang($text, 'local')];
         }
         if(mb_strlen($text) == 0)
         {
@@ -67,9 +69,20 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         }
         catch (\Exception $e)
         {
+            $detect = $this->_getDefaultLang($text, 'exception');
+
             $this->sm->get('ErrorTable')->logError( $e );
 
-            return [$this->_getDefaultLang($text)];
+            $this->getDetectLanguageTable()->insertTranslate([
+                'text'          => $text,
+                'lang'          => $detect->language,
+                'is_reliable'   => $detect->isReliable,
+                'fake'          => isset($detect->fake) ? $detect->fake : false,
+                'len'           => $detect->len,
+                'confidence'    => $detect->confidence
+            ]);
+
+            return [$detect];
         }
 
         $langs = [];
@@ -101,10 +114,11 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         $lang->confidence = 10.0;
         $lang->fake = true;
         $lang->len = mb_strlen($db['text']);
+        $lang->from = $db['fake'] ? 'exception' : 'default';//$db['from'];
         return $lang;
     }
 
-    protected function _getDefaultLang($text)
+    protected function _getDefaultLang($text, $from = 'default')
     {
         $this->getNotificationManager()->alert("detect_language", "used default language");
         //TODO:alert
@@ -114,6 +128,7 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         $lang->confidence = 10.0;
         $lang->fake = true;
         $lang->len = mb_strlen($text);
+        $lang->from = $from;
         return $lang;
     }
     protected function _detect($text, $smart)
@@ -130,7 +145,8 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         {
             $this->getNotificationManager()->alert("detect_language", $remaining_calls." remaining calls - ".intval($remaining_bytes/1024)." ko");
         }
-        $size_batch = $remaining_calls>0?$remaining_bytes/$remaining_calls:0;
+        // $size_batch = $remaining_calls>0?$remaining_bytes/$remaining_calls:0;
+        $size_batch = $remaining_calls>0 ? self::SIZE : 0;
         $this->sm->get('Log')->normal('size_batch:' . $size_batch);
         if($size_batch<= 0 )
         {
@@ -163,10 +179,11 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         $count = 1;
         do
         {
-            $max_size = intval($remaining_bytes/$remaining_calls);
+            $max_size = self::SIZE;//intval($remaining_bytes/$remaining_calls);
             $this->sm->get('Log')->normal('max_size:' . $max_size);
             
-            $size = ceil($max_size*$count*3/4);
+            // $size = ceil($max_size*$count*3/4);
+            $size = ceil($max_size*$count);
             $this->sm->get('Log')->normal('size:' . $size);
             if($size>= strlen($text))
             {
@@ -209,10 +226,19 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
             if(!empty($languages))
             {
                 $lang = $languages[0];
-                if($lang->isReliable)
+                var_dump($lang);
+                if (isset($lang->from) && $lang->from === 'exception' && $lang->fake)
                 {
-                    return $languages;
-                }
+                    $this->sm->get('Log')->normal('continue exception fake');
+                    // do nothing here
+                }   
+                else
+                {
+                     if($lang->isReliable)
+                    {
+                        return $languages;
+                    }
+                }                 
             }
             $remaining_bytes-= strlen($cutText);
             $remaining_calls--;
