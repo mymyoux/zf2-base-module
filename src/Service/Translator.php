@@ -93,7 +93,7 @@ class Translator extends CoreService implements ServiceLocatorAwareInterface
            return $this->_setDefaultLocale(Translator::DEFAULT_LOCALE);
         }
 	}
-    private function _setDefaultLocale($locale)
+    public function _setDefaultLocale($locale)
     {
     	//save into session no more database query
     	$this->sm->get("session")->translator()->locale = $locale;
