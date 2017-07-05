@@ -178,7 +178,7 @@ class TranslationTable extends CoreTable
 	}
 	public function flagMissingTranslation($controller, $action, $key, $locale)
 	{
-		$data = array("controller"=>$controller, "action"=>$action, "key"=>$key,"locale"=>$locale);
+		$data = array("controller"=>$controller, "action"=>$action, "key"=>$key,"locale"=>$locale, 'path' => $controller . '.' . $action . '.' . $key);
 
 		if($this->sm->get("identity")->isLoggued())
 			$data["id_user"] = $this->sm->get("identity")->user->id;
