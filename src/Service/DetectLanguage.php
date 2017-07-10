@@ -141,11 +141,12 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
         $this->sm->get('Log')->normal('remaining_calls:' . $remaining_calls);
         $this->sm->get('Log')->normal('remaining_bytes:' . $remaining_bytes);
         
-        if($remaining_calls % 100 === 0)
-        {
-            $this->getNotificationManager()->alert("detect_language", $remaining_calls." remaining calls - ".intval($remaining_bytes/1024)." ko");
-        }
-        // $size_batch = $remaining_calls>0?$remaining_bytes/$remaining_calls:0;
+        // #normal
+        // if($remaining_calls % 100 === 0)
+        // {
+        //     $this->getNotificationManager()->alert("detect_language", $remaining_calls." remaining calls - ".intval($remaining_bytes/1024)." ko");
+        // }
+
         $size_batch = $remaining_calls>0 ? self::SIZE : 0;
         $this->sm->get('Log')->normal('size_batch:' . $size_batch);
         if($size_batch<= 0 )
