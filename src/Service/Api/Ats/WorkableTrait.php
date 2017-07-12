@@ -23,8 +23,12 @@ Trait WorkableTrait
 
     public function getLoginUrl($data)
     {
-        // no auth
-        return null;
+        $client_id      = $this->consumer_key;
+        $scopes         = $this->config['scopes'];
+        $redirect_uri   = urlencode( $this->config['redirect_uri'] );
+        $url            = 'https://www.workablesandbox.com/oauth_signin?action=new&client_id=' . $client_id . '&controller=oauth_authorizations&redirect_uri=' . $redirect_uri . '&resource=user&response_type=code&scope=' . implode('+', $scopes) . '&type=oauth';
+
+        return $url;
     }
 
     public function isAuthenticated()
@@ -75,6 +79,13 @@ Trait WorkableTrait
         {
             $path = str_replace('www.', $this->ats_user->subdomain . '.', $path);
         }
+
+        if ($ressource === 'oauth/token')
+        {
+            $path = 'https://www.workablesandbox.com/';
+        }
+
+        // dd($path);
 
         try
         {
@@ -211,12 +222,162 @@ Trait WorkableTrait
 
     public function callbackRequest(Request $request)
     {
-        // no auth
+        $identity_user      = $this->sm->get("Identity")->user;
+        $code               = $request->getQuery()->get( 'code', NULL );
+        $error              = $request->getQuery()->get( 'error', NULL );
+        $error_description  = $request->getQuery()->get( 'error_description', NULL );
+
+
+        try
+        {
+            if ( NULL === $error )
+            {
+                if ( NULL !== $code )
+                {
+                    // https://www.workablesandbox.com/oauth/token
+                    $json = $this->request('POST', 'oauth/token', [
+                        'body'  => [
+                            'grant_type'    => 'authorization_code',
+                            'code'          => $code,
+                            'client_id'     => $this->consumer_key,
+                            'client_secret' => $this->consumer_secret,
+                            'redirect_uri'  => $this->config['redirect_uri']
+                        ]
+                    ]);
+
+
+                    if (isset($json['access_token']) && isset($json['refresh_token']))
+                    {
+                        $this->setAccessToken( $json['access_token'] );
+
+                        $key        = $json['access_token'] ;
+                        $me         = $this->get('accounts');
+                        $ats_user   = $this->sm->get('UserTable')->getNetworkByUser( 'workable', $identity_user->id );
+                        $ats        = $this->sm->get('AtsTable')->getAts( 'workable' );
+
+                        if (null === $ats_user)
+                        {
+                            // no the original connector
+                            $ats_user = $this->sm->get('UserTable')->getAtsByCompany( 'workable', $identity_user->getCompany()->id_company );
+                        }
+
+                        if (null !== $me)
+                        {
+                            if (null === $ats_user)
+                            {
+                                // create the user because no auth
+                                $updated = $this->sm->get('UserTable')->insertNetworkByUser('workable', $identity_user->id, [
+                                    'access_token'   => $key,
+                                    'subdomain'   => $me['accounts'][0]['subdomain']
+                                ]);
+                            }
+                            else
+                            {
+                                $updated = $this->sm->get('UserTable')->updateNetworkByUser('workable', $identity_user->id, [
+                                    'access_token'   => $key,
+                                'subdomain'   => $me['accounts'][0]['subdomain']
+                                ]);
+                            }
+                        }
+                        $ats_user = $this->sm->get('UserTable')->getNetworkByUser('workable', $identity_user->id);
+
+                        $this->setUser($ats_user);
+
+                        $found  = false;
+                        $page   = 1;
+                        $offset = null;
+                        $first  = null;
+
+                        if (null === $this->sm->get('AtsCompanyTable')->getByIDCompany( $identity_user->getCompany()->id_company ))
+                            $this->sm->get('AtsCompanyTable')->saveCompany( $identity_user->getCompany()->name, $ats['id_ats'], $identity_user->getCompany()->name, $identity_user->getCompany()->id_company );
+
+                        while (false === $found)
+                        {
+                            $params = ['limit' => 0];
+
+                            if (null !== $offset)
+                                $params['offset'] = $offset;
+
+                            $users = $this->get('members', $params);
+
+                            if (count($users['members']) === 0)
+                                break;
+
+                            foreach ($users['members'] as $u)
+                            {
+                                if (!$first)
+                                    $first = $u;
+                                if ($u['email'] === $identity_user->email || $identity_user->first_name . ' ' . $identity_user->last_name === $u['name'])
+                                {
+                                    $updated += $this->sm->get('UserTable')->updateNetworkByUser('workable', $identity_user->id, [
+                                        'id_workable'   => $u['id'],
+                                        'name'          => $u['name'],
+                                        'role'          => $u['role'],
+                                        'headline'      => $u['headline'],
+                                        'first_name'    => $u['name'],
+                                        'last_name'     => $u['name'],
+                                        'email'         => $u['email']
+                                    ]);
+
+                                    $user = $u;
+
+                                    $found = true;
+                                    break;
+                                }
+                            }
+
+                            // no pagination ?
+                            break;
+                        }
+
+                        if (false === $found && $first)
+                        {
+                            $user = $first;
+                            $updated += $this->sm->get('UserTable')->updateNetworkByUser('workable', $identity_user->id, [
+                                'id_workable'   => $user['id'],
+                                'name'          => $user['name'],
+                                'role'          => $user['role'],
+                                'headline'      => $user['headline'],
+                                'first_name'    => $user['name'],
+                                'last_name'     => $user['name'],
+                                'email'         => $user['email']
+                            ]);
+                        }
+                    }
+                    else
+                    {
+                        throw new WorkableException( 'Workable API error' );
+                    }
+
+                    $user = $this->formatUser( $user );
+
+                    $this->user = $user;
+
+                    return $user;
+                }
+                else
+                {
+                    throw new WorkableException( 'SmartRecruiters API error : no code' );
+                }
+            }
+            else
+            {
+                throw new WorkableException($error_description, $code);
+            }
+        }
+        catch( \Exception $e )
+        {
+            $this->sm->get('ErrorTable')->logError($e);
+
+            return NULL;
+        }
+
         return NULL;
     }
 
-    private function formatUser( $user )
+    private function formatUser( $users )
     {
+        $user = $users[0];
         $data = [
             'id'                => $user['id'],
             'first_name'        => $user['firstName'],
