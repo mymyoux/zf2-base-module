@@ -191,7 +191,8 @@ class MailTable extends CoreTable
             $where->and->expression('DATE_FORMAT(tp.created_time, "%Y-%m-%d") = "' . date('Y-m-d', strtotime($date)) . '"', []);
 
         $request = $this->select([ 'tp' => self::TABLE ])
-                    ->where( $where );
+                    ->where( $where )
+                    ->order('created_time DESC');
 
         $result = $this->execute($request);
 

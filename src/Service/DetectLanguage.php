@@ -227,7 +227,6 @@ class DetectLanguage extends \Core\Service\CoreService implements ServiceLocator
             if(!empty($languages))
             {
                 $lang = $languages[0];
-                var_dump($lang);
                 if (isset($lang->from) && $lang->from === 'exception' && $lang->fake)
                 {
                     $this->sm->get('Log')->normal('continue exception fake');
