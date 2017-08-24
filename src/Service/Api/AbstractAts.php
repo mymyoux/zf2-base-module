@@ -113,7 +113,7 @@ abstract class AbstractAts extends AbstractAPI implements ServiceLocatorAwareInt
     {
         if(!isset($this->ats_user))
         {
-            $id_user = null;
+            $id_user = $this->sm->get('Identity')->isLoggued()?$this->sm->get('Identity')->user->id:null;
         }
         else
         {
