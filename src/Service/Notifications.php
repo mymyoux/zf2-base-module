@@ -134,7 +134,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         return $this->sendToBeanstalkd($data);
     }
 
-    public function send( $json, $provider = NULL )
+    public function send( $json, $provider = NULL, $handletimeout = False )
     {
         if(isset($this->slack) && (!isset($provider) || $provider == "slack"))
         {
@@ -162,6 +162,23 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
                 if(isset($filter) && !in_array($name, $filter))
                 {
                     continue;
+                }
+                if($handletimeout)
+                {
+                    $time = $this->sm->get("Redis")->get('slack_'.$name);
+                    if(!isset($time))
+                    {
+                        $this->getLogger()->warn("no time");
+                        $time = round(microtime(True)*1000)-1001;
+                    }
+                    $now = round(microtime(True)*1000);
+                    $this->getLogger()->warn("since last [".$name."]:".($now-$time));
+                    if($now-$time<1000)
+                    {
+                        $this->getLogger()->warn("cooldown [".$name."]".($now-$time)."ms");
+                        usleep(($now-$time)*1000);
+                    }
+                    $this->sm->get("Redis")->set('slack_'.$name, round(microtime(True)*1000));
                 }
                 $url    = $slack['url'];
                 $ch = curl_init( $url );
@@ -230,5 +247,9 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
         $job = $this->sm->get('QueueService')->createJob('slack', $data);
 
         $job->send();
+    }
+    public function getLogger()
+    {
+        return $this->sm->get('Log');
     }
 }
