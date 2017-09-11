@@ -175,8 +175,8 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
                     $this->getLogger()->warn("since last [".$name."]:".($now-$time));
                     if($now-$time<1000)
                     {
-                        $this->getLogger()->warn("cooldown [".$name."]".(1000-$now-$time)."ms");
-                        usleep(1000-($now-$time)*1000);
+                        $this->getLogger()->warn("cooldown [".$name."]".(1000-($now-$time))."ms");
+                        usleep(((1000-($now-$time))*1000));
                     }
                     $this->sm->get("Redis")->set('slack_'.$name, round(microtime(True)*1000));
                 }
