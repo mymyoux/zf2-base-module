@@ -115,6 +115,7 @@ Trait WttjTrait
             else
                 $error = null;
 
+
             preg_match('/Client error response \[url\] (.+) \[status code\] (\d+) \[reason phrase\] (.+)/', $e->getMessage(), $matches);
             if (count($matches) > 0)
             {
@@ -141,10 +142,19 @@ Trait WttjTrait
                     }
                 }
 
-                $this->sm->get('Log')->error((isset($error->error) && is_string($error->error) ? $error->error : $e_message));
+                $error_message = (isset($error->error) && is_string($error->error) ? $error->error : $e_message);
+
+                $this->sm->get('Log')->error($error_message);
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+
+                if ($e->getCode() == 401 && $error_message === 'unauthorized')
+                {
+                    $this->sm->get('AtsTable')->unsetAccessToken( 'wttj', $this->access_token );
+                    
+                    return null;
+                }
             }
 
             throw $e;
