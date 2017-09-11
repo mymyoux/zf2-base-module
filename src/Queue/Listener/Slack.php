@@ -38,15 +38,7 @@ class Slack extends ListenerAbstract implements ListenerInterface
 
 
         $used_slack = $this->sm->get('Notifications')->send( $json, NULL, $this->sm->get('AppConfig')->isCLI() );
-        if(isset($provider))
-        {
-            $cooldown = 0;
-        }
-        if($cooldown && $this->sm->get('AppConfig')->isCLI())
-        {
-            //$this->getLogger()->warn("cooldown ".$cooldown."s");
-            //sleep($cooldown);
-        }
+        
     }
 
 }

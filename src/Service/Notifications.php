@@ -214,33 +214,33 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             // curl_close($ch);
         }
 
-        if(isset($this->rocket) && (!isset($provider) || $provider == "rocket"))
-        {
-            try
-            {
-                $headers = array(
-                    'Content-Type: application/json',
-                    'Content-Length: ' . strlen($json),
-                );
-                foreach($this->rocket['headers'] as $key=>$header)
-                {
-                    $headers[] = $key.': '.$header;
-                }
-                $ch = curl_init( $this->rocket["url"] );
+        // if(isset($this->rocket) && (!isset($provider) || $provider == "rocket"))
+        // {
+        //     try
+        //     {
+        //         $headers = array(
+        //             'Content-Type: application/json',
+        //             'Content-Length: ' . strlen($json),
+        //         );
+        //         foreach($this->rocket['headers'] as $key=>$header)
+        //         {
+        //             $headers[] = $key.': '.$header;
+        //         }
+        //         $ch = curl_init( $this->rocket["url"] );
 
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        //         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        //         curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+        //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        //         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-                $result = curl_exec($ch);
-                curl_close($ch);
+        //         $result = curl_exec($ch);
+        //         curl_close($ch);
                     
-            }catch(\Exception $e)
-            {
+        //     }catch(\Exception $e)
+        //     {
 
-            }
-        }
+        //     }
+        // }
 
         return $result;
     }
