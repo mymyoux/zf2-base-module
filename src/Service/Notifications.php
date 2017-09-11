@@ -180,6 +180,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
                     }
                     $this->sm->get("Redis")->set('slack_'.$name, round(microtime(True)*1000));
                 }
+                $time = round(microtime(True)*1000);
                 $url    = $slack['url'];
                 $ch = curl_init( $url );
               //  $json = json_encode($json);
@@ -193,6 +194,8 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
                 $result = curl_exec($ch);
                 curl_close($ch);
+                $now = round(microtime(True)*1000);
+                $this->getLogger()->info('time:'.($now-$time));
             }
 
 
