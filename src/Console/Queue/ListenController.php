@@ -84,11 +84,13 @@ class ListenController extends \Core\Console\CoreController
             try
             {
                 $start_time = microtime(True);
+                $this->getLogger()->info('start');
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
                 $data = $listener->unserialize($data);
                 $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data["_id_beanstalkd"] );
+                $this->getLogger()->warn("find:".round((microtime(True) - $start_time)*1000));
 
                 $this->getLogger()->debug('ID BeanstalkdLogTable (' . $log['id'] .')');
 
@@ -99,18 +101,20 @@ class ListenController extends \Core\Console\CoreController
                     $this->queue->delete($job);
                     continue;
                 }
+                $this->getLogger()->warn("check:".round((microtime(True) - $start_time)*1000));
                 $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
                 $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
                 $listener->setUser($user);
 
                 $listener->preexecute( $data );
-
+                $this->getLogger()->warn("preexecute:".round((microtime(True) - $start_time)*1000));
 
                 $total_time = round((microtime(True) - $start_time)*1000);
 
                 $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
-
+                $this->getLogger()->warn("set state:".round((microtime(True) - $start_time)*1000));
                 $this->queue->delete($job);
+                $this->getLogger()->warn("delete:".round((microtime(True) - $start_time)*1000));
                 $this->getLogger()->info('Success (delete the job)');
             }
             catch (\Exception $e)
@@ -143,6 +147,8 @@ class ListenController extends \Core\Console\CoreController
                 $this->getLogger()->warn("cooldown ".$cooldown."s");
                 sleep($cooldown);
             }
+            $total_time = round((microtime(True) - $start_time)*1000);
+            $this->getLogger()->info('end:'.$total_time);
         }
     }
 
