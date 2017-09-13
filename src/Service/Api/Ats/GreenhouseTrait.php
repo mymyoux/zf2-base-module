@@ -142,10 +142,18 @@ trait GreenhouseTrait
                 else
                     $id_error = $this->sm->get('ErrorTable')->logError($e);
 
+            
                 $this->sm->get('Log')->error((isset($error->message) ? $error->message : $e_message));
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+
+                if ($e->getCode() == 401 && $e->getMessage() === 'Invalid Basic Auth credentials')
+                {
+                    $this->sm->get('AtsTable')->unsetAccessToken( 'greenhouse', $this->access_token );
+                    
+                    return null;
+                }
             }
 
             if (isset($error_message) && $error_message == 'Forbidden' && $e->getCode() === 403)

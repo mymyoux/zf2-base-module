@@ -151,10 +151,19 @@ Trait WorkableTrait
                     }
                 }
 
-                $this->sm->get('Log')->error((isset($error->error) && is_string($error->error) ? $error->error : $e_message));
+                $error_message = (isset($error->error) && is_string($error->error) ? $error->error : $e_message);
+
+                $this->sm->get('Log')->error($error_message);
 
                 // log error
                 $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+
+                if ($e->getCode() == 401 && $error_message === 'Unauthorized')
+                {
+                    $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                    
+                    return null;
+                }
             }
 
             throw $e;
