@@ -141,7 +141,7 @@ class APIL extends \Core\Service\CoreService implements ServiceLocatorAwareInter
             $process = proc_open($command, $descriptorspec, $pipes, $cwd);
             if (is_resource($process)) {
                 while ($s = fgets($pipes[1])) {
-                   echo $s;
+                  // echo $s;
                    $output[] = $s;
                 }
                 fclose($pipes[0]);
