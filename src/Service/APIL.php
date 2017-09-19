@@ -117,6 +117,16 @@ class APIL extends \Core\Service\CoreService implements ServiceLocatorAwareInter
         $data = json_decode($data);
         if(isset($data->exception))
             throw new \Exception($data->exception->message);
+        if(isset($data->stats) && isset($data->stats->log))
+        {
+            $logs = $data->stats->log;
+            foreach($logs as $log)
+            {
+                $parts = explode(": ",$log);
+                $type = array_shift($parts);
+                $this->getLogger()->log("[api:call] ".join(": ",$parts), (int)$type);
+            }
+        }
         $data = $data->value;
         return $data;
     }
