@@ -170,7 +170,7 @@ class Log extends \Core\Service\CoreService implements ServiceLocatorAwareInterf
     	$this->log($message, (false === $bg ? self::LOG_DEBUG : self::LOG_BG_DEBUG));
     }
 
-    private function log( $message, $type = self::LOG_NONE )
+    public function log( $message, $type = self::LOG_NONE )
     {
         if (false === $this->debug && $type < self::LOG_ERROR) return;
 
