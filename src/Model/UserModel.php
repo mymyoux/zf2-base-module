@@ -18,6 +18,7 @@ class UserModel extends CoreModel
     protected $isIdentity = False;
     protected $roles;
     protected $_ids;
+    public $deleted;
     public $role;
     /**
      *  Login token
