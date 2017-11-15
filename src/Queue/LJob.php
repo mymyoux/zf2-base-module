@@ -28,6 +28,8 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Core\Traits\ServiceLocator;
+use Pheanstalk\Job as PJob;
+
 class LJob
 {
     use ServiceLocator;
@@ -83,6 +85,12 @@ class LJob
     public function getTube()
     {
         return $this->tube;
+    }
+    public function setIdentifier($identifier)
+    {
+        $this->identifier = $identifier;
+
+        return $this;
     }
     public function getUnprefixedTube()
     {
@@ -185,43 +193,67 @@ class LJob
     }
     public function cancelAllPrevious()
     {
-        $pheanstalk = Queue::getPheanstalk();
-        $request = \Core\Model\Beanstalkd::where('queue', '=', $this->tube)
-            ->whereIn("state", [Beanstalkd::STATE_CREATED, Beanstalkd::STATE_RETRYING, Beanstalkd::STATE_PENDING, Beanstalkd::STATE_FAILED_PENDING_RETRY ]);
-
-        if (isset($this->id_user))
-            $request->where('id_user', '=', $this->id_user);
-
-        if(isset($this->identifier))
-            $request->where('identifier', '=', $this->identifier);
-
-        $previous = $request->get();
-
-        if (!empty($previous))
+        $previous = $this->sm->get('BeanstalkdLogTable')->getPrevious($this->tube, $this->id_user, $this->identifier);
+        if(!empty($previous))
         {
             foreach($previous as $log)
             {
                 if(isset($log["id_beanstalkd"]))
                 {
+                    $job = new PJob($log["id_beanstalkd"], json_decode($log["json"]));
                     try
                     {
-                        $job = $pheanstalk->peek( $log["id_beanstalkd"] );
-
-                        $pheanstalk->delete($job);
-                    }
-                    catch(\Exception $e)
+                        $this->getBeanStalkd()->delete($job);
+                    }catch(\Exception $e)
                     {
-                        Logger::error('Error delete previous' . $e->getMessage());
+                        //beanstalkd reloaded ?
                     }
-
-                    $log->state = Beanstalkd::STATE_CANCELLED;
-                    $log->save();
+                    $this->sm->get('BeanstalkdLogTable')->setState($log["id"], self::STATE_CANCELLED);
                 }
             }
         }
 
         return $this;
     }
+    // public function cancelAllPrevious()
+    // {
+    //     $pheanstalk = Queue::getPheanstalk();
+    //     $request = \Core\Model\Beanstalkd::where('queue', '=', $this->tube)
+    //         ->whereIn("state", [Beanstalkd::STATE_CREATED, Beanstalkd::STATE_RETRYING, Beanstalkd::STATE_PENDING, Beanstalkd::STATE_FAILED_PENDING_RETRY ]);
+
+    //     if (isset($this->id_user))
+    //         $request->where('id_user', '=', $this->id_user);
+
+    //     if(isset($this->identifier))
+    //         $request->where('identifier', '=', $this->identifier);
+
+    //     $previous = $request->get();
+
+    //     if (!empty($previous))
+    //     {
+    //         foreach($previous as $log)
+    //         {
+    //             if(isset($log["id_beanstalkd"]))
+    //             {
+    //                 try
+    //                 {
+    //                     $job = $pheanstalk->peek( $log["id_beanstalkd"] );
+
+    //                     $pheanstalk->delete($job);
+    //                 }
+    //                 catch(\Exception $e)
+    //                 {
+    //                     Logger::error('Error delete previous' . $e->getMessage());
+    //                 }
+
+    //                 $log->state = Beanstalkd::STATE_CANCELLED;
+    //                 $log->save();
+    //             }
+    //         }
+    //     }
+
+    //     return $this;
+    // }
 
     public function throttle( $delay = PheanstalkInterface::DEFAULT_DELAY, $priority = PheanstalkInterface::DEFAULT_PRIORITY, $now = false )
     {
