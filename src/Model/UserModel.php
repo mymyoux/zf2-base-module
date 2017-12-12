@@ -15,9 +15,11 @@ class UserModel extends CoreModel
     public $id;
     public $first_name;
     public $last_name;
+    public $phone;
     protected $isIdentity = False;
     protected $roles;
     protected $_ids;
+    public $deleted;
     public $role;
     /**
      *  Login token
