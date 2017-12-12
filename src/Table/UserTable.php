@@ -134,9 +134,7 @@ class UserTable extends CoreTable{
             throw new \Exception("bad_password");
             return NULL;
         }
-
         return $this->getUser($result["id_user"]);
-
     }
 
     /**
@@ -339,6 +337,7 @@ class UserTable extends CoreTable{
                 $id_user = $user;
             }
         }
+
         $key = $api;
         if(!isset($key))
         {
@@ -415,7 +414,9 @@ class UserTable extends CoreTable{
         $manual_data["email"] = trim($data["email"]);
         $manual_data["password"] = $data["password"];//$this->getHashedPassword(trim($data["password"]));
         $manual_data["id_user"] = $id_user;
+
         $this->addAPIToUser("manual", $manual_data, $id_user);
+        $this->updateUser($data, NULL, $id_user);
         $this->updateUser($data, NULL, $id_user);
     }
 
@@ -543,7 +544,6 @@ class UserTable extends CoreTable{
     }
     public function createUser($data, $keys = array("id_user", "first_name", "last_name", "email"))
     {
-
         if(empty($keys))
         {
             $keys = array_keys($data);
@@ -576,11 +576,6 @@ class UserTable extends CoreTable{
             $insert = $this->insert("user_api")->columns(array("id_user"))->values(array("id_user"=>$id_user));
             $this->execute($insert);
         }
-
-
-
-
-
 
         return $id_user;
     }
