@@ -17,6 +17,7 @@ class UserTable extends CoreTable{
     const TABLE_MANUAL = "user_network_manual";
     const TABLE_TOKEN = "user_login_token";
     const TABLE_SOURCE = "user_source";
+    const TABLE_INFORMATIONS = "user_informations";
 
     public function setSource($user, $source)
     {
