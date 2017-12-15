@@ -51,6 +51,24 @@ class TranslationTable extends CoreTable
 		$result = $this->execute($request);
 		return $result->toArray();
 	}
+	public function getTranslationByPath($path, $locale)
+	{
+		$where = array(
+				"path" => $path,
+				"locale" => $locale
+			);
+
+		$request = $this->select()->where($where)->columns(array("singular","plurial","missing"))->limit(1);
+
+		$result = $this->execute($request);
+		if(($result = $result->current()) !== False)
+		{
+			return $result;
+		}else
+		{
+			return NULL;
+		}
+	}
 	public function getTranslation($controller, $action, $key, $locale)
 	{
 		$where = array(

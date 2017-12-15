@@ -47,6 +47,21 @@ class Translator extends CoreService implements ServiceLocatorAwareInterface
 
 		return $translation["singular"];
 	}
+
+	public function translateByPath($path, $locale = NULL)
+	{
+		if(!isset($locale))
+		{
+			$locale = $this->getLocale();
+		}
+		$translation = $this->getTranslationTable()->getTranslationByPath($path, $locale);
+		if($translation === NULL)
+		{
+			return $path;
+		}
+
+		return $translation["singular"];
+	}
 	public function setDefaultLocale($locale)
 	{
 		$this->default_locale = $locale;
