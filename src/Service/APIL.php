@@ -56,6 +56,10 @@ class APIL extends \Core\Service\CoreService implements ServiceLocatorAwareInter
     }
     public function user($user)
     {
+        if(is_numeric($user))
+        {
+            $user = $this->sm->get("UserTable")->getUser($user);
+        }
         $this->id_user = $user->id;
         return $this;
     }
@@ -83,7 +87,6 @@ class APIL extends \Core\Service\CoreService implements ServiceLocatorAwareInter
         $this->id_user = NULL;
         $this->path = NULL;
         $this->params = NULL;
-
         if(!isset($result["output"]))
         {
             throw new \Exception('no result');
