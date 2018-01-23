@@ -26,7 +26,7 @@ Trait WorkableTrait
         $client_id      = $this->consumer_key;
         $scopes         = $this->config['scopes'];
         $redirect_uri   = urlencode( $this->config['redirect_uri'] );
-        $url            = 'https://www.workablesandbox.com/oauth_signin?action=new&client_id=' . $client_id . '&controller=oauth_authorizations&redirect_uri=' . $redirect_uri . '&resource=user&response_type=code&scope=' . implode('+', $scopes) . '&type=oauth';
+        $url            = $this->config['domain_login'] . 'oauth_signin?action=new&client_id=' . $client_id . '&controller=oauth_authorizations&redirect_uri=' . $redirect_uri . '&resource=user&response_type=code&scope=' . implode('+', $scopes) . '&type=oauth';
 
         return $url;
     }
@@ -82,7 +82,7 @@ Trait WorkableTrait
 
         if ($ressource === 'oauth/token')
         {
-            $path = 'https://www.workablesandbox.com/';
+            $path = $this->config['domain_login'];
         }
 
         // dd($path);
