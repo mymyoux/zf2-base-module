@@ -296,7 +296,7 @@ Trait WorkableTrait
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
-                        $this->setAccessToken( $json['access_token'] );
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
 
                         $key        = $json['access_token'] ;
                         $me         = $this->get('accounts');
@@ -315,15 +315,17 @@ Trait WorkableTrait
                             {
                                 // create the user because no auth
                                 $updated = $this->sm->get('UserTable')->insertNetworkByUser('workable', $identity_user->id, [
-                                    'access_token'   => $key,
-                                    'subdomain'   => $me['accounts'][0]['subdomain']
+                                    'access_token'      => $key,
+                                    'refresh_token'     => $json['refresh_token'],
+                                    'subdomain'         => $me['accounts'][0]['subdomain']
                                 ]);
                             }
                             else
                             {
                                 $updated = $this->sm->get('UserTable')->updateNetworkByUser('workable', $identity_user->id, [
                                     'access_token'   => $key,
-                                'subdomain'   => $me['accounts'][0]['subdomain']
+                                    'refresh_token'     => $json['refresh_token'],
+                                    'subdomain'   => $me['accounts'][0]['subdomain']
                                 ]);
                             }
                         }
