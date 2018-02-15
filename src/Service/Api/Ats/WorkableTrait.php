@@ -18,12 +18,15 @@ Trait WorkableTrait
         return null;
     }
 
-    public function setAccessToken($access_token, $refresh_token = null)
+    public function setAccessToken($access_token, $refresh_token = null, $refresh = true)
     {
         $this->access_token     = $access_token;
 
         if ($refresh_token)
-        $this->refresh_token     = $refresh_token;
+            $this->refresh_token     = $refresh_token;
+
+        if ($refresh)
+            $this->has_refresh      = false;
     }
 
     public function getLoginUrl($data)
@@ -183,9 +186,12 @@ Trait WorkableTrait
                         ]
                     ]);
 
-                    if ($json && $json->access_token && $json->refresh_token)
+                    if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
-                        $this->setAccessToken($json->access_token, $json->refresh_token);
+                        $this->sm->get('Log')->error('Replay action');
+                        $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
+
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'], false );
 
                         return $this->request( $method, $ressource, $_params );
                     }
