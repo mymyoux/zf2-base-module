@@ -10,15 +10,20 @@ Trait WorkableTrait
     protected $api;
 
     private $access_token;
+    public $already_refresh = false;
+    public $refresh_token = null;
 
     public function getEmailFieldReplyTo()
     {
         return null;
     }
 
-    public function setAccessToken($access_token)
+    public function setAccessToken($access_token, $refresh_token = null)
     {
         $this->access_token     = $access_token;
+
+        if ($refresh_token)
+        $this->refresh_token     = $refresh_token;
     }
 
     public function getLoginUrl($data)
@@ -160,7 +165,35 @@ Trait WorkableTrait
 
                 if ($e->getCode() == 401 && $error_message === 'Unauthorized')
                 {
-                    $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                    if ($this->already_refresh || !$this->refresh_token)
+                    {
+                         $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
+                         $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                         return null;
+                    }
+
+                    $this->already_refresh = true;
+                    // try to refresh access token
+                    $json = $this->request('POST', 'oauth/token', [
+                        'body'  => [
+                            'grant_type'    => 'refresh_token',
+                            'client_id'     => $this->consumer_key,
+                            'client_secret' => $this->consumer_secret,
+                            'refresh_token' => $this->refresh_token
+                        ]
+                    ]);
+
+                    if ($json && $json->access_token && $json->refresh_token)
+                    {
+                        $this->setAccessToken($json->access_token, $json->refresh_token);
+
+                        return $this->request( $method, $ressource, $_params );
+                    }
+                    else
+                    {
+                        $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
+                        $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                    }
                     
                     return null;
                 }
