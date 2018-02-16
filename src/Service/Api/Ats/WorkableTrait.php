@@ -209,6 +209,7 @@ Trait WorkableTrait
         }
         $data   = $data->json();
         $found  = false;
+        $this->already_refresh = false;
 
         // log success
         $this->logApiCall($method, $ressource, $params, true, $data);
