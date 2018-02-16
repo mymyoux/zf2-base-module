@@ -189,7 +189,7 @@ Trait WorkableTrait
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
                         $this->sm->get('Log')->error('Replay action');
-                        $this->sm->get('UserTable')->refreshToken( 'smartrecruiters', $old_access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
+                        $this->sm->get('UserTable')->refreshToken( 'workable', $this->access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
 
                         $this->setAccessToken( $json['access_token'], $json['refresh_token'], false );
 
