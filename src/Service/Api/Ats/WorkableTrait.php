@@ -163,15 +163,15 @@ Trait WorkableTrait
 
                 $this->sm->get('Log')->error($error_message);
 
-                // log error
-                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
-
                 if ($e->getCode() == 401 && $error_message === 'Unauthorized')
                 {
                     if ($this->already_refresh || !$this->refresh_token)
                     {
                          $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
                          $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+
+                         // log error
+                         $this->logApiCall($method, $ressource, $params, false, null, $id_error);
                          return null;
                     }
 
@@ -199,11 +199,18 @@ Trait WorkableTrait
                     {
                         $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
                         $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+
+                        // log error
+                        $this->logApiCall($method, $ressource, $params, false, null, $id_error);
                     }
                     
                     return null;
                 }
             }
+
+
+            // log error
+            $this->logApiCall($method, $ressource, $params, false, null, $id_error);
 
             throw $e;
         }
