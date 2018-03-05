@@ -10,7 +10,7 @@ use Pheanstalk\PheanstalkInterface;
 use Pheanstalk\Job as PheanstalkJob;
 
 use Core\Table\BeanstalkdLogTable;
-
+use  Core\Queue\RedisException;
 class ListenController extends \Core\Console\CoreController
 {
     CONST DESCRIPTION   = 'Queue system management';
@@ -79,35 +79,65 @@ class ListenController extends \Core\Console\CoreController
 
         $this->getLogger()->debug('Listening to `' . $this->queueName . '` retry (' . $this->tries . ')');
 
+
+        
         while ($job = $this->queue->reserve())
         {
+            $use_redis = False;
             try
             {
                 $start_time = microtime(True);
                 $this->getLogger()->normal($this->queueName . 'job received! ID (' . $job->getId() . ')');
 
                 $data   = json_decode($job->getData(), True);
-                $data = $listener->unserialize($data);
-                $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data["_id_beanstalkd"] );
+                
+                $use_redis = isset($data["queue_type"]) && $data["queue_type"] == "redis";
+                if($use_redis)
+                {
+                    $log = $this->sm->get('Redis')->get($data["_id_beanstalkd"]);
+                    $log = json_decode($log, true);
+                    $log["id"] = $data["_id_beanstalkd"];
+                  
+                    $data = $listener->unserialize($data);
+                  
+                }else
+                {
+                    $data = $listener->unserialize($data);
+                    $log    = $this->sm->get('BeanstalkdLogTable')->findById( $data["_id_beanstalkd"] );
+                }
 
                 $this->getLogger()->debug('ID BeanstalkdLogTable (' . $log['id'] .')');
 
                 if (true !== $listener->checkJob( $data ))
                 {
-                    $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_DELETED);
+                    if($use_redis)
+                    {
+                        $this->sm->get('Redis')->del($data["_id_beanstalkd"]);
+                    }else
+                    {
+                        $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_DELETED);
+                    }
                     $this->getLogger()->error('delete Job (not valid)');
                     $this->queue->delete($job);
                     continue;
                 }
-                $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
+                if(!$use_redis)
+                {
+                    $this->sm->get('BeanstalkdLogTable')->setState($log["id"], BeanstalkdLogTable::STATE_EXECUTING);
+                }
                 $user = isset($log["id_user"])?$usertable->getUser($log["id_user"]):NULL;
                 $listener->setUser($user);
 
                 $listener->preexecute( $data );
 
                 $total_time = round((microtime(True) - $start_time)*1000);
-
-                $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
+                if($use_redis)
+                {
+                    $this->sm->get('Redis')->del($data["_id_beanstalkd"]);
+                }else
+                {
+                    $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_EXECUTED, ((int)$log["tries"]) +1, $total_time);
+                }
                 $this->queue->delete($job);
                 $this->getLogger()->info('Success (delete the job)');
             }
@@ -119,17 +149,22 @@ class ListenController extends \Core\Console\CoreController
                 }
 
                 $this->getLogger()->error("ERROR! " . $e->getMessage());
-                $this->sm->get('ErrorTable')->logError( $e );
+                if(!$use_redis)
+                {
+                    $this->sm->get('ErrorTable')->logError( $e );
+                }
 
                 $jobsStats = $this->queue->statsJob($job);
-                if ($jobsStats->releases >= $this->tries) {
+                if ($jobsStats->releases >= $this->tries || $e instanceof RedisException) {
 
-                    $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_FAILED );
+                    if(!$use_redis)
+                        $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_FAILED );
 
                     $this->getLogger()->error("Burrying job!");
                     $this->buryJob($job, $this->queue);
                 } else {
-                    $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_RETRYING, $jobsStats->releases+1 );
+                    if(!$use_redis)
+                        $this->sm->get('BeanstalkdLogTable')->setState($log['id'], BeanstalkdLogTable::STATE_RETRYING, $jobsStats->releases+1 );
                     $this->getLogger()->warn('retrying in 60 seconds!');
                     echo "retrying in 60 seconds!" . PHP_EOL;
                     $priority = isset($log["priority"])?(int)$log["priority"]:PheanstalkInterface::DEFAULT_PRIORITY;

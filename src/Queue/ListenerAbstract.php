@@ -53,11 +53,32 @@ abstract class ListenerAbstract
         if(isset($data["_id_beanstalkd"]))
         {
             $id = $data["_id_beanstalkd"];
-            $record = $this->sm->get("BeanstalkdLogTable")->findById($id);
+            if(isset($data["queue_type"]) && $data["queue_type"] == "redis")
+            {
+
+                $redis = $this->sm->get('Redis');
+                $record = $redis->get($id);
+                if(!$record)
+                {
+                    throw new RedisException('no id in redis');
+                }
+                $record = json_decode($record, True);
+                $record["queue_type"] = "redis";
+                
+            }else
+            {
+                $record = $this->sm->get("BeanstalkdLogTable")->findById($id);
+            }
             if(isset($record))
             {
                 $data = json_decode($record["json"], True);
                 $data["_id_beanstalkd"] = $id;
+                if(isset($record["queue_type"]))
+                {
+                    $data["_queue_type"] = $record["queue_type"];
+                }else {
+                    $data["_queue_type"] = NULL;
+                }
             }
         }
         return $data;
