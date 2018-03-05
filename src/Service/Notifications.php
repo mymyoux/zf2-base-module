@@ -247,9 +247,11 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
 
     public function sendToBeanstalkd( $data )
     {
+
         $job = $this->sm->get('QueueService')->createJob('slack', $data);
 
-        $job->send();
+        $job->sendWeak();
+        //$job->send();
     }
     public function getLogger()
     {
