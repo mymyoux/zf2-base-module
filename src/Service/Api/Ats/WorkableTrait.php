@@ -10,15 +10,23 @@ Trait WorkableTrait
     protected $api;
 
     private $access_token;
+    public $already_refresh = false;
+    public $refresh_token = null;
 
     public function getEmailFieldReplyTo()
     {
         return null;
     }
 
-    public function setAccessToken($access_token)
+    public function setAccessToken($access_token, $refresh_token = null, $refresh = true)
     {
         $this->access_token     = $access_token;
+
+        if ($refresh_token)
+            $this->refresh_token     = $refresh_token;
+
+        if ($refresh)
+            $this->has_refresh      = false;
     }
 
     public function getLoginUrl($data)
@@ -155,21 +163,60 @@ Trait WorkableTrait
 
                 $this->sm->get('Log')->error($error_message);
 
-                // log error
-                $this->logApiCall($method, $ressource, $params, false, null, $id_error);
-
                 if ($e->getCode() == 401 && $error_message === 'Unauthorized')
                 {
-                    $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+                    if ($this->already_refresh || !$this->refresh_token)
+                    {
+                         $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
+                         $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+
+                         // log error
+                         $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+                         return null;
+                    }
+
+                    $this->already_refresh = true;
+                    // try to refresh access token
+                    $json = $this->request('POST', 'oauth/token', [
+                        'body'  => [
+                            'grant_type'    => 'refresh_token',
+                            'client_id'     => $this->consumer_key,
+                            'client_secret' => $this->consumer_secret,
+                            'refresh_token' => $this->refresh_token
+                        ]
+                    ]);
+
+                    if (isset($json['access_token']) && isset($json['refresh_token']))
+                    {
+                        $this->sm->get('Log')->error('Replay action');
+                        $this->sm->get('UserTable')->refreshToken( 'workable', $this->access_token, $this->refresh_token, $json['access_token'], $json['refresh_token'] );
+
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'], false );
+
+                        return $this->request( $method, $ressource, $_params );
+                    }
+                    else
+                    {
+                        $this->sm->get('Log')->error('TOKEN revoked (' . $this->access_token. ') now set to NULL.');
+                        $this->sm->get('AtsTable')->unsetAccessToken( 'workable', $this->access_token );
+
+                        // log error
+                        $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+                    }
                     
                     return null;
                 }
             }
 
+
+            // log error
+            $this->logApiCall($method, $ressource, $params, false, null, $id_error);
+
             throw $e;
         }
         $data   = $data->json();
         $found  = false;
+        $this->already_refresh = false;
 
         // log success
         $this->logApiCall($method, $ressource, $params, true, $data);
@@ -257,7 +304,7 @@ Trait WorkableTrait
 
                     if (isset($json['access_token']) && isset($json['refresh_token']))
                     {
-                        $this->setAccessToken( $json['access_token'] );
+                        $this->setAccessToken( $json['access_token'], $json['refresh_token'] );
 
                         $key        = $json['access_token'] ;
                         $me         = $this->get('accounts');
@@ -276,15 +323,17 @@ Trait WorkableTrait
                             {
                                 // create the user because no auth
                                 $updated = $this->sm->get('UserTable')->insertNetworkByUser('workable', $identity_user->id, [
-                                    'access_token'   => $key,
-                                    'subdomain'   => $me['accounts'][0]['subdomain']
+                                    'access_token'      => $key,
+                                    'refresh_token'     => $json['refresh_token'],
+                                    'subdomain'         => $me['accounts'][0]['subdomain']
                                 ]);
                             }
                             else
                             {
                                 $updated = $this->sm->get('UserTable')->updateNetworkByUser('workable', $identity_user->id, [
                                     'access_token'   => $key,
-                                'subdomain'   => $me['accounts'][0]['subdomain']
+                                    'refresh_token'     => $json['refresh_token'],
+                                    'subdomain'   => $me['accounts'][0]['subdomain']
                                 ]);
                             }
                         }
