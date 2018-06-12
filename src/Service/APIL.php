@@ -56,6 +56,10 @@ class APIL extends \Core\Service\CoreService implements ServiceLocatorAwareInter
     }
     public function user($user)
     {
+        if(!isset($user))
+        {
+            return $this;
+        }
         if(is_numeric($user))
         {
             $user = $this->sm->get("UserTable")->getUser($user);
