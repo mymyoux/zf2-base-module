@@ -195,7 +195,7 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
                 $result = curl_exec($ch);
                 curl_close($ch);
                 $now = round(microtime(True)*1000);
-                $this->getLogger()->info('time:'.($now-$time));
+                $this->getLogger()->info('['.$channel.'] time:'.($now-$time));
             }
 
 
