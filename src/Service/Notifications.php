@@ -141,6 +141,11 @@ class Notifications extends CoreService implements ServiceLocatorAwareInterface
             $slacks = $this->slack["accounts"];
             $rawjson = json_decode($json);
             $channel = $rawjson->channel;
+            if($channel == 'errors')
+            {
+                $this->getLogger()->warn("ignore temp");
+                return;
+            }
             if(starts_with($channel, "#"))
             {
                 $channel = substr($channel, 1);
