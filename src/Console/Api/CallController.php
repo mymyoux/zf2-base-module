@@ -24,16 +24,27 @@ class CallController extends \Core\Console\CoreController
     {
         global $argv;
         $data = $this->params()->fromRoute("data");
+        $debug = $this->params()->fromRoute("debug");
+        if(isset($debug))
+        {
+            $debug = True;
+        }
         $data = json_decode(base64_decode($data), True);
         $controller = $data["controller"];
         $method = $data["method"];
         $action = $data["action"];
         $params = $data["params"];
+        if(isset($data["module"]))
+            $module = $data["module"];
         if(isset($data["api_user"]))
         {
             $user = $this->getUserTable()->getUser($data["api_user"]);
         }
         $api = $this->api->$controller->method($method);
+        if(isset($module))
+        {
+            $api->module($module);
+        }
         if(isset($user))
         {
             $api = $api->user($user);
@@ -67,6 +78,10 @@ class CallController extends \Core\Console\CoreController
             $exception["core"] = $e->getCode();
             $exception["trace"] = $e->getTraceAsString();
             $object = ["exception" => $exception];
+        }
+        if($debug)
+        {
+            dd($object);
         }
         echo "------start-data-----\n";
         echo json_encode(
